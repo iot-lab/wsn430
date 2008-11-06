@@ -29,24 +29,31 @@
 //@author Cory Sharp <cssharp@eecs.berkeley.edu>
 
 #include <io.h>
-#include <signal.h>
-#include <iomacros.h>
-#include <stdio.h>
-#include <string.h>
+
 #include "ds2411.h"
 
+/***************************/
+/** ds2411 1wire commands **/
+/***************************/
+#define DS2411_READ_ROM            0x33
+#define DS2411_SEARCH_ROM          0xF0
+#define DS2411_OVERDRIVE_SKIP_ROM  0x3C
+#define DS2411_FAMILY_CODE         0x01
 
-/*
+/************************/
+/** ds2411 error codes **/
+/************************/
 
-  The 1-wire timings suggested by the DS2411 data sheet are incorrect,
-  incomplete, or unclear.  The timings provided the app note 522 work:
+#define DS2411_BAD_FAMILY_CODE       -1
+#define DS2411_BAD_CRC               -2
 
-    http://www.maxim-ic.com/appnotes.cfm/appnote_number/522
-
-*/
+ds2411_serial_number_t ds2411_id;
 
 
-static uint8_t ds2411_id[ 8 ];
+enum ds2411_result_t {
+  DS2411_ERROR   = 0, 
+  DS2411_SUCCESS = 1
+};
 
 /***************************************************/
 /***************************************************/
@@ -95,7 +102,12 @@ static void __inline__ micro_wait(register unsigned int n)
 /***************************************************/
 /***************************************************/
 /***************************************************/
-
+/**
+ * Compute CRC for a new byte.
+ * \param crc the previous crc value.
+ * \param byte the nex byte
+ * \return the new crc value taking the new byte into account
+ */
 static uint8_t ds2411_crc8_byte( uint8_t crc, uint8_t byte )
 {
   int i;
@@ -168,7 +180,10 @@ do {                                        \
 /***************************************************/
 /* INIT ********************************************/
 /***************************************************/
-
+/**
+ * Execute the reset procedure as defined
+ * by the 1-Wire protocol.
+ */
 static int ds2411_reset(void) // >= 960us
 {
   int present;
@@ -186,6 +201,10 @@ static int ds2411_reset(void) // >= 960us
 /* WRITE BIT ***************************************/
 /***************************************************/
 
+/**
+ * Write a '0' bit with the 1-Wire protocol
+ * to the DS2411 device.
+ */
 static void ds2411_write_bit_one(void) // >= 70us
 {
   DS2411Pin_output_low();
@@ -194,6 +213,10 @@ static void ds2411_write_bit_one(void) // >= 70us
   micro_wait(STD_B);  //t_SLOT - t_W1L
 }
 
+/**
+ * Write a '1' bit with the 1-Wire protocol
+ * to the DS2411 device.
+ */
 static void ds2411_write_bit_zero(void) // >= 70us
 {
   DS2411Pin_output_low();
@@ -206,6 +229,11 @@ static void ds2411_write_bit_zero(void) // >= 70us
 /* WRITE *******************************************/
 /***************************************************/
 
+/**
+ * Write one bit with the 1-Wire protocol
+ * to the DS2411 device.
+ * \param is_one the bit to write
+ */
 static void ds2411_write_bit( int is_one ) // >= 70us
 {
   if(is_one)
@@ -214,6 +242,11 @@ static void ds2411_write_bit( int is_one ) // >= 70us
     ds2411_write_bit_zero();
 }
 
+/**
+ * Write one byte with the 1-Wire protocol
+ * to the DS2411 device.
+ * \param byte the byte to write
+ */
 static void ds2411_write_byte( uint8_t byte ) // >= 560us
 {
   uint8_t bit;
@@ -224,7 +257,11 @@ static void ds2411_write_byte( uint8_t byte ) // >= 560us
 /***************************************************/
 /* READ ********************************************/
 /***************************************************/
-
+/**
+ * Read 1 bit with the 1-Wire protocol
+ * from the DS2411 device.
+ * \return the read bit
+ */
 static uint8_t ds2411_read_bit(void) // >= 70us
 {
   int bit;
@@ -238,93 +275,51 @@ static uint8_t ds2411_read_bit(void) // >= 70us
   return bit;
 }
 
+/**
+ * Read one byte with the 1-Wire protocol
+ * from the DS2411 device.
+ * \return the byte read
+ */
 static uint8_t ds2411_read_byte(void) // >= 560us
 {
   uint8_t byte = 0;
   uint8_t bit;
   for( bit=0x01; bit!=0; bit<<=1 )
-    {
-      if( ds2411_read_bit() )
-	byte |= bit;
-    }
+  {
+    if( ds2411_read_bit() )
+      byte |= bit;
+  }
   return byte;
 }
 
 /***************************************************/
 /***************************************************/
-/***************************************************/
 
-static enum ds2411_result_t DS2411_init(void) // >= 6000us
+uint16_t ds2411_init(void)
 {
-  int retry = 5;
-  uint8_t id[8];
+  uint16_t retry = 5;
   
-  bzero( ds2411_id, 8 );
   DS2411Pin_init();
   DS2411Pin_output_high();
   ds2411_reset();
 
   while( retry-- > 0 )
+  {
+    int crc = 0;
+    if( ds2411_reset() )
     {
-      int crc = 0;
-      if( ds2411_reset() )
-	{
-	  uint8_t* byte;
-	  ds2411_write_byte(0x33);
-	  for( byte=id+7; byte!=id-1; byte-- )
-	    {
-	      *byte = ds2411_read_byte();
-	      crc = ds2411_crc8_byte( crc, *byte );
-	    }
-
-	  if( crc == 0 )
-	    {
-	      memcpy( ds2411_id, id, 8 );
-	      return DS2411_SUCCESS;
-	    }
-	}
+      uint16_t i;
+      ds2411_write_byte(DS2411_READ_ROM);
+      for( i=0; i<8; i++ )
+      {
+        ds2411_id.raw[7-i] = ds2411_read_byte();
+        crc = ds2411_crc8_byte( crc, ds2411_id.raw[7-i] );
+      }
+      if( crc == 0 )
+      {
+        return 1;
+      }
     }
-  return DS2411_ERROR;
+  }
+  return 0;
 }
-
-
-/***************************************************/
-/***************************************************/
-/***************************************************/
-
-#if defined(PRINT_DS2411)
-static void print_hex2(int x)
-{
-  if (x < 0x10)
-    printf("0");
-  printf("%x",x);
-}
-#endif /* DEBUG_DS2411 */
-
-#if defined(PRINT_DS2411)
-void ds2411_print_id(ds2411_serial_number_t *id)
-{
-  int i;
-  printf(" crc %x :",id->fields.crc);
-  for(i=1; i < 7; i++)
-    {
-      print_hex2(id->raw[i]);
-      printf(":");
-    }
-  printf(" family %x\n",id->fields.family);
-}
-#endif /* DEBUG_DS2411 */
-
-enum ds2411_result_t ds2411_init(void)
-{
-  return DS2411_init();
-}
-
-void ds2411_get_id(ds2411_serial_number_t *id)
-{
-  memcpy( id->raw, ds2411_id, 8 );
-}
-
-/***************************************************/
-/***************************************************/
-/***************************************************/

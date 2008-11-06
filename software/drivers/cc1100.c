@@ -59,6 +59,9 @@ critical void cc1100_init(void)
   CC1100_WRITE_REG(CC1100_REG_FREQ2, 0x20);
   CC1100_WRITE_REG(CC1100_REG_FREQ1, 0x25);
   CC1100_WRITE_REG(CC1100_REG_FREQ0, 0xED);
+  
+  // value from SmartRF
+  CC1100_WRITE_REG(CC1100_REG_DEVIATN, 0x0);
 }
 
 critical void cc1100_cmd_reset(void)
@@ -229,6 +232,12 @@ critical void cc1100_cfg_chan(uint8_t cfg)
 {
   CC1100_WRITE_REG(CC1100_REG_CHANNR, cfg);
 }
+
+critical void cc1100_cfg_freq_if(uint8_t cfg)
+{
+  CC1100_WRITE_REG(CC1100_REG_FSCTRL1, (cfg & 0x1F));
+}
+
 
 critical void cc1100_cfg_chanbw_e(uint8_t cfg)
 {

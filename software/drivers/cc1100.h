@@ -226,6 +226,14 @@ void cc1100_cfg_device_addr(uint8_t cfg);
 void cc1100_cfg_chan(uint8_t cfg);
 
 /**
+ * Set the desired IF frequency
+ * (values are 0-31)
+ * \param cfg the configuration value
+ */
+void cc1100_cfg_freq_if(uint8_t cfg);
+
+
+/**
  * Set the exponent of the channel bandwidth
  * (values are 0-3)
  * \param cfg the configuration value

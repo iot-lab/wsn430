@@ -8,7 +8,6 @@
 #include <io.h>
 #include "tsl2550.h"
 
-
 #define TSL_ADDR     0x39
 #define TSL_CMD_PD   0x00 // power down
 #define TSL_CMD_PU   0x03 // power up and read config.
@@ -19,25 +18,9 @@
 
 
 static void inline send_I2C_byte(char c)
-{	
-	// configure U0CTL for I2C
-	U0CTL = (I2C | SYNC) ;
-	U0CTL &= ~(I2CEN);
-	
+{	// set master
 	U0CTL |= MST;
 	
-	// clock from SMCLK
-	I2CTCTL = I2CSSEL_2;
-
-	// clock config
-	I2CPSC = 0x0;
-	I2CSCLH = 0x7;
-	I2CSCLL = 0x7;
-	
-	// disable all interrupts
-	I2CIE = 0;
-	
-	U0CTL |= I2CEN;
 	// slave address
 	I2CSA = TSL_ADDR;
 	
@@ -57,7 +40,7 @@ static void inline send_I2C_byte(char c)
 	while (I2CDCTL & I2CBUSY) ;
 }
 
-static char inline read_I2C_byte()
+static uint8_t inline read_I2C_byte()
 {
 	I2CTCTL &= ~I2CTRX;         // I2CTRX=0 => Receive Mode (R/W bit = 1)
 	
@@ -66,7 +49,7 @@ static char inline read_I2C_byte()
 
 	I2CIFG &= ~ARDYIFG;         // clear Access ready interrupt flag
 	I2CTCTL |= I2CSTT+I2CSTP;   // start receiving and finally generate
-							  //  start and stop condition
+                                //  start and stop condition
 	// wait end of transmission
 	while (I2CDCTL & I2CBUSY) ;
 
@@ -84,10 +67,27 @@ void tsl2550_init(void)
 	P4DIR |=  (1<<5);
 	P4OUT |=  (1<<5);
 	
+	// configure U0CTL for I2C
+	U0CTL = (I2C | SYNC) ;
+	U0CTL &= ~(I2CEN);
+	
+	// clock from SMCLK
+	I2CTCTL = I2CSSEL_2;
 
+	// clock config
+	I2CPSC = 0x0;
+	I2CSCLH = 0x7;
+	I2CSCLL = 0x7;
+	
+	// disable all interrupts
+	I2CIE = 0;
+	
+	// enable I2C
+	U0CTL |= I2CEN;
+	
 }
 
-unsigned char tsl2550_powerup(void)
+uint8_t tsl2550_powerup(void)
 {
 	send_I2C_byte(TSL_CMD_PU);
 	return read_I2C_byte();
@@ -108,13 +108,13 @@ void tsl2550_set_standard()
 	send_I2C_byte(TSL_CMD_RST);
 }
 
-unsigned char tsl2550_read_adc0(void)
+uint8_t tsl2550_read_adc0(void)
 {
 	send_I2C_byte(TSL_CMD_ADC0);
 	return read_I2C_byte();
 }
 
-unsigned char tsl2550_read_adc1(void)
+uint8_t tsl2550_read_adc1(void)
 {
 	send_I2C_byte(TSL_CMD_ADC1);
 	return read_I2C_byte();

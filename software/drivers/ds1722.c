@@ -9,7 +9,7 @@
 #include "ds1722.h"
 #include "spi1.h"
 
-static void __inline__ micro_wait(register uint16_t n)
+static void inline micro_wait(register uint16_t n)
 {
   /* MCLK is running 8MHz, 1 cycle = 125ns    */
   /* n=1 -> waiting = 4*125ns = 500ns         */
@@ -26,16 +26,9 @@ static void __inline__ micro_wait(register uint16_t n)
 
 static uint8_t resolution = 0x2;
 
-static uint8_t read_conf_reg(void)
+void ds1722_init(void)
 {
-  uint8_t reg;
-  SPI1_DS1722_ENABLE();
-  micro_wait(1);
-  micro_wait(1);
-  SPI1_TX(0x80);
-  SPI1_RX(reg);
-  SPI1_DS1722_DISABLE();
-  return reg;
+    SPI1_INIT();
 }
 
 void ds1722_set_res(uint16_t res)
@@ -116,7 +109,7 @@ uint8_t ds1722_read_LSB(void)
 }
 
 
-uint8_t ds1722_read_cfg()
+uint8_t ds1722_read_cfg(void)
 {
   uint8_t c;
   SPI1_DS1722_ENABLE();
