@@ -13,6 +13,7 @@ typedef void (*uart0_cb_t)(uint8_t c);
 
 #define UART0_CONFIG_8MHZ_115200 0
 #define UART0_CONFIG_1MHZ_38400  1
+#define UART0_CONFIG_1MHZ_115200 2
 
 /**
  * Configure the USART0 for UART use.
@@ -25,7 +26,7 @@ void uart0_init(uint16_t config);
  * Wait until a character is read and return it.
  * \return the character read
  */
-int uart0_getchar_polling();
+int uart0_getchar_polling(void);
 
 /**
  * Send a character.
@@ -37,7 +38,7 @@ int uart0_putchar(int c);
 /**
  * Stop the peripheral.
  */
-void uart0_stop();
+void uart0_stop(void);
 
 /**
  * Register a callback that will be called every time

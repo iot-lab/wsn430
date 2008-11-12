@@ -12,19 +12,19 @@
  * and read device signature.
  * \return signature read (should be 0x13)
  */
-unsigned char  m25p80_init(void);
+uint8_t  m25p80_init(void);
 
 /**
  *  Read device electronic signature
  * \return signature, sould be 0x13
  */
-unsigned char  m25p80_get_signature(void);
+uint8_t  m25p80_get_signature(void);
 
 /** 
  * Read and returns the M25P80 state register.
  * \return state register
  */
-unsigned char  m25p80_get_state(void);
+uint8_t  m25p80_get_state(void);
 
 /**
  * Wake the M25P80 from Power Down

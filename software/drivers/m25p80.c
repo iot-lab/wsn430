@@ -1,4 +1,5 @@
 #include <io.h>
+#include <signal.h>
 
 #include "m25p80.h"
 #include "spi1.h"
@@ -72,7 +73,7 @@ typedef struct m25p80_sr m25p80_sr_t;
 /* ************************************************** */
 /* ************************************************** */
 
-unsigned char m25p80_init()
+critical uint8_t m25p80_init()
 {
   // Configure as GPIO outputs(CSn,Hold)
   P4DIR  |=  (M25P80_BIT_HOLD); 
@@ -94,9 +95,9 @@ unsigned char m25p80_init()
 /* ************************************************** */
 /* ************************************************** */
 
-unsigned char m25p80_get_signature()
+critical uint8_t m25p80_get_signature()
 {
-  unsigned char ret = 0;
+  uint8_t ret = 0;
   SPI1_M25P80_ENABLE();
   
   SPI1_TX(OPCODE_RES);
@@ -118,9 +119,9 @@ unsigned char m25p80_get_signature()
  * other information is data or command 
  */
 
-unsigned char m25p80_get_state()
+critical uint8_t m25p80_get_state()
 { 
-  unsigned char ret = 0;
+  uint8_t ret = 0;
   SPI1_M25P80_ENABLE();
   
   SPI1_TX(OPCODE_RDSR);
@@ -134,7 +135,7 @@ unsigned char m25p80_get_state()
 /* ************************************************** */
 /* ************************************************** */
 
-void m25p80_wakeup(void)
+critical void m25p80_wakeup(void)
 {
   SPI1_M25P80_ENABLE();
   SPI1_TX(OPCODE_RES);
@@ -145,7 +146,7 @@ void m25p80_wakeup(void)
 /* ************************************************** */
 /* ************************************************** */
 
-void m25p80_power_down(void)
+critical void m25p80_power_down(void)
 { 
   SPI1_M25P80_ENABLE();
   SPI1_TX(OPCODE_DP);
@@ -156,11 +157,11 @@ void m25p80_power_down(void)
 /* ************************************************** */
 /* ************************************************** */
 
-  uint8_t state;
 static void m25p80_block_wip()
 {
   #define WIP 0x01
   
+  uint8_t state;
   
   SPI1_M25P80_ENABLE();
   
@@ -191,7 +192,7 @@ static void m25p80_write_enable()
 /* ************************************************** */
 /* ************************************************** */
 
-void m25p80_erase_sector(uint8_t index)
+critical void m25p80_erase_sector(uint8_t index)
 {
   m25p80_block_wip();
   m25p80_write_enable();
@@ -207,8 +208,9 @@ void m25p80_erase_sector(uint8_t index)
 /* ************************************************** */
 /* ************************************************** */
 
-void m25p80_erase_bulk()
+critical void m25p80_erase_bulk()
 {
+  uint8_t state;
   m25p80_block_wip();
   
   m25p80_write_enable();
@@ -227,7 +229,7 @@ void m25p80_erase_bulk()
 /* ************************************************** */
 /* ************************************************** */
 
-void m25p80_save_page(uint16_t page, const uint8_t *buffer) 
+critical void m25p80_save_page(uint16_t page, const uint8_t *buffer) 
 {
   uint16_t i = 0;
 
@@ -253,7 +255,7 @@ void m25p80_save_page(uint16_t page, const uint8_t *buffer)
 /* ************************************************** */
 
 
-void m25p80_load_page(uint16_t page, uint8_t *buffer) 
+critical void m25p80_load_page(uint16_t page, uint8_t *buffer) 
 {
   uint16_t i = 0;
   

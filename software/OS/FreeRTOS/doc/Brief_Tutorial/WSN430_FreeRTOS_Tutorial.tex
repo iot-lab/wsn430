@@ -35,7 +35,7 @@ The first is preemptive, which means that a running process may be interrupted t
 \section{Task Functionality}
 A task is a process with its context. Therefore, several tasks can coexist in an application, but do not interfere with each other, they're independent. Since only one task can execute at a time, that is using the CPU, the scheduler swaps in and out the different tasks according to their priorities and the scheduling mode. A task states block diagram may be found in Fig.~\ref{task_diagram}.
 
-\begin{figure}[h]
+\begin{figure}[ht]
 \begin{center}
 \includegraphics[scale=0.5]{figures/tskstate.png}
 \end{center}
@@ -60,7 +60,7 @@ There is a task that is systematically created in every application: the idle ta
 \section{Co-routine Functionality}
 Co-routines are a different type of process that may be used for a real time application. The main differences with tasks are that co-routines use prioritized cooperative scheduling, which means they decide when another co-routine may be executed and they share a single stack which reduces the global RAM usage, but requires some special care. Their states diagram is found in Fig.~\ref{cr_diagram}.
 
-\begin{figure}[h]
+\begin{figure}[ht]
 \begin{center}
 \includegraphics[scale=0.5]{figures/crstate.png}
 \end{center}
@@ -97,7 +97,10 @@ Semaphores are therefore mainly designed to offer synchronization between tasks 
 
 Mutexes (for MUTual EXclusion) are a form of binary semaphores used to prevent several Tasks to access the same resource at the same time. A mutex is created for a shared resource and it's associated queue is full. When a task wants to access the resource, it 'takes' the mutex. When the task is done with the resource, it gives the mutex back, so another task can use it. If a task tries to take a mutex that is already taken, it will block until it's given back.
 
-\chapter{Porting FreeRTOS on WSN430 hardware platform}
+\chapter{Porting FreeRTOS on the WSN430 hardware platform}
+\section{Option 1: Do It Yourself}
+If you want to be sure to use the latest available version of FreeRTOS, you can adapt the kernel source files for the msp430f1611 manually as follows.
+
 Download the latest archive from \url{www.freertos.org} and extract it. The FreeRTOS source files organization is as follows: there are two important folders. One is 'Source', it contains the four common files to every architecture with their headers, and the 'portable' folder containing processor specific ports. The other, Demo, contains examples programs for a lot of hardware platforms.
 
 There exists a port of FreeRTOS for the msp430f449 microcontroller on some hardware platform. Thus a few modifications need to be done in order to port it for the WSN430 platform. The port specific source files located in  the 'Source/portable/GCC/MSP430F449' directory are completely compatible with the msp430f1611. Since it is easier to use it directly without renaming it, that's what we'll do. The code in this folders contain processor specific functions (such as configuration of the timer responsible for the scheduler tick interrupt.
@@ -235,10 +238,35 @@ static void prvSetupHardware( void )
 That's it! Now you should be able to compile and load the program to the target, assuming required software (mspgcc) and hardware (JTAG FET) are installed and working.
 The three LEDs should be blinking at different rates!
 
+\section{Option 2: Use It Ported (recommended)}
+The other and simpler way is to directly use the ported source files found in the \verb$kernel$ directory. In it are two sub-folders, \verb$Source$ that contains the FreeRTOS kernel source, and \verb$Demo$ that contains one program example directly working on the WSN430. (This demo corresponds to the one described above)
 
-\chapter{Program example}
+\section{Programming Remarks and Advices}
+When using FreeRTOS as the OS for an application on the WSN430 platform, a few points need special attention.
 
-In this chapter, we're going to build an entire application from \textit{almost} scratch, using FreeRTOS for the OS on the nodes. Here are the main elements of the application:
+\subsection{FreeRTOS Tick}
+The real time aspect of the OS is based on counting ticks. An MMCU internal timer is used to generate an interrupt periodically allowing the OS to count time, to preempt tasks and offer a delay mechanism. The default configuration of the OS is to use the timerA of the msp430, configured with the ACLK source clock (assumed to be 32768Hz). In the \verb$FreeRTOSConfig.h$ file required in every application, the desired tick rate is specified. If a tick rate of 1kHz is wanted, the timerA CCR register will be set to 32768/1000 = 32, therefore the real tick rate will be 1024Hz.
+
+To sum up, when using FreeRTOS:
+\begin{itemize}
+	\item do not use the timerA on your own, it's already used by the kernel;
+	\item be careful if your application require accurate time measurement, the division rounding may result in erroneous values;
+	\item set ACLK to be 32768Hz. On the WSN430 platform, ACLK should be derived from XT1 with a divider of 1.
+\end{itemize}
+
+\subsection{Shared Buses}
+On the WSN430 platform, several peripherals communicate with the msp430 using shared buses. There are two communication buses on the msp430f1611: USART0 and USART1. On the USART0 are the TSL2550 light sensor using I$^2$C and a serial link with a PC (or equivalent) using UART. On the USART1 are the CC1100 radio chip using SPI, the M25P80 flash memory using SPI, the DS1722 temperature sensor using SPI and a serial link with a PC (or equivalent) using UART.
+
+Each of these USARTs can be configured for on type of link at a time (UART/SPI/I$^2$C), thus if you want to switch between several peripherals on the same port, you have to reconfigure it before using it (calling the \verb$xxx_init()$ function of the driver might do the trick). On the USART1, three peripherals can be accessed using SPI. With this type of bus, the different devices share the same communication link, but are enabled/disabled using separate lines. When communicating with a device, the other devices on the same SPI bus must be disabled, that is: only one device should be enabled at a time. To do this, the \verb$spi1.h$ driver disable the other two SPI peripherals when enabling one.
+
+In a multitask environment, if two tasks want to access two different devices on the same SPI bus, care must be taken in order to not interrupt a given transfer, and a mutex (mutual exclusion semaphore) should be used for this. FreeRTOS offers a simple way of using a mutual exclusion semaphore, therefore it is recommended to use it.
+
+The same way, mutexes should be used to prevent different tasks interfering with each other accessing the different msp430 USART ports.
+
+
+\chapter{Program examples}
+
+In this chapter, we're going to build an entire application from \textit{almost} scratch, using FreeRTOS as the OS on the nodes. Here are the main elements of the application:
 \begin{description}
 	\item[sensor node:] a remote node may sample light and temperature with its integrated sensors, as well as light its three LEDs;
 	\item [sink node:] another node sends commands to and receives data from the remote sensor node;
@@ -246,7 +274,7 @@ In this chapter, we're going to build an entire application from \textit{almost}
 \end{description}
 The total application schema is found in Fig.~\ref{fig:archi}.
 
-\begin{figure}[h]
+\begin{figure}[ht]
 	\begin{center}
 	\includegraphics[width=0.8\textwidth]{figures/archi.png}
 	\end{center}
@@ -279,11 +307,11 @@ The \textbf{blinker} task, responsible for switching on/off the LEDs has the lea
 
 The \textbf{sensor} task, responsible for sampling the sensors, must execute periodically and not get delayed too much. It's priority will be higher than the blinker's one.
 
-the \textbf{mac} task, implementing a simple MAC layer allowing the node to communicate must be very reactive to incomming and outgoing communications, therefore it will have the highest priority.
+the \textbf{mac} task, implementing a simple MAC layer allowing the node to communicate must be very reactive to incoming and outgoing communications, therefore it will have the highest priority.
 
 The corresponding task priorities are shown in Fig.~\ref{fig:prio}
 
-\begin{figure}[h]
+\begin{figure}[ht]
 	\begin{center}
 	\includegraphics[scale=1]{figures/prio.png}
 	\end{center}
@@ -304,7 +332,7 @@ To sum up, three queues are needed by this application:
 
 In Fig.~\ref{fig:queues} is found a schema representing the tasks and queues.
 
-\begin{figure}[h]
+\begin{figure}[ht]
 	\begin{center}
 	\includegraphics[scale=.8]{figures/queues.png}
 	\end{center}
@@ -955,7 +983,7 @@ The mac task is very similar to the one of the sensor node firmware, the main di
 
 \section{Graphical Application}
 A PC graphical application is provided in the folder \verb$sink_example/PC_appli$, that allows a user to send commands to the sensor node as seen above, and display the last conversion result received, as seen in Fig~\ref{fig:pcappli}.
-\begin{figure}[h]
+\begin{figure}[ht]
 \begin{center}
 \includegraphics[scale=0.5]{figures/PC_appli.png}
 \end{center}

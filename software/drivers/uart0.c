@@ -59,15 +59,21 @@ void uart0_init(uint16_t config){
   {
     case UART0_CONFIG_8MHZ_115200:
       // 115200 baud & SMCLK @ 8MHZ
-      U0BR1  = 0;
-      U0BR0  = 69;
-      U0MCTL = 0x10;
+      U0BR1  = 0x00;
+      U0BR0  = 0x45;
+      U0MCTL = 0xAA;
       break;
     case UART0_CONFIG_1MHZ_38400:
       // 38400 baud & SMCLK @ 1MHZ
-      U0BR1  = 0;
-      U0BR0  = 0x1B;
-      U0MCTL = 0x03;
+      U0BR1  = 0x00;
+      U0BR0  = 0x1A;
+      U0MCTL = 0x00;
+      break;
+    case UART0_CONFIG_1MHZ_115200:
+      // 115200 baud & SMCLK @ 1MHZ
+      UBR00  = 0x08;
+      UBR10  = 0x00;
+      UMCTL0 = 0x5B;
       break;
     default:
       // 38400 baud & SMCLK @ 1MHZ
@@ -86,7 +92,7 @@ void uart0_init(uint16_t config){
 }
 
 
-int uart0_getchar_polling()
+int uart0_getchar_polling(void)
 {
   int c;
   USART0_RX(c);
@@ -99,7 +105,7 @@ int uart0_putchar(int c)
   return c;
 }
 
-void uart0_stop()
+void uart0_stop(void)
 {
   P3SEL &= ~(0x10 | 0x20);
   ME1  &= ~(UTXE0 | URXE0);
@@ -110,7 +116,7 @@ void uart0_register_callback(uart0_cb_t cb)
     rx_char_cb = cb;
 }
 
-interrupt(USART0RX_VECTOR) usart0irq() {
+interrupt(USART0RX_VECTOR) usart0irq(void) {
     uint8_t dummy;
   
     /* Check status register for receive errors. */

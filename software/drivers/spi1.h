@@ -14,12 +14,12 @@ static uint8_t spi1_tx_return_value;
  */
 #define SPI1_WAIT_EOTX() while ( (IFG2 & UTXIFG1) == 0){}
 
-#define CC1101_CS_PIN (1<<2)
+#define CC1100_CS_PIN (1<<2)
 #define DS1722_CS_PIN (1<<3)
 #define M25P80_CS_PIN (1<<4)
 
-#define CC1101_ENABLE()  P4OUT &= ~CC1101_CS_PIN
-#define CC1101_DISABLE() P4OUT |=  CC1101_CS_PIN
+#define CC1100_ENABLE()  P4OUT &= ~CC1100_CS_PIN
+#define CC1100_DISABLE() P4OUT |=  CC1100_CS_PIN
 
 #define DS1722_ENABLE()  P4OUT |=  DS1722_CS_PIN
 #define DS1722_DISABLE() P4OUT &= ~DS1722_CS_PIN
@@ -53,12 +53,12 @@ static uint8_t spi1_tx_return_value;
   U1CTL &= ~(SWRST); /* clear reset */ \
  \
  /* CS IO pins configuration */ \
-  P4SEL &= ~(CC1101_CS_PIN | DS1722_CS_PIN | M25P80_CS_PIN); \
-  P4DIR |=  (CC1101_CS_PIN | DS1722_CS_PIN | M25P80_CS_PIN); \
+  P4SEL &= ~(CC1100_CS_PIN | DS1722_CS_PIN | M25P80_CS_PIN); \
+  P4DIR |=  (CC1100_CS_PIN | DS1722_CS_PIN | M25P80_CS_PIN); \
  \
  /* disable peripherals */ \
   M25P80_DISABLE(); \
-  CC1101_DISABLE(); \
+  CC1100_DISABLE(); \
   DS1722_DISABLE(); \
 } while(0)
 
@@ -71,7 +71,7 @@ static uint8_t spi1_tx_return_value;
 { \
   M25P80_DISABLE(); \
   DS1722_DISABLE(); \
-  CC1101_ENABLE(); \
+  CC1100_ENABLE(); \
 } while (0)
 
 /**
@@ -79,7 +79,7 @@ static uint8_t spi1_tx_return_value;
  **/
 #define SPI1_CC1100_DISABLE() do \
 { \
-  CC1101_DISABLE(); \
+  CC1100_DISABLE(); \
 } while (0)
 
 
@@ -89,7 +89,7 @@ static uint8_t spi1_tx_return_value;
 #define SPI1_DS1722_ENABLE() do \
 { \
   M25P80_DISABLE(); \
-  CC1101_DISABLE(); \
+  CC1100_DISABLE(); \
   DS1722_DISABLE(); \
   U1CTL |= SWRST; \
   U1TCTL &= ~(CKPH); \
@@ -114,7 +114,7 @@ static uint8_t spi1_tx_return_value;
  */
 #define SPI1_M25P80_ENABLE() do \
 { \
-    CC1101_DISABLE(); \
+    CC1100_DISABLE(); \
     DS1722_DISABLE(); \
     M25P80_ENABLE(); \
 } while (0)
