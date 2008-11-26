@@ -266,7 +266,609 @@ The same way, mutexes should be used to prevent different tasks interfering with
 
 \chapter{Program examples}
 
-In this chapter, we're going to build an entire application from \textit{almost} scratch, using FreeRTOS as the OS on the nodes. Here are the main elements of the application:
+In this chapter, we're going to build four little programs that show each main aspect of the FreeRTOS operating system. Then we'll do an entire application that puts most of the features of FreeRTOS together.
+
+\section{Example 01: A simple multitask application}
+
+The first example is a simple application that consists of two independent tasks running concurrently. The goal is to show how to setup a multitask environment, define and create the tasks, start a preemptive scheduler, as well as to show some task time control functions. The source code for this project is found in the folder: \verb$01_simple_multitask$, and the source code of interest in the \verb$main.c$ source file.
+
+
+In this design, there are two independent tasks: the first called 'LED' just blinks the LEDs at a fixed rate, and the second called 'Temperature' periodically asks the external temperature sensor for a measurement and displays the result on a UART link to a PC. Both tasks will run at the same priority, and the scheduler might preempt the tasks for letting the other one execute.
+
+A task consists of a function whose prototype is as follows:
+
+\verb$    void TaskFunction( void* pvParameters );$
+
+This function must contain an infinite loop that will be executed during the application. The LED task will first configure the LEDs driver and initialize an LED state variable then enter the infinite loop where it sets the LEDs according to the state variable, then increments this variable, then asks the scheduler to block the task for a given time. The Temperature task will first initialize the UART communication driver and the temperature sensor driver, request the latter a continuous sampling and enters the infinite loop. In the loop, the task reads the temperature from the sensor, displays it on the serial port, and waits for a given time.
+
+The source code of the two tasks follow:
+\begin{verbatim}
+/**
+ * The LED task function.
+ * It increments a variable and displays its value on the 3 LEDs,
+ * then waits for a given delay and start over again.
+ * \param pvParameter NULL is passed as parameter.
+ */
+static void vLEDTask(void* pvParameters)
+{
+    uint16_t led_state = 0;
+    /* The LEDs are updated every 200 ticks, about 200 ms */
+    const uint16_t blinkDelay = 200;
+    
+    /* Initialize the LEDs */
+    LEDS_INIT();
+    
+    /* Infinite loop */
+    while (1)
+    {
+        /* Set the LEDs according to the value of the led_state value */
+        LEDS_SET(led_state);
+        
+        /* Increment the variable */
+        led_state += 1;
+        
+        /* Block the task for the defined time */
+        vTaskDelay(blinkDelay);
+    }
+}
+
+/**
+ * The temperature measurement task function.
+ * It reads the temperature from the sensor and print it
+ * on the serial port.
+ * \param pvParameters NULL is passed, unused here.
+ */
+static void vTempTask(void* pvParameters)
+{
+    uint8_t msb;
+    uint16_t samplecount = 0;
+    uint16_t xLastWakeTime = xTaskGetTickCount();
+    /* The display period is 1000 ticks, about 1s */
+    const uint16_t xWakePeriod = 1000;
+    
+    /* Initialize the uart port, and the temperature sensor */
+    uart0_init(UART0_CONFIG_1MHZ_115200);
+    ds1722_init();
+    ds1722_set_res(8);
+    ds1722_sample_cont();
+    
+    /* Infinite loop */
+    while(1)
+    {
+        /* Read the sensor and increment the sample count */
+        msb = ds1722_read_MSB();
+        samplecount++;
+        
+        /* Print the result on the uart port */
+        printf("Sample #%u: temperature = %u C\r\n", samplecount, msb);
+        
+        /* Block until xWakePeriod ticks since previous call */
+        vTaskDelayUntil(&xLastWakeTime, xWakePeriod);
+    }
+}
+
+\end{verbatim}
+
+Note that the two tasks use different task control functions to obtain delays from the scheduler.
+On one hand, the LED task use the following function: \verb$void vTaskDelay( portTickType xTicksToDelay )$ which asks the scheduler to block the task for \verb$xTicksToDelay$ ticks from the time of call. On the other hand, the Temperature task uses the function: \verb$void vTaskDelayUntil($ \verb$ portTickType *pxPreviousWakeTime,$ \verb$ portTickType xTimeIncrement )$ which asks the scheduler to block the task until \verb$xTimeIncrement$ ticks have expired since the time value pointed by \verb$pxPreviousWakeTime$. This variable is then updated to the time when the task is unblocked. This function ensures the loop will be executed with a given period no matter what the execution time is.
+
+The main function looks like this:
+\begin{verbatim}
+/**
+ * The main function.
+ */
+int main( void )
+{
+    /* Setup the hardware. */
+    prvSetupHardware();
+    
+    /* Add the two tasks to the scheduler */
+    xTaskCreate(vLEDTask, "LED", configMINIMAL_STACK_SIZE, NULL, 1, NULL );
+    xTaskCreate(vTempTask, "Temperature", configMINIMAL_STACK_SIZE, NULL, 1, NULL );
+    
+    
+    /* Start the scheduler. */
+    vTaskStartScheduler();
+    
+    /* As the scheduler has been started we should never get here! */
+    return 0;
+}
+\end{verbatim}
+
+To add a task to the scheduler, the \verb$xTaskCreate$ function is used. The main parameters are the task function pointer, the task name, the task stack size, and the task priority (here set to 1 for both tasks). Then the scheduler is started by calling the \verb$vTaskStartScheduler$ function.
+
+
+\section{Example 02: A multitask application with intertask communication}
+
+The second example is a simple application that consists of two tasks running concurrently which communicate with each other. The goal is to show how to make a task give data to another using a queue. The source code for this project is found in the folder: \verb$02_queue_multitask$, and the source code of interest in the \verb$main.c$ source file.
+
+In this design, there are two tasks. The first, called 'Temperature' is really similar to the homonym from the previous example, but instead of printing the measure value every time it reads the sensor, it will pass the data to the other task, called 'Print'. This task will just wait until some data are passed to it, and print these on the UART link. Passing the data between the tasks is done with a queue. This queue is created in the \verb$main$ function which is:
+\begin{verbatim}
+/**
+ * The main function.
+ */
+int main( void )
+{
+    /* Setup the hardware. */
+    prvSetupHardware();
+    
+    /* Create the Queue for communication between the tasks */
+    xQueue = xQueueCreate( 5, sizeof(uint8_t) );
+    
+    /* Add the two tasks to the scheduler */
+    xTaskCreate(vPrintTask, "Print", configMINIMAL_STACK_SIZE, NULL, 1, NULL );
+    xTaskCreate(vTempTask, "Temperature", configMINIMAL_STACK_SIZE, NULL, 1, NULL );
+    
+    
+    /* Start the scheduler. */
+    vTaskStartScheduler();
+    
+    /* As the scheduler has been started we should never get here! */
+    return 0;
+}
+\end{verbatim}
+
+The parameters passed to the \verb$xQueueCreate$ function are the queue length and the item size. Here we want 5 items of 1 byte each.
+
+The 'Print' task first initializes the UART driver and enters its infinite loop where it waits for data to be available on the queue, and prints it each time it reads some. The 'Temperature' task
+initializes the sensor driver, starts the sampling, and enters the loop where it reads the measure value, places it in the queue, and waits for a given time. The tasks are defined as follows:
+\begin{verbatim}
+/**
+ * The Print task function.
+ * It waits until a sensor value has been put in the queue,
+ * and prints its value on the uart port.
+ * \param pvParameter NULL is passed as parameter.
+ */
+static void vPrintTask(void* pvParameters)
+{
+    uint8_t temp_meas;
+    uint16_t samplecount = 0;
+    
+    /* Initialize the uart port */   
+    uart0_init(UART0_CONFIG_1MHZ_115200);
+    
+    /* Infinite loop */
+    while (1)
+    {
+        /* Wait until an element is received from the queue */
+        if (xQueueReceive(xQueue, &temp_meas, portMAX_DELAY))
+        {
+            samplecount++;
+            /* Print the result on the uart port */
+            printf("Sample #%u: temperature = %u C\r\n", samplecount, temp_meas);
+        }
+    }
+}
+
+/**
+ * The temperature measurement task function.
+ * It reads the temperature from the sensor and puts it on the queue
+ * \param pvParameters NULL is passed, unused here.
+ */
+static void vTempTask(void* pvParameters)
+{
+    uint8_t msb;
+    uint16_t xLastWakeTime = xTaskGetTickCount();
+    
+    /* The sample period is 1000 ticks, about 1s */
+    const uint16_t xWakePeriod = 1000;
+    
+    /* Initialize the temperature sensor */
+    ds1722_init();
+    ds1722_set_res(8);
+    ds1722_sample_cont();
+    
+    /* Infinite loop */
+    while(1)
+    {
+        /* Read the sensor */
+        msb = ds1722_read_MSB();
+        
+        /* Put the read value on the queue */
+        xQueueSendToBack(xQueue, &msb, 0);
+        
+        /* Block until xWakePeriod(=1000) ticks since previous call */
+        vTaskDelayUntil(&xLastWakeTime, xWakePeriod);
+    }
+}
+\end{verbatim}
+
+The functions used with the queue are \verb$xQueueSendToBack$ to place an item and \verb$xQueueReceive$ to read an item. In both functions, the first parameter is the queue handle, the second is a pointer to the element that will be read/written respectively. The third parameter is the time to wait until the action can be done. If set to 0, the function will return immediately whether or not an item has been put/read to/from the queue, if \verb$portMAX_DELAY$ is used, then the function will block until the action is possible, otherwise if another value is used, the function will block until the action is possible or the number of ticks corresponding to the value has elapsed.
+
+In the example, the Temperature tasks does not wait if the queue is full when data need to be copied on the queue to respect timing, however the Print task waits until some data arrive, because it has nothing else to do.
+
+\section{Example 03: A single task application with interrupt synchronization}
+
+The third example is a simple application that consists of a single task that synchronizes with interrupt service routines. The goal is to show how to use the interrupt capabilities of the MSP430 to synchronize FreeRTOS tasks. The source code for this project is found in the folder: \verb$03_semphr_synchro$, and the source code of interest in the \verb$main.c$ source file.
+
+In this design, there is a single task, called 'LED' that will update the LEDs every time a character has arrived on the UART serial port. The UART driver can register a callback function that will be called from an interrupt service routine each time a character arrives. This example shows how to synchronize the task with the callback function being called.
+
+The solution used is a binary semaphore. It is equivalent to a queue with only one element of size 0, that has two states: full or empty. The semaphore is created in the \verb$main$ function showed here:
+\begin{verbatim}
+/**
+ * The main function.
+ */
+int main( void )
+{
+    /* Setup the hardware. */
+    prvSetupHardware();
+    
+    /* Create the Semaphore for synchronization between UART and LED task */
+    vSemaphoreCreateBinary( xSemaphore)
+    
+    /* Add the only task to the scheduler */
+    xTaskCreate(vLEDTask, "LED", configMINIMAL_STACK_SIZE, NULL, 1, NULL );
+    
+    /* Start the scheduler. */
+    vTaskStartScheduler();
+    
+    /* As the scheduler has been started we should never get here! */
+    return 0;
+}
+\end{verbatim}
+
+The LED task initializes the LED driver, and enters its loop where it increments the state variable, wait until the semaphore is available (the queue is full) and takes it (empties the queue), and updates the LED display according to the state. Here is the code:
+\begin{verbatim}
+/**
+ * The LEDs task function.
+ * It waits the semaphore is given, then takes it and update the LEDs
+ * \param pvParameters NULL is passed, unused here.
+ */
+static void vLEDTask(void* pvParameters)
+{
+    uint16_t leds_state = 0;
+    
+    /* Initialize the LEDs */
+    LEDS_INIT();
+    
+    /* Infinite loop */
+    while(1)
+    {
+        /* Increment the LED state */
+        leds_state ++;
+        /* Block until the semaphore is given */
+        xSemaphoreTake(xSemaphore, portMAX_DELAY);
+        /* update the LEDs and loop */
+        LEDS_SET(leds_state);
+    }
+}
+\end{verbatim}
+
+The function used to take the semaphore is \verb$xSemaphoreTake$, and its second parameter is the time to wait (in ticks) if the semaphore isn't available at the time of call. For the LED task, it waits until it gets freed with no time limit since \verb$portMAX_DELAY$ is specified.
+
+The callback function just has to give the semaphore, to allow the LED task to continue:
+
+\begin{verbatim}
+/**
+ * The callback function called when a char is received.
+ * It gives the semaphore.
+ * \param c the received char
+ */
+static void rx_char_cb(uint8_t c)
+{
+    static portBASE_TYPE xHigherPriorityTaskWoken;
+    /* Give the semaphore */
+    xSemaphoreGiveFromISR(xSemaphore, &xHigherPriorityTaskWoken);
+}
+\end{verbatim}
+
+The function used to give the semaphore from an interrupt service routine is \verb$xSemaphoreGiveFromISR$.
+
+
+\section{Example 04: Mutual-exclusion multitask application}
+
+The fourth example is a bigger application then the previous example that consists of a three tasks using a mutex (mutual exclusion) for accessing the same resource. The goal is to show how to design a standard application while respecting hardware constraints. The source code for this project is found in the folder: \verb$04_mutex_multitask$, and the source code of interest in the \verb$main.c$, \verb$radioTask.h$ and \verb$radioTask.c$ source files.
+
+In this design, there are three tasks, each accessing a peripheral device through the same SPI bus. Since the tasks evolve in a concurrent multitask environment, each task could be preempted at \textit{any} time, and to be sure every communication with a peripheral is not halted to start another communication, a mutex mechanism is used. Therefore, when a task want to access the corresponding peripheral device, it will first try to take the mutex, if it gets it communicate with the device, and give back the mutex to allow the other tasks to communicate.
+
+The application is as follows: a 'Temperature' task reads periodically an external temperature sensor, does an average on these values and passes it to the two other tasks 'Flash' and 'Radio' via two queues. The 'Flash' task stores the values from the queue in a buffer, that will be recopied to the flash memory device once it gets full. The 'Radio' task does almost the same, but sends the temperature values over the air in a packet when enough samples have been read.
+
+Since the Radio task code is quite large, it's been moved to the separate source files \verb$radioTask.c$ and \verb$radioTask.h$. The latter contains a function prototype that will be used by the \verb$main$ function to create the Radio task.
+
+For these intertask communications, two queues (one for Temperature -> Flash, and one for Temperature -> Radio) and a mutex are needed. They are all created in the \verb$main$ function:
+\begin{verbatim}
+int main( void )
+{
+    /* Setup the hardware. */
+    prvSetupHardware();
+    
+    /* Create the Queues */
+    xRadioQueue = xQueueCreate( 5, sizeof(uint8_t) );
+    xFlashQueue = xQueueCreate( 5, sizeof(uint8_t) );
+    
+    /* Create the Mutex */
+    xSPIMutex = xSemaphoreCreateMutex();
+    
+    /* Add the tasks to the scheduler */
+    xTaskCreate(vTempTask, "Temperature", configMINIMAL_STACK_SIZE, NULL, 1, NULL );
+    xTaskCreate(vFlashTask, "Flash",      configMINIMAL_STACK_SIZE, NULL, 1, NULL );
+    
+    /* Create the Radio Task */
+    vCreateRadioTask(xRadioQueue, xSPIMutex);
+    
+    /* Start the scheduler. */
+    vTaskStartScheduler();
+    
+    /* As the scheduler takes been started we should never get here! */
+    return 0;
+}
+\end{verbatim}
+
+The Temperature task does almost as always, initializing the sensor driver and periodically sampling the sensor. This time it averages the read values, and sends the average value to the queues, but more importantly it takes the mutex and give it back every time it accesses the sensor:
+
+\begin{verbatim}
+/**
+ * The temperature measurement task function.
+ * It reads the temperature from the sensor and puts it on the radio
+ * and flash queues for sending and storing.
+ * \param pvParameters NULL is passed, unused here.
+ */
+static void vTempTask(void* pvParameters)
+{
+    uint8_t msb;
+    uint16_t xLastWakeTime = xTaskGetTickCount();
+    uint16_t sampleCount = 0, sampleAvg = 0;
+    
+    /* The sample period is 200 ticks, about 200 ms */
+    const uint16_t xWakePeriod    = 200;
+    
+    /* The maximum time waiting for the mutex is 100 ticks */
+    const uint16_t xMaxMutexBlockTime = 100;
+    
+    /* Initialize the temperature sensor */
+    xSemaphoreTake(xSPIMutex, portMAX_DELAY);
+    LED_GREEN_ON();
+    ds1722_init();
+    ds1722_set_res(8);
+    ds1722_sample_cont();
+    LED_GREEN_OFF();
+    xSemaphoreGive(xSPIMutex);
+    
+    /* Infinite loop */
+    while(1)
+    {
+        /* Block until xWakePeriod ticks since previous call */
+        vTaskDelayUntil(&xLastWakeTime, xWakePeriod);
+        
+        /* Try to take the mutex for xMaxMutexBlockTime ticks max */
+        if ( xSemaphoreTake(xSPIMutex, xMaxMutexBlockTime) )
+        {
+            LED_GREEN_ON();
+            /* If got the mutex : */
+            /* Read the sensor */
+            msb = ds1722_read_MSB();
+            
+            /* Give the mutex back */
+            xSemaphoreGive(xSPIMutex);
+            LED_GREEN_OFF();
+            
+            /* Do calculation */
+            sampleAvg += msb;
+            sampleCount += 1;
+            
+            if (sampleCount == 4)
+            {
+                sampleAvg >>= 2;
+                /* Put the read value on the flash and radio queues
+                 * Don't block */
+                xQueueSendToBack(xFlashQueue, &sampleAvg, 0);
+                xQueueSendToBack(xRadioQueue, &sampleAvg, 0);
+                
+                /* Reset the variables */
+                sampleCount = 0;
+                sampleAvg = 0;
+            }
+        } /* if the mutex was not obtained, skip the sampling for now */
+    }
+}
+\end{verbatim}
+
+The loop is executed every 200 ticks. At each pass, the task blocks on taking the mutex for a maximum of 100 ticks, such that the periodicity of the loop is not altered if the mutex can't be taken.
+
+The Flash task first initializes the flash memory device driver and erases it.
+It then loops waiting for an item to be put in the queue, and copies it to a buffer. When this buffer is full, it copies it to the flash memory device, and so on:
+
+\begin{verbatim}
+/**
+ * The Flash task function.
+ * It waits for incoming data. It stores data from the queue 
+ * in a 256byte local buffer, and when it's full, writes it to the flash.
+ * \param pvParameter NULL is passed as parameter.
+ */
+static void vFlashTask(void* pvParameters)
+{
+    uint8_t  rx_item;
+    uint8_t  buffer[256];
+    uint16_t buffer_index = 0;
+    uint16_t flash_page = 0;
+    
+    /* Wait for the mutex to be free and take it */
+    xSemaphoreTake(xSPIMutex, portMAX_DELAY);
+    
+    /* Erase the flash */
+    LED_RED_ON();
+    printf("Flash takes mutex\r\n");
+    m25p80_init();
+    m25p80_erase_bulk();
+    m25p80_load_page(0, buffer);
+    
+    printf("Flash gives mutex\r\n");
+    LED_RED_OFF();
+    
+    /* Give the mutex back */
+    xSemaphoreGive(xSPIMutex);
+    
+    while (1)
+    {
+        /* Wait for an item to be put in the queue */
+        if ( xQueueReceive(xFlashQueue, &rx_item, portMAX_DELAY) )
+        {
+            /* Store this item in the buffer */
+            buffer[buffer_index] = rx_item;
+            buffer_index++;
+            
+            if (buffer_index == 256)
+            {
+                buffer_index = 0;
+                
+                xSemaphoreTake(xSPIMutex, portMAX_DELAY);
+                LED_RED_ON();
+                printf("Flash takes mutex\r\n");
+                
+                m25p80_save_page(flash_page, buffer);
+                
+                printf("Flash gives mutex\r\n");
+                LED_RED_OFF();
+                xSemaphoreGive(xSPIMutex);
+                
+                flash_page ++;
+            }
+        }
+    }
+}
+\end{verbatim}
+
+Every time an access to the flash device is wanted, the mutex must be taken before, and released afterward. This task blocks until the mutex is freed, with no time limit.
+
+The Radio task does almost the same thing as the Flash task, but sends a packet containing the samples instead of writing to the flash:
+\begin{verbatim}
+void vCreateRadioTask(xQueueHandle xQueue, xSemaphoreHandle xMutex)
+{
+    /* Stores the handles */
+    xDataQueue = xQueue;
+    xSPIMutex = xMutex;
+    
+    /* Create a Semaphore for synchronization with radio interrupts */
+    vSemaphoreCreateBinary(xTxSem);
+    xSemaphoreTake(xTxSem, 0);
+    
+    /* Add the radio task to the scheduler */
+    xTaskCreate(vRadioTask, "Radio", configMINIMAL_STACK_SIZE, NULL, 1, NULL );
+    
+}
+
+/**
+ * The radio task.
+ * \param pvParameters NULL is passed at start-up
+ */
+static void vRadioTask(void* pvParameters)
+{
+    /* Create the TX packet buffer, and associated variables */
+    uint8_t tx_buffer[4];
+    uint16_t tx_buffer_index = 0;
+    uint8_t tx_length = 4;
+    
+    /* Take the mutex */
+    xSemaphoreTake(xSPIMutex, portMAX_DELAY);
+    LED_BLUE_ON();
+    printf("Radio takes mutex\r\n");
+    
+    /* Initialize the radio chip driver, and configure the radio */
+    
+    cc1100_init();
+    cc1100_cmd_idle();
+    
+    cc1100_cfg_append_status(CC1100_APPEND_STATUS_DISABLE);
+    cc1100_cfg_crc_autoflush(CC1100_CRC_AUTOFLUSH_DISABLE);
+    cc1100_cfg_white_data(CC1100_DATA_WHITENING_ENABLE);
+    cc1100_cfg_crc_en(CC1100_CRC_CALCULATION_ENABLE);
+    cc1100_cfg_freq_if(0x0C);
+    cc1100_cfg_fs_autocal(CC1100_AUTOCAL_NEVER);
+
+    cc1100_cfg_mod_format(CC1100_MODULATION_MSK);
+
+    cc1100_cfg_sync_mode(CC1100_SYNCMODE_30_32);
+
+    cc1100_cfg_manchester_en(CC1100_MANCHESTER_DISABLE);
+
+    // set channel bandwidth (560 kHz)
+    cc1100_cfg_chanbw_e(0);
+    cc1100_cfg_chanbw_m(2);
+
+    // set data rate (0xD/0x2F is 250kbps)
+    cc1100_cfg_drate_e(0x0D);
+    cc1100_cfg_drate_m(0x2F);
+
+    uint8_t table[1];
+    table[0] = 0xC2; // 10dBm
+    cc1100_cfg_patable(table, 1);
+    cc1100_cfg_pa_power(0);
+    
+    /* Give the mutex back */
+    xSemaphoreGive(xSPIMutex);
+    LED_BLUE_OFF();
+    printf("Radio gives mutex\r\n");
+    
+    uint8_t data_item;
+    
+    /* Enter the infinite loop */
+    while (1)
+    {
+        /* Wait for an item to be put in the queue */
+        if ( xQueueReceive(xDataQueue, &data_item, portMAX_DELAY) )
+        {
+            /* Copy the item in the packet buffer */
+            tx_buffer[tx_buffer_index] = data_item;
+            tx_buffer_index ++;
+            
+            /* Check if the buffer is full */
+            if (tx_buffer_index == 4)
+            {
+                tx_buffer_index = 0;
+                
+                /* Take the semaphore and send the packet */
+                xSemaphoreTake(xSPIMutex, portMAX_DELAY);
+                LED_BLUE_ON();
+                printf("Radio takes mutex\r\n");
+                
+                cc1100_cmd_idle();
+                cc1100_cmd_flush_tx();
+                cc1100_cmd_calibrate();
+
+                cc1100_cfg_gdo0(CC1100_GDOx_SYNC_WORD);
+                cc1100_gdo0_int_set_falling_edge();
+                cc1100_gdo0_int_clear();
+                cc1100_gdo0_int_enable();
+                cc1100_gdo0_register_callback(vEndOfTx_cb);
+                
+                cc1100_gdo2_int_disable();
+                
+                cc1100_fifo_put((&tx_length), 1);
+                cc1100_fifo_put(tx_buffer, tx_length);
+                
+                cc1100_cmd_tx();
+                
+                printf("Radio gives mutex\r\n");
+                LED_BLUE_OFF();
+                
+                /* Give the semaphore back */
+                xSemaphoreGive(xSPIMutex);
+                
+                /* Wait until the packet has been successfully sent */
+                while (! xSemaphoreTake(xTxSem, portMAX_DELAY));
+            }
+        }
+    }
+}
+
+/**
+ * Callback function called when a packet has been sent.
+ */
+void vEndOfTx_cb(void)
+{
+    uint16_t xHigherPriorityTaskWoken; 
+    
+    /* Give the semaphore, indicating the task the packer is sent */
+    xSemaphoreGiveFromISR(xTxSem, xHigherPriorityTaskWoken);
+}
+
+\end{verbatim}
+
+We've seen here how to ensure every SPI communication to a device is not interrupted by another.
+
+
+\section{Examples 05 and 06: A complete application}
+The examples 05 and 06 constitute an entire application with a sensor node (example 05) and a sink node (example 06) connected to a PC. Here is a description of the application elements:
 \begin{description}
 	\item[sensor node:] a remote node may sample light and temperature with its integrated sensors, as well as light its three LEDs;
 	\item [sink node:] another node sends commands to and receives data from the remote sensor node;
@@ -291,7 +893,7 @@ The different communications that take place over the air are:
 
 We'll go through all the required steps to build the firmware of the sensor and sink nodes in the next sections.
 
-\section{Sensor Node Firmware}
+\section{Example 05: Sensor Node}
 
 \subsection{Tasks}
 The different functionalities of the sensor node are the following:
@@ -342,7 +944,7 @@ In Fig.~\ref{fig:queues} is found a schema representing the tasks and queues.
 
 \subsection{Source Files Organization}
 
-The sensor node firmware is found in the \verb$node_example$ folder, and is organized as follows. In the project root folder are the files:
+The sensor node firmware is found in the \verb$05_node_appli$ folder, and is organized as follows. In the project root folder are the files:
 \begin{itemize}
 	\item FreeRTOSConfig.h: contains OS specific constant parameters.
 	\item queue\_types.h: contains the item types for the different queues.
@@ -873,7 +1475,7 @@ static void prvSetupHardware( void )
 
 \end{verbatim}
 
-\section{Sink Node Firmware}
+\section{Example 06: Sink Node}
 The sink node's firmware is simpler than the sensor node's, therefore no deep details will be given here.
 
 \subsection{Tasks}
@@ -981,8 +1583,8 @@ static void char_received(uint8_t c)
 
 The mac task is very similar to the one of the sensor node firmware, the main difference is when data is received, it's systematically transferred to the interface task.
 
-\section{Graphical Application}
-A PC graphical application is provided in the folder \verb$sink_example/PC_appli$, that allows a user to send commands to the sensor node as seen above, and display the last conversion result received, as seen in Fig~\ref{fig:pcappli}.
+\subsection{Graphical Application}
+A PC graphical application is provided in the folder \verb$06_sink_appli/PC_appli$, that allows a user to send commands to the sensor node as seen above, and display the last conversion result received, as seen in Fig~\ref{fig:pcappli}.
 \begin{figure}[ht]
 \begin{center}
 \includegraphics[scale=0.5]{figures/PC_appli.png}
