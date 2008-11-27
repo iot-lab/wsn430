@@ -254,6 +254,11 @@ To sum up, when using FreeRTOS:
 	\item set ACLK to be 32768Hz. On the WSN430 platform, ACLK should be derived from XT1 with a divider of 1.
 \end{itemize}
 
+\subsection{Memory Organization}
+The FreeRTOS kernal allocates memory dynamically when a task or a queue (queue, semaphore ...) is created. To achieve this, FreeRTOS creates a large byte array at compile time from which will be taken the memory for future allocation. This array is called the \textbf{heap}, and its size is defined in the \verb$FreeRTOSConfig.h$ file, with the \verb$configTOTAL_HEAP_SIZE$ constant. The total RAM space of the MSP430F1611 is 10k bytes. The heap will contain the stacks of the different tasks as well as the queues created during execution, it can therefore be adjusted to an application.
+
+The remaining RAM space will hold all the global and \textbf{static} declared variables of the project. If the heap is defined too big, the program won't compile if there are some big global variables, but if the heap is too small, the program will compile but the tasks' stacks won't be allocated at runtime, and the application will not run normally.
+
 \subsection{Shared Buses}
 On the WSN430 platform, several peripherals communicate with the msp430 using shared buses. There are two communication buses on the msp430f1611: USART0 and USART1. On the USART0 are the TSL2550 light sensor using I$^2$C and a serial link with a PC (or equivalent) using UART. On the USART1 are the CC1100 radio chip using SPI, the M25P80 flash memory using SPI, the DS1722 temperature sensor using SPI and a serial link with a PC (or equivalent) using UART.
 
@@ -1258,7 +1263,7 @@ The initialization function prototype from the header file is the following:
 \verb$void vCreateMacTask( xQueueHandle xBlinkerCmdQueue, xQueueHandle xSensorCmdQueue, xQueueHandle xMacDataQueue, uint16_t usPriority);$
 Where \verb$xBlinkerCmdQueue$, \verb$xSensorCmdQueue$ and \verb$xMacDataQueue$ are the queue handles to the command queues toward the blink and sensor tasks respectively, and the queue from which the data to send arrives.
 
-This task uses the simplephy modules, that implements a simple PHY layer allowing to easily control the radio activity. This module requires two callback functions to indicate when a frame has been received, and when a frame has been sent. Two additional queues are needed to ensure communication between the simplephy events and the mac task. A frame queue is used to store the received frames. For the frame sent event, no data needs to be transferred, but just the information that the event happened. Therefore the use of a binary semaphore is appropriate.
+This task uses the simplephy module, that implements a simple PHY layer allowing to easily control the radio activity. This module requires two callback functions to indicate when a frame has been received, and when a frame has been sent. Two additional queues are needed to ensure communication between the simplephy events and the mac task. A frame queue is used to store the received frames. For the frame sent event, no data needs to be transferred, but just the information that the event happened. Therefore the use of a binary semaphore is appropriate.
 
 Six functions are defined in this module: \verb$vCreateMacTask$, as described above, stores the queue handles, creates the binary semaphore and the frame queue, and add the mac task to the scheduler. The function \verb$vMacTask$ is the task itself that handles the received frames and those to send. The function \verb$frame_received$ is a callback passed to the phy module that is called when a frame is received. The function \verb$frame_sent$ is a callback passed to the phy module that is called when a frame has been sent. The function \verb$vParseFrame$ is used to parse a received frame, and to transfer it toward the corresponding task. Finally the  \verb$vSendFrame$ function is used to add a header to some data to send it.
 
