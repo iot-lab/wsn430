@@ -7,7 +7,7 @@ CFLAGS          = -mmcu=${CPU} -O2 -Wall -g $(INCLUDES)
 #switch the compiler (for the internal make rules)
 CC              = msp430-gcc
 
-SRC = ../../clock.c ../../uart0.c ../../tsl2550.c main.c
+SRC = ../../clock.c ../../uart0.c ../../tsl2550.c ../../i2c0.c main.c
 
 OBJECTS = $(SRC:.c=.o)
 

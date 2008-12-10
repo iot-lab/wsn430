@@ -59,26 +59,26 @@ void uart0_init(uint16_t config){
   {
     case UART0_CONFIG_8MHZ_115200:
       // 115200 baud & SMCLK @ 8MHZ
-      U0BR1  = 0x00;
       U0BR0  = 0x45;
+      U0BR1  = 0x00;
       U0MCTL = 0xAA;
       break;
     case UART0_CONFIG_1MHZ_38400:
       // 38400 baud & SMCLK @ 1MHZ
-      U0BR1  = 0x00;
       U0BR0  = 0x1A;
+      U0BR1  = 0x00;
       U0MCTL = 0x00;
       break;
     case UART0_CONFIG_1MHZ_115200:
       // 115200 baud & SMCLK @ 1MHZ
-      UBR00  = 0x08;
-      UBR10  = 0x00;
+      U0BR0  = 0x08;
+      U0BR1  = 0x00;
       UMCTL0 = 0x5B;
       break;
     default:
       // 38400 baud & SMCLK @ 1MHZ
-      U0BR1  = 0;
       U0BR0  = 0x1B;
+      U0BR1  = 0;
       U0MCTL = 0x03;
       break;
   }
@@ -120,7 +120,7 @@ interrupt(USART0RX_VECTOR) usart0irq(void) {
     uint8_t dummy;
   
     /* Check status register for receive errors. */
-    if(URCTL1 & RXERR) {
+    if(U0RCTL & RXERR) {
         /* Clear error flags by forcing a dummy read. */
         dummy = U0RXBUF;
     } 

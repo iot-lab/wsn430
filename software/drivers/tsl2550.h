@@ -9,7 +9,7 @@
 #define _TSL2550_H_
 
 /**
- * Configure IO pins and USQART0 for I2C.
+ * Configure IO pins and USART0 for I2C.
  */
 void tsl2550_init(void);
 
@@ -27,12 +27,12 @@ uint8_t tsl2550_powerup(void);
 /**
  * Set extended conversion mode.
  */
-void tsl2550_set_extended();
+void tsl2550_set_extended(void);
 
 /**
  * Reset the device to standard conversion mode.
  */
-void tsl2550_set_standard();
+void tsl2550_set_standard(void);
 
 /*
  * The ADC output values are composed as follows:

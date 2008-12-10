@@ -34,7 +34,7 @@
 typedef void (*timerBcb)(void);
 
 /**
- * Initialize the timerA component.
+ * Initialize the timerB component.
  * It needs to be called fist.
  */
 void     timerB_init                (void);
