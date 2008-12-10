@@ -273,7 +273,7 @@ The same way, mutexes should be used to prevent different tasks interfering with
 
 In this chapter, we're going to build four little programs that show each main aspect of the FreeRTOS operating system. Then we'll do an entire application that puts most of the features of FreeRTOS together.
 
-\section{Example 01: A simple multitask application}
+\section{Example 01: simple multitask application}
 
 The first example is a simple application that consists of two independent tasks running concurrently. The goal is to show how to setup a multitask environment, define and create the tasks, start a preemptive scheduler, as well as to show some task time control functions. The source code for this project is found in the folder: \verb$01_simple_multitask$, and the source code of interest in the \verb$main.c$ source file.
 
@@ -383,7 +383,7 @@ int main( void )
 To add a task to the scheduler, the \verb$xTaskCreate$ function is used. The main parameters are the task function pointer, the task name, the task stack size, and the task priority (here set to 1 for both tasks). Then the scheduler is started by calling the \verb$vTaskStartScheduler$ function.
 
 
-\section{Example 02: A multitask application with intertask communication}
+\section{Example 02: multitask application with intertask communication}
 
 The second example is a simple application that consists of two tasks running concurrently which communicate with each other. The goal is to show how to make a task give data to another using a queue. The source code for this project is found in the folder: \verb$02_queue_multitask$, and the source code of interest in the \verb$main.c$ source file.
 
@@ -482,7 +482,7 @@ The functions used with the queue are \verb$xQueueSendToBack$ to place an item a
 
 In the example, the Temperature tasks does not wait if the queue is full when data need to be copied on the queue to respect timing, however the Print task waits until some data arrive, because it has nothing else to do.
 
-\section{Example 03: A single task application with interrupt synchronization}
+\section{Example 03: single task application with interrupt synchronization}
 
 The third example is a simple application that consists of a single task that synchronizes with interrupt service routines. The goal is to show how to use the interrupt capabilities of the MSP430 to synchronize FreeRTOS tasks. The source code for this project is found in the folder: \verb$03_semphr_synchro$, and the source code of interest in the \verb$main.c$ source file.
 
@@ -871,9 +871,30 @@ void vEndOfTx_cb(void)
 
 We've seen here how to ensure every SPI communication to a device is not interrupted by another.
 
+\section{Examples 05 and 06: star network model}
 
-\section{Examples 05 and 06: A complete application}
-The examples 05 and 06 constitute an entire application with a sensor node (example 05) and a sink node (example 06) connected to a PC. Here is a description of the application elements:
+The example 05 and 06 are two examples that implement a very simple star network MAC layer. In both programs, a task is created for handling all the MAC functionnalities, one is a network device and the other is a coordinator.
+
+The network device (example 05) tries first to join a network. It sends a Attach Request Frame, hoping a coordinator will receive it and answer it. If this happens, the network device can send and receive packets from/to the coordinator.
+
+The coordinator receives the Attach Request Frames, and accepts them, then it can communicates (send and receive packets) with all the nodes attached to it. A typical application is to have one coordinator and a set of network devices attached to it. The coordinator is connected to a PC, the network devices sample some data and transmit them to the coordinator which relays it to the PC.
+
+\section{Example 05: star network device}
+As described above, this example implements the MAC layer of a network device. The source files are located in the \verb$05_network_device$ folder. All the MAC related files are grouped in the \verb$mac$ subfolder. The interface between the MAC task and the application is described in the \verb$mac/mac.h$ file. First the task is created calling the \verb$vMacTaskCreate$ function, with as parameters a handle to a mutex that will be used every time the SPI bus should be used, to prevent conflicts with other tasks (see example 04), and the priority the task should run at.
+
+Packets can then be sent using the \verb$xSendPacket$ function, passing as parameters the packet length and a pointer to the packet. The packet will be sent only if the MAC task is in the right state at the time of call (there is no buffering). Note that the packet will be sent to the coordinator the device is attached to. The application interfacing with the MAC layer should implement a function named \verb$vPacketReceived$, that will be called every time a packet is received from the coordinator.
+
+The application found in the \verb?main.c? file just repeatedly sends a character string to the coordinator.
+
+\section{Example 06: star network coordinator}
+This example implements the MAC layer of a coordinator device for a star network. The source files are located in the \verb$06_coordinator$ folder. All the MAC related files are grouped in the \verb$mac$ subfolder. The interface between the MAC task and the application is described in the \verb$mac/mac.h$ file. First the task is created calling the \verb$vMacTaskCreate$ function, with as parameters a handle to a mutex that will be used every time the SPI bus should be used, to prevent conflicts with other tasks (see example 04), and the priority the task should run at.
+
+The coordinator MAC task will accept network device attach requests within a limit of 10 nodes, and is able to communicate with all the nodes independently. To do so, the \verb$xSendPacketTo$ function is used by the application to send packets. The destination node address must be specified. It is possible to list all the attached nodes by calling the \verb$xGetAttachedNodes$ function. A pointer to a char array must be provided, that will the point to the beginning of the node list, and the number of nodes will be returned.
+
+The \verb$vPacketReceivedFrom$ function must be provided by the application since it will be called every time a packet is received from any of the attached nodes.
+
+\section{Examples 07 and 08: complete application}
+The examples 07 and 08 constitute an entire application with a sensor node (example 07) and a sink node (example 08) connected to a PC. Here is a description of the application elements:
 \begin{description}
 	\item[sensor node:] a remote node may sample light and temperature with its integrated sensors, as well as light its three LEDs;
 	\item [sink node:] another node sends commands to and receives data from the remote sensor node;
@@ -898,7 +919,7 @@ The different communications that take place over the air are:
 
 We'll go through all the required steps to build the firmware of the sensor and sink nodes in the next sections.
 
-\section{Example 05: Sensor Node}
+\section{Example 07: Sensor Node}
 
 \subsection{Tasks}
 The different functionalities of the sensor node are the following:
@@ -949,7 +970,7 @@ In Fig.~\ref{fig:queues} is found a schema representing the tasks and queues.
 
 \subsection{Source Files Organization}
 
-The sensor node firmware is found in the \verb$05_node_appli$ folder, and is organized as follows. In the project root folder are the files:
+The sensor node firmware is found in the \verb$07_node_appli$ folder, and is organized as follows. In the project root folder are the files:
 \begin{itemize}
 	\item FreeRTOSConfig.h: contains OS specific constant parameters.
 	\item queue\_types.h: contains the item types for the different queues.
@@ -1480,7 +1501,7 @@ static void prvSetupHardware( void )
 
 \end{verbatim}
 
-\section{Example 06: Sink Node}
+\section{Example 08: Sink Node}
 The sink node's firmware is simpler than the sensor node's, therefore no deep details will be given here.
 
 \subsection{Tasks}
@@ -1589,7 +1610,7 @@ static void char_received(uint8_t c)
 The mac task is very similar to the one of the sensor node firmware, the main difference is when data is received, it's systematically transferred to the interface task.
 
 \subsection{Graphical Application}
-A PC graphical application is provided in the folder \verb$06_sink_appli/PC_appli$, that allows a user to send commands to the sensor node as seen above, and display the last conversion result received, as seen in Fig~\ref{fig:pcappli}.
+A PC graphical application is provided in the folder \verb$08_sink_appli/PC_appli$, that allows a user to send commands to the sensor node as seen above, and display the last conversion result received, as seen in Fig~\ref{fig:pcappli}.
 \begin{figure}[ht]
 \begin{center}
 \includegraphics[scale=0.5]{figures/PC_appli.png}
