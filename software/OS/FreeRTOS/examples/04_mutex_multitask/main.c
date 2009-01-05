@@ -32,6 +32,10 @@ int putchar(int c)
     return uart0_putchar(c);
 }
 
+void vApplicationIdleHook()
+{
+}
+
 /* Global Variables */
 xQueueHandle xFlashQueue, xRadioQueue;
 xSemaphoreHandle xSPIMutex;
