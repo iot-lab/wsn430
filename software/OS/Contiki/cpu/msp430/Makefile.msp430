@@ -1,0 +1,38 @@
+# $Id: Makefile.msp430,v 1.24 2008/07/02 14:11:34 adamdunkels Exp $
+
+.SUFFIXES:
+
+### Define the CPU directory
+CONTIKI_CPU=$(CONTIKI)/cpu/msp430
+
+### Define the source files we have in the MSP430 port
+
+CONTIKI_CPU_DIRS = . dev
+
+MSP430     = msp430_cpu.c clock.c watchdog.c mtarch.c rtimer-arch.c
+
+TARGETLIBS = random.c serial.c
+
+CONTIKI_TARGET_SOURCEFILES += $(MSP430) $(SYSAPPS) $(TARGETLIBS)
+
+CONTIKI_SOURCEFILES        += $(CONTIKI_TARGET_SOURCEFILES)
+
+
+### Compiler definitions
+CC       = msp430-gcc
+LD       = msp430-gcc
+AS       = msp430-as
+AR       = msp430-ar
+NM       = msp430-nm
+OBJCOPY  = msp430-objcopy
+STRIP    = msp430-strip
+BSL      = msp430-bsl
+ifdef WERROR
+CFLAGSWERROR=-Werror
+endif
+CFLAGSNO = -Wall -mmcu=$(MCU) -g $(CFLAGSWERROR)
+CFLAGS  += $(CFLAGSNO) -Os
+LDFLAGS += -mmcu=$(MCU) -Wl,-Map=contiki-$(TARGET).map
+
+PROJECT_OBJECTFILES += ${addprefix $(OBJECTDIR)/,$(CONTIKI_TARGET_MAIN:.c=.o)}
+
