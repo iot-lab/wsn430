@@ -32,8 +32,10 @@
  */
 
 #include <stdio.h>
+#include <io.h>
+#include <signal.h>
 #include "sys/mt.h"
-
+#include "sys/rtimer.h"
 
 /*--------------------------------------------------------------------------*/
 void
@@ -59,9 +61,11 @@ mtarch_start(struct mtarch_thread *t,
 
   *t->sp = (unsigned short)function;
   --t->sp;
-
+  
   /* Space for registers. */
   t->sp -= 11;
+  
+  *t->sp = data;
 }
 /*--------------------------------------------------------------------------*/
 static unsigned short *sptmp;
@@ -126,13 +130,14 @@ mtarch_yield(void)
 void
 mtarch_pstop(void)
 {
-
+    TBCCTL0 = 0;
 }
 /*--------------------------------------------------------------------------*/
 void
-mtarch_pstart(void)
+mtarch_pstart(void) // run the thread for #4ms
 {
-
+    TBCCR0 = TBR + (RTIMER_ARCH_SECOND/256);
+    TBCCTL0 = CCIE;
 }
 /*--------------------------------------------------------------------------*/
 void
@@ -155,3 +160,9 @@ mtarch_stack_usage(struct mt_thread *t)
   return MTARCH_STACKSIZE;
 }
 /*--------------------------------------------------------------------------*/
+
+/*---------------------------------------------------------------------------*/
+interrupt(TIMERB0_VECTOR) timerb0 (void) {
+  mt_yield();
+}
+/*---------------------------------------------------------------------------*/
