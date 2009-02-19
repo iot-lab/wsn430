@@ -65,7 +65,7 @@ mtarch_start(struct mtarch_thread *t,
   /* Space for registers. */
   t->sp -= 11;
   
-  *t->sp = data;
+  *t->sp = (unsigned short) data;
 }
 /*--------------------------------------------------------------------------*/
 static unsigned short *sptmp;

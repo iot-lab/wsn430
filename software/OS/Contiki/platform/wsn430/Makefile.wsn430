@@ -2,7 +2,8 @@
 
 
 ARCH = uart0.c ds2411.c m25p80.c xmem.c leds_arch.c leds.c \
-       cc1100.c cc1100_driver.c cc1100_uip.c slip_arch.c
+       cc1100.c cc1100_driver.c cc1100_uip.c slip_arch.c \
+       cfs-coffee.c
 
 UIPDRIVERS = me.c me_tabs.c slip.c crc16.c
 

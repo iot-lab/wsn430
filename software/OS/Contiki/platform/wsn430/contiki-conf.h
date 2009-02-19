@@ -7,6 +7,10 @@
 #define HAVE_STDINT_H
 #include "msp430def.h"
 
+#ifdef USE_CONF_APP
+#include "contiki-conf-app.h"
+#endif
+
 #define CCIF
 #define CLIF
 
@@ -31,8 +35,21 @@ typedef unsigned long off_t;
 /// UIP SECTION ///
 typedef unsigned short uip_stats_t;
 
-#define WITH_UIP  1
-#define WITH_SLIP 0
+#ifndef WITH_UIP
+    #define WITH_UIP  0
+#endif
+
+#ifndef WITH_SLIP
+    #define WITH_SLIP 0
+#endif
+
+#ifndef WITH_RIME
+    #define WITH_RIME 0
+#endif
+
+#ifndef MAC_DRIVER
+    #define MAC_DRIVER(...) nullmac_init(__VA_ARGS__)
+#endif
 
 #if WITH_SLIP && !WITH_UIP
     #error In order to enable SLIP, WITH_UIP must be set too
@@ -43,7 +60,7 @@ typedef unsigned short uip_stats_t;
 #endif
 
 #define UIP_CONF_LLH_LEN         0
-#define UIP_CONF_BUFFER_SIZE     90
+#define UIP_CONF_BUFFER_SIZE     63
 
 
 #endif /* CONTIKI_CONF_H */

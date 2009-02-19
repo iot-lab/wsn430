@@ -88,6 +88,7 @@ main(int argc, char **argv)
     serial_init();
   #endif
     
+    ctimer_init();
     rtimer_init();
 
     ds2411_init();
@@ -105,7 +106,7 @@ main(int argc, char **argv)
     process_init();
     process_start(&etimer_process, NULL);
     
-    init_net();
+    network_init();
     
     printf(CONTIKI_VERSION_STRING " started. ");
 
