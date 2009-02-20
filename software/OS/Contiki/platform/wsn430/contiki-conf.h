@@ -60,7 +60,7 @@ typedef unsigned short uip_stats_t;
 #endif
 
 #define UIP_CONF_LLH_LEN         0
-#define UIP_CONF_BUFFER_SIZE     63
+#define UIP_CONF_BUFFER_SIZE     128
 
 
 #endif /* CONTIKI_CONF_H */
