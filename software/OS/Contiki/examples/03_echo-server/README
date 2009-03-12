@@ -1,0 +1,6 @@
+The echo example implements a simple protosocket example.
+It creates a listening socket on port 1234, asks for data when connected, and replies back the data when received. Finally it closes the connection.
+To try it, execute the following in a terminal: $ telnet 172.16.1.xxx 1234
+Note that tunslip (found in Contiki/tools) must be running in order to provide IP connectivity.
+
+If you want to telnet a device over radio, you must set 'WITH_SLIP 0' in contiki-conf-app.h for all the nodes except the one connected to the PC.
