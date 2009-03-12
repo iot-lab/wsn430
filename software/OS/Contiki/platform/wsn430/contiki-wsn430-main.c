@@ -104,16 +104,19 @@ main(int argc, char **argv)
     * Initialize Contiki and our processes.
     */
     process_init();
+    
+    /* Start the event timer process */
     process_start(&etimer_process, NULL);
     
+    /* Initialize the network */
     network_init();
     
     printf(CONTIKI_VERSION_STRING " started. ");
-
     printf("MAC %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x\n",
         ds2411_id.raw[0], ds2411_id.raw[1], ds2411_id.raw[2], ds2411_id.raw[3],
         ds2411_id.raw[4], ds2411_id.raw[5], ds2411_id.raw[6], ds2411_id.raw[7]);
     
+    /* Start the application processes registered in the autostart */
     print_processes(autostart_processes);
     autostart_start(autostart_processes);
 
