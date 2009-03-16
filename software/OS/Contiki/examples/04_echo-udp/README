@@ -1,0 +1,8 @@
+Simple echo server replying what's received on a UDP port.
+
+It creates a UDP 'connection', listening on port 50000, waiting for an incoming packet.
+When it's received, it sends back the same data prefixed by "rx=".
+
+You can test the application using netcat:
+$ nc -u 172.16.xxx.xxx 50000
+Where 172.16.xxx.xxx should be replaced by the node IP address.
