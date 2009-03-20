@@ -39,6 +39,10 @@ typedef unsigned short uip_stats_t;
     #define WITH_UIP  0
 #endif
 
+#ifndef WITH_UIP6
+    #define WITH_UIP6 0
+#endif
+
 #ifndef WITH_SLIP
     #define WITH_SLIP 0
 #endif
@@ -58,6 +62,33 @@ typedef unsigned short uip_stats_t;
 #if WITH_SLIP
 #define UIP_CONF_IP_FORWARD 1
 #endif
+
+
+#if WITH_UIP6
+#define RIMEADDR_CONF_SIZE              8
+
+#define UIP_CONF_LL_802154              1
+#define UIP_CONF_LLH_LEN                0
+
+#define UIP_CONF_IPV6                   1
+#define UIP_CONF_IPV6_QUEUE_PKT         1
+#define UIP_CONF_IPV6_CHECKS            1
+#define UIP_CONF_IPV6_REASSEMBLY        0
+#define UIP_CONF_NETIF_MAX_ADDRESSES    3
+#define UIP_CONF_ND6_MAX_PREFIXES       3
+#define UIP_CONF_ND6_MAX_NEIGHBORS      4
+#define UIP_CONF_ND6_MAX_DEFROUTERS     2
+#define UIP_CONF_IP_FORWARD             0
+
+#define SICSLOWPAN_CONF_COMPRESSION_IPV6        0
+#define SICSLOWPAN_CONF_COMPRESSION_HC1         1
+#define SICSLOWPAN_CONF_COMPRESSION_HC01        2
+#define SICSLOWPAN_CONF_COMPRESSION             SICS_LOWPAN_CONF_COMPRESSION_HC01
+#define SICSLOWPAN_CONF_FRAG                    0
+#define SICSLOWPAN_CONF_CONVENTIONAL_MAC        1
+
+#endif
+
 
 #define UIP_CONF_LLH_LEN         0
 #define UIP_CONF_BUFFER_SIZE     128
