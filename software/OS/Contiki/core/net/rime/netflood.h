@@ -9,6 +9,23 @@
  *
  * The netflood module does best-effort flooding.
  *
+ * The netflood primitive sends a single packet to all nodes in the
+ * network. The netflood primitive uses polite broadcasts at every hop
+ * to reduce the number of redundant transmissions.  The netflood
+ * primitive does not perform retransmissions of flooded packets and
+ * packets are not tagged with version numbers.  Instead, the netflood
+ * primitive sets the end-to-end sender and end-to-end packet ID
+ * attributes on the packets it sends.  A forwarding node saves the
+ * end-to-end sender and packet ID of the last packet it forwards and
+ * does not forward a packet if it has the same end-to-end sender and
+ * packet ID as the last packet.  This reduces the risk of routing
+ * loops, but does not eliminate them entirely as the netflood
+ * primitive saves the attributes of the latest packet seen only.
+ * Therefore, the netflood primitive also uses the time to live
+ * attribute, which is decreased by one before forwarding a packet.
+ * If the time to live reaches zero, the primitive does not forward
+ * the packet.
+*
  * \section channels Channels
  *
  * The netflood module uses 1 channel.
@@ -45,7 +62,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: netflood.h,v 1.1 2008/07/03 22:25:22 adamdunkels Exp $
+ * $Id: netflood.h,v 1.4 2009/03/12 21:58:21 adamdunkels Exp $
  */
 
 /**
@@ -64,6 +81,11 @@
 #include "net/rime/ipolite.h"
 
 struct netflood_conn;
+
+#define NETFLOOD_ATTRIBUTES   { PACKETBUF_ADDR_ESENDER, PACKETBUF_ADDRSIZE }, \
+                              { PACKETBUF_ATTR_HOPS, PACKETBUF_ATTR_BIT * 5 }, \
+                              { PACKETBUF_ATTR_EPACKET_ID, PACKETBUF_ATTR_BIT * 4 }, \
+                                IPOLITE_ATTRIBUTES
 
 struct netflood_callbacks {
   int (* recv)(struct netflood_conn *c, rimeaddr_t *from,

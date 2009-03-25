@@ -68,7 +68,6 @@ typedef unsigned short uip_stats_t;
 #define RIMEADDR_CONF_SIZE              8
 
 #define UIP_CONF_LL_802154              1
-#define UIP_CONF_LLH_LEN                0
 
 #define UIP_CONF_IPV6                   1
 #define UIP_CONF_IPV6_QUEUE_PKT         1

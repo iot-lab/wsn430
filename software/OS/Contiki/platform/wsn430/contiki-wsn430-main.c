@@ -40,7 +40,7 @@
 
 #include "sys/autostart.h"
 #include "sys/clock.h"
-#include "dev/serial.h"
+#include "dev/serial-line.h"
 #include "dev/watchdog.h"
 #include "dev/leds.h"
 
@@ -84,8 +84,8 @@ main(int argc, char **argv)
     eint();
     
   #if !WITH_SLIP
-    uart0_register_callback(serial_input_byte);
-    serial_init();
+    uart0_register_callback(serial_line_input_byte);
+    serial_line_init();
   #endif
     
     ctimer_init();

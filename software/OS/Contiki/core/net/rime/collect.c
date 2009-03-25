@@ -36,7 +36,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.c,v 1.14 2008/08/15 19:00:38 adamdunkels Exp $
+ * $Id: collect.c,v 1.23 2009/03/12 21:58:21 adamdunkels Exp $
  */
 
 /**
@@ -54,7 +54,7 @@
 
 #include "dev/radio-sensor.h"
 
-#if NETSIM
+#if CONTIKI_TARGET_NETSIM
 #include "ether.h"
 #endif
 
@@ -62,10 +62,10 @@
 #include <stdio.h>
 #include <stddef.h>
 
-static const struct rimebuf_attrlist attributes[] =
+static const struct packetbuf_attrlist attributes[] =
   {
     COLLECT_ATTRIBUTES
-    RIMEBUF_ATTR_LAST
+    PACKETBUF_ATTR_LAST
   };
 
 #define NUM_RECENT_PACKETS 2
@@ -114,19 +114,15 @@ update_rtmetric(struct collect_conn *tc)
 	       rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
       }
       tc->rtmetric = RTMETRIC_MAX;
+			announcement_set_value(&tc->announcement, tc->rtmetric);
     } else {
+
       /* We set our rtmetric to the rtmetric of our best neighbor plus
 	 the expected transmissions to reach that neighbor. */
       if(n->rtmetric + neighbor_etx(n) != tc->rtmetric) {
-	uint16_t new_rtmetric = n->rtmetric + neighbor_etx(n);
-	
-	if(tc->rtmetric == RTMETRIC_MAX) {
-	  neighbor_discovery_start(&tc->neighbor_discovery_conn, new_rtmetric);
-	} else {
-	  neighbor_discovery_set_val(&tc->neighbor_discovery_conn, new_rtmetric);
-	}
-	tc->rtmetric = new_rtmetric;
-
+	tc->rtmetric = n->rtmetric + neighbor_etx(n);
+	/*	neighbor_discovery_start(&tc->neighbor_discovery_conn, tc->rtmetric);*/
+	announcement_set_value(&tc->announcement, tc->rtmetric);
 	PRINTF("%d.%d: new rtmetric %d\n",
 	       rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	       tc->rtmetric);
@@ -135,7 +131,7 @@ update_rtmetric(struct collect_conn *tc)
   }
 
   /*  DEBUG_PRINTF("%d: new rtmetric %d\n", node_id, rtmetric);*/
-#if NETSIM
+#if CONTIKI_TARGET_NETSIM
   {
     char buf[8];
     if(tc->rtmetric == RTMETRIC_MAX) {
@@ -161,21 +157,18 @@ node_packet_received(struct runicast_conn *c, rimeaddr_t *from, uint8_t seqno)
      packet exists in the list, we drop the packet. */
 
   for(i = 0; i < NUM_RECENT_PACKETS; i++) {
-    if(recent_packets[i].seqno == rimebuf_attr(RIMEBUF_ATTR_EPACKET_ID)&&
-       rimeaddr_cmp(&recent_packets[i].originator,
-		    rimebuf_addr(RIMEBUF_ADDR_ESENDER))) {
-      PRINTF("%d.%d: collect: dropping duplicate packet %d from %d.%d\n",
-	     rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-	     rimebuf_attr(RIMEBUF_ATTR_EPACKET_ID),
-	     rimebuf_addr(RIMEBUF_ADDR_ESENDER)->u8[0],
-	     rimebuf_addr(RIMEBUF_ADDR_ESENDER)->u8[1]);
+    if(recent_packets[i].seqno == packetbuf_attr(PACKETBUF_ATTR_EPACKET_ID) &&
+	  rimeaddr_cmp(&recent_packets[i].originator,
+		       packetbuf_addr(PACKETBUF_ADDR_ESENDER))) {
+      PRINTF("%d.%d: dropping duplicate packet with seqno %d\n",
+	     packetbuf_attr(PACKETBUF_ATTR_EPACKET_ID));
       /* Drop the packet. */
       return;
     }
   }
-  recent_packets[recent_packet_ptr].seqno = rimebuf_attr(RIMEBUF_ATTR_EPACKET_ID);
+  recent_packets[recent_packet_ptr].seqno = packetbuf_attr(PACKETBUF_ATTR_EPACKET_ID);
   rimeaddr_copy(&recent_packets[recent_packet_ptr].originator,
-		rimebuf_addr(RIMEBUF_ADDR_ESENDER));
+		packetbuf_addr(PACKETBUF_ADDR_ESENDER));
   recent_packet_ptr = (recent_packet_ptr + 1) % NUM_RECENT_PACKETS;
   
   if(tc->rtmetric == SINK) {
@@ -184,40 +177,42 @@ node_packet_received(struct runicast_conn *c, rimeaddr_t *from, uint8_t seqno)
     
     PRINTF("%d.%d: sink received packet from %d.%d via %d.%d\n",
 	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-	   rimebuf_addr(RIMEBUF_ADDR_ESENDER)->u8[0],
-	   rimebuf_addr(RIMEBUF_ADDR_ESENDER)->u8[1],
+	   packetbuf_addr(PACKETBUF_ADDR_ESENDER)->u8[0],
+	   packetbuf_addr(PACKETBUF_ADDR_ESENDER)->u8[1],
 	   from->u8[0], from->u8[1]);
 
     if(tc->cb->recv != NULL) {
-      tc->cb->recv(rimebuf_addr(RIMEBUF_ADDR_ESENDER),
-		   rimebuf_attr(RIMEBUF_ATTR_EPACKET_ID),
-		   rimebuf_attr(RIMEBUF_ATTR_HOPS));
+      tc->cb->recv(packetbuf_addr(PACKETBUF_ADDR_ESENDER),
+		   packetbuf_attr(PACKETBUF_ATTR_EPACKET_ID),
+		   packetbuf_attr(PACKETBUF_ATTR_HOPS));
     }
     return;
-  } else if(rimebuf_attr(RIMEBUF_ATTR_TTL) > 1 &&
+  } else if(packetbuf_attr(PACKETBUF_ATTR_TTL) > 1 &&
 	    tc->rtmetric != RTMETRIC_MAX) {
 
     /* If we are not the sink, we forward the packet to the best
        neighbor. */
-    rimebuf_set_attr(RIMEBUF_ATTR_HOPS, rimebuf_attr(RIMEBUF_ATTR_HOPS) + 1);
-    rimebuf_set_attr(RIMEBUF_ATTR_TTL, rimebuf_attr(RIMEBUF_ATTR_TTL) - 1);
+    packetbuf_set_attr(PACKETBUF_ATTR_HOPS, packetbuf_attr(PACKETBUF_ATTR_HOPS) + 1);
+    packetbuf_set_attr(PACKETBUF_ATTR_TTL, packetbuf_attr(PACKETBUF_ATTR_TTL) - 1);
 
         
-    PRINTF("%d.%d: packet received from %d.%d via %d.%d, best neighbor %p, forwarding %d\n",
+    PRINTF("%d.%d: packet received from %d.%d via %d.%d, forwarding %d\n",
 	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-	   rimebuf_addr(RIMEBUF_ADDR_ESENDER)->u8[0],
-	   rimebuf_addr(RIMEBUF_ADDR_ESENDER)->u8[1],
-	   from->u8[0], from->u8[1],
-	   neighbor_best(), tc->forwarding);
+	   packetbuf_addr(PACKETBUF_ADDR_ESENDER)->u8[0],
+	   packetbuf_addr(PACKETBUF_ADDR_ESENDER)->u8[1],
+	   from->u8[0], from->u8[1], tc->forwarding);
 
     if(!tc->forwarding) {
-      tc->forwarding = 1;
       n = neighbor_best();
-      if(n != NULL) {
-#if NETSIM
+      if(n != NULL && !rimeaddr_cmp(&n->addr, from)) {
+#if CONTIKI_TARGET_NETSIM
 	ether_set_line(n->addr.u8[0], n->addr.u8[1]);
-#endif /* NETSIM */
-	runicast_send(c, &n->addr, rimebuf_attr(RIMEBUF_ATTR_MAX_REXMIT));
+#endif /* CONTIKI_TARGET_NETSIM */
+	tc->forwarding = 1;
+	runicast_send(c, &n->addr, packetbuf_attr(PACKETBUF_ATTR_MAX_REXMIT));
+      } else {
+	PRINTF("%d.%d: did not find any neighbor to forward to\n",
+	       rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
       }
       return;
     } else {
@@ -231,8 +226,7 @@ node_packet_received(struct runicast_conn *c, rimeaddr_t *from, uint8_t seqno)
 }
 /*---------------------------------------------------------------------------*/
 static void
-node_packet_sent(struct runicast_conn *c, rimeaddr_t *to,
-		 uint8_t retransmissions)
+node_packet_sent(struct runicast_conn *c, rimeaddr_t *to, uint8_t retransmissions)
 {
   struct collect_conn *tc = (struct collect_conn *)
     ((char *)c - offsetof(struct collect_conn, runicast_conn));
@@ -243,8 +237,7 @@ node_packet_sent(struct runicast_conn *c, rimeaddr_t *to,
 }
 /*---------------------------------------------------------------------------*/
 static void
-node_packet_timedout(struct runicast_conn *c, rimeaddr_t *to,
-		     uint8_t retransmissions)
+node_packet_timedout(struct runicast_conn *c, rimeaddr_t *to, uint8_t retransmissions)
 {
   struct collect_conn *tc = (struct collect_conn *)
     ((char *)c - offsetof(struct collect_conn, runicast_conn));
@@ -254,7 +247,7 @@ node_packet_timedout(struct runicast_conn *c, rimeaddr_t *to,
   update_rtmetric(tc);
 }
 /*---------------------------------------------------------------------------*/
-static void
+/*static void
 adv_received(struct neighbor_discovery_conn *c, rimeaddr_t *from, uint16_t rtmetric)
 {
   struct collect_conn *tc = (struct collect_conn *)
@@ -267,41 +260,65 @@ adv_received(struct neighbor_discovery_conn *c, rimeaddr_t *from, uint16_t rtmet
     neighbor_add(from, rtmetric, 1);
   } else {
     neighbor_update(n, rtmetric);
-    PRINTF("%d.%d: updating neighbor %d.%d, etx %d, hops %d\n",
+    PRINTF("%d.%d: updating neighbor %d.%d, etx %d\n",
 	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-	   n->addr.u8[0], n->addr.u8[1],
-	   1, rtmetric);
+	   n->addr.u8[0], n->addr.u8[1], rtmetric);
   }
 
   update_rtmetric(tc);
+}*/
+static void
+received_announcement(struct announcement *a, rimeaddr_t *from,
+		      uint16_t id, uint16_t value)
+{
+  struct collect_conn *tc = (struct collect_conn *)
+    ((char *)a - offsetof(struct collect_conn, announcement));
+  struct neighbor *n;
+  
+  n = neighbor_find(from);
+
+  if(n == NULL) {
+    neighbor_add(from, value, 1);
+  } else {
+    neighbor_update(n, value);
+    PRINTF("%d.%d: updating neighbor %d.%d, etx %d\n",
+	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	   n->addr.u8[0], n->addr.u8[1], value);
+  }
+
+  update_rtmetric(tc);  
 }
 /*---------------------------------------------------------------------------*/
 static const struct runicast_callbacks runicast_callbacks = {node_packet_received,
 						   node_packet_sent,
 						   node_packet_timedout};
-static const struct neighbor_discovery_callbacks neighbor_discovery_callbacks =
-  { adv_received, NULL};
+/*static const struct neighbor_discovery_callbacks neighbor_discovery_callbacks =
+  { adv_received, NULL};*/
 /*---------------------------------------------------------------------------*/
 void
 collect_open(struct collect_conn *tc, uint16_t channels,
 	     const struct collect_callbacks *cb)
 {
-  neighbor_discovery_open(&tc->neighbor_discovery_conn, channels,
+  /*  neighbor_discovery_open(&tc->neighbor_discovery_conn, channels,
 			  CLOCK_SECOND * 2,
 			  CLOCK_SECOND * 10,
 			  CLOCK_SECOND * 60,
-			  &neighbor_discovery_callbacks);
+			  &neighbor_discovery_callbacks);*/
   runicast_open(&tc->runicast_conn, channels + 1, &runicast_callbacks);
   channel_set_attributes(channels + 1, attributes);
   tc->rtmetric = RTMETRIC_MAX;
   tc->cb = cb;
-  neighbor_discovery_set_val(&tc->neighbor_discovery_conn, tc->rtmetric);
+  /*  neighbor_discovery_start(&tc->neighbor_discovery_conn, tc->rtmetric);*/
+  announcement_register(&tc->announcement, channels, tc->rtmetric,
+			received_announcement);
+  announcement_listen(2);
 }
 /*---------------------------------------------------------------------------*/
 void
 collect_close(struct collect_conn *tc)
 {
-  neighbor_discovery_close(&tc->neighbor_discovery_conn);
+  /*  neighbor_discovery_close(&tc->neighbor_discovery_conn);*/
+  announcement_remove(&tc->announcement);
   runicast_close(&tc->runicast_conn);
 }
 /*---------------------------------------------------------------------------*/
@@ -310,10 +327,12 @@ collect_set_sink(struct collect_conn *tc, int should_be_sink)
 {
   if(should_be_sink) {
     tc->rtmetric = SINK;
-    neighbor_discovery_start(&tc->neighbor_discovery_conn, tc->rtmetric);
+    /*    neighbor_discovery_start(&tc->neighbor_discovery_conn, tc->rtmetric);*/
+    announcement_set_value(&tc->announcement, tc->rtmetric);
   } else {
     tc->rtmetric = RTMETRIC_MAX;
   }
+  announcement_set_value(&tc->announcement, tc->rtmetric);
   update_rtmetric(tc);
 }
 /*---------------------------------------------------------------------------*/
@@ -322,34 +341,36 @@ collect_send(struct collect_conn *tc, int rexmits)
 {
   struct neighbor *n;
   
-  rimebuf_set_attr(RIMEBUF_ATTR_EPACKET_ID, tc->seqno++);
-  rimebuf_set_addr(RIMEBUF_ADDR_ESENDER, &rimeaddr_node_addr);
-  rimebuf_set_attr(RIMEBUF_ATTR_HOPS, 1);
-  rimebuf_set_attr(RIMEBUF_ATTR_TTL, MAX_HOPLIM);
-  rimebuf_set_attr(RIMEBUF_ATTR_MAX_REXMIT, rexmits);
+  packetbuf_set_attr(PACKETBUF_ATTR_EPACKET_ID, tc->seqno++);
+  packetbuf_set_addr(PACKETBUF_ADDR_ESENDER, &rimeaddr_node_addr);
+  packetbuf_set_attr(PACKETBUF_ATTR_HOPS, 1);
+  packetbuf_set_attr(PACKETBUF_ATTR_TTL, MAX_HOPLIM);
+  packetbuf_set_attr(PACKETBUF_ATTR_MAX_REXMIT, rexmits);
 
   if(tc->rtmetric == 0) {
-    rimebuf_set_attr(RIMEBUF_ATTR_HOPS, 0);
+    packetbuf_set_attr(PACKETBUF_ATTR_HOPS, 0);
     if(tc->cb->recv != NULL) {
-      tc->cb->recv(rimebuf_addr(RIMEBUF_ADDR_ESENDER),
-		   rimebuf_attr(RIMEBUF_ATTR_EPACKET_ID),
-		   rimebuf_attr(RIMEBUF_ATTR_HOPS));
+      tc->cb->recv(packetbuf_addr(PACKETBUF_ADDR_ESENDER),
+		   packetbuf_attr(PACKETBUF_ATTR_EPACKET_ID),
+		   packetbuf_attr(PACKETBUF_ATTR_HOPS));
     }
     return 1;
   } else {
     n = neighbor_best();
     if(n != NULL) {
-#if NETSIM
+#if CONTIKI_TARGET_NETSIM
       ether_set_line(n->addr.u8[0], n->addr.u8[1]);
-#endif /* NETSIM */
+#endif /* CONTIKI_TARGET_NETSIM */
       PRINTF("%d.%d: sending to %d.%d\n",
 	     rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	     n->addr.u8[0], n->addr.u8[1]);
+      tc->forwarding = 1;
       return runicast_send(&tc->runicast_conn, &n->addr, rexmits);
     } else {
       /*      printf("Didn't find any neighbor\n");*/
       PRINTF("%d.%d: did not find any neighbor to send to\n",
 	     rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
+      announcement_listen(1);
     }
   }
   return 0;

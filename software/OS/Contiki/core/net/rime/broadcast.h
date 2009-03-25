@@ -4,11 +4,18 @@
  */
 
 /**
- * \defgroup rimeibc Identified best-effort local area broadcast
+ * \defgroup rimeibc Best-effort local area broadcast
  * @{
  *
  * The broadcast module sends packets to all local area neighbors with an a
  * header that identifies the sender.
+ *
+ * The broadcast module sends a packet to all local neighbors.  The
+ * module adds the single-hop sender address as a packet attribute to
+ * outgoing packets.  All Rime primitives that need the identity of
+ * the sender in the outgoing packets use the broadcast primitive,
+ * either directly or indirectly through any of the other
+ * communication primitives that are based on the broadcast primitive.
  *
  * \section channels Channels
  *
@@ -46,7 +53,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: broadcast.h,v 1.1 2008/06/26 11:19:22 adamdunkels Exp $
+ * $Id: broadcast.h,v 1.3 2009/03/12 21:58:20 adamdunkels Exp $
  */
 
 /**
@@ -64,7 +71,7 @@
 
 struct broadcast_conn;
 
-#define BROADCAST_ATTRIBUTES  { RIMEBUF_ADDR_SENDER, RIMEBUF_ADDRSIZE }, \
+#define BROADCAST_ATTRIBUTES  { PACKETBUF_ADDR_SENDER, PACKETBUF_ADDRSIZE }, \
                         ABC_ATTRIBUTES
 
 /**
@@ -118,7 +125,7 @@ void broadcast_close(struct broadcast_conn *c);
  * \retval     Non-zero if the packet could be sent, zero otherwise
  *
  *             This function sends an identified best-effort broadcast
- *             packet. The packet must be present in the rimebuf
+ *             packet. The packet must be present in the packetbuf
  *             before this function is called.
  *
  *             The parameter c must point to a broadcast connection that

@@ -29,7 +29,7 @@
  * This file is part of the Contiki operating system.
  *
  *
- * $Id: tcpip.c,v 1.17 2008/11/10 21:00:53 oliverschmidt Exp $
+ * $Id: tcpip.c,v 1.19 2009/02/20 21:21:56 adamdunkels Exp $
  */
 /**
  * \file
@@ -107,14 +107,42 @@ enum {
 
 /* Called on IP packet output. */
 #if UIP_CONF_IPV6
-u8_t (* tcpip_output)(uip_lladdr_t *);
-#else
-static u8_t dummy_tcpip_output_function(void)
+
+static u8_t (* outputfunc)(uip_lladdr_t *a);
+
+u8_t
+tcpip_output(uip_lladdr_t *a)
 {
-  UIP_LOG("dummy_tcpip_output_function: Use tcpip_set_outputfunc() to replace this dummy");
+  if(outputfunc != NULL) {
+    return outputfunc(a);
+  }
+  UIP_LOG("tcpip_output: Use tcpip_set_outputfunc() to set an output function");
   return 0;
 }
-u8_t (* tcpip_output)(void) = dummy_tcpip_output_function;
+
+void
+tcpip_set_outputfunc(u8_t (*f)(uip_lladdr_t *))
+{
+  outputfunc = f;
+}
+#else
+
+static u8_t (* outputfunc)(void);
+u8_t
+tcpip_output(void)
+{
+  if(outputfunc != NULL) {
+    return outputfunc();
+  }
+  UIP_LOG("tcpip_output: Use tcpip_set_outputfunc() to set an output function");
+  return 0;
+}
+
+void
+tcpip_set_outputfunc(u8_t (*f)(void))
+{
+  outputfunc = f;
+}
 #endif
 
 #if UIP_CONF_IP_FORWARD
@@ -550,8 +578,8 @@ tcpip_ipv6_output(void)
         uip_nd6_io_ns_output(NULL, NULL, &nbc->ipaddr);
       }
 
-      timer_set(&(nbc->last_send),
-                uip_netif_physical_if.retrans_timer/1000*CLOCK_SECOND);
+      stimer_set(&(nbc->last_send),
+                uip_netif_physical_if.retrans_timer / 1000);
       nbc->count_send = 1;
     } else {
       if (nbc->state == INCOMPLETE){
@@ -570,13 +598,13 @@ tcpip_ipv6_output(void)
 	 
       if (nbc->state == STALE){
         nbc->state = DELAY;
-        timer_set(&(nbc->reachable),
-                  UIP_ND6_DELAY_FIRST_PROBE_TIME*CLOCK_SECOND);
+        stimer_set(&(nbc->reachable),
+                  UIP_ND6_DELAY_FIRST_PROBE_TIME);
         PRINTF("tcpip_ipv6_output: neighbor cache entry stale moving to delay\n");
       }
       
-      timer_set(&(nbc->last_send),
-                uip_netif_physical_if.retrans_timer/1000*CLOCK_SECOND);
+      stimer_set(&(nbc->last_send),
+                uip_netif_physical_if.retrans_timer / 1000);
       
       tcpip_output(&(nbc->lladdr));
 
@@ -685,7 +713,7 @@ PROCESS_THREAD(tcpip_process, ev, data)
    s.p = PROCESS_CURRENT();
  }
 #endif
-  
+
   tcpip_event = process_alloc_event();
   etimer_set(&periodic, CLOCK_SECOND/2);
 

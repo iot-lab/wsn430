@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: mesh.c,v 1.14 2008/07/03 22:36:02 adamdunkels Exp $
+ * $Id: mesh.c,v 1.17 2009/03/24 07:15:04 adamdunkels Exp $
  */
 
 /**
@@ -62,8 +62,9 @@
 
 /*---------------------------------------------------------------------------*/
 static void
-data_packet_received(struct multihop_conn *multihop, rimeaddr_t *from,
-		     rimeaddr_t *prevhop, uint8_t hops)
+data_packet_received(struct multihop_conn *multihop,
+		     const rimeaddr_t *from,
+		     const rimeaddr_t *prevhop, uint8_t hops)
 {
   struct mesh_conn *c = (struct mesh_conn *)
     ((char *)multihop - offsetof(struct mesh_conn, multihop));
@@ -74,8 +75,10 @@ data_packet_received(struct multihop_conn *multihop, rimeaddr_t *from,
 }
 /*---------------------------------------------------------------------------*/
 static rimeaddr_t *
-data_packet_forward(struct multihop_conn *multihop, rimeaddr_t *originator,
-		    rimeaddr_t *dest, rimeaddr_t *prevhop, uint8_t hops)
+data_packet_forward(struct multihop_conn *multihop,
+		    const rimeaddr_t *originator,
+		    const rimeaddr_t *dest,
+		    const rimeaddr_t *prevhop, uint8_t hops)
 {
   struct route_entry *rt;
 
@@ -96,7 +99,7 @@ found_route(struct route_discovery_conn *rdc, rimeaddr_t *dest)
 
   if(c->queued_data != NULL &&
      rimeaddr_cmp(dest, &c->queued_data_dest)) {
-    queuebuf_to_rimebuf(c->queued_data);
+    queuebuf_to_packetbuf(c->queued_data);
     queuebuf_free(c->queued_data);
     c->queued_data = NULL;
     multihop_send(&c->multihop, dest);
@@ -144,7 +147,7 @@ mesh_close(struct mesh_conn *c)
 }
 /*---------------------------------------------------------------------------*/
 int
-mesh_send(struct mesh_conn *c, rimeaddr_t *to)
+mesh_send(struct mesh_conn *c, const rimeaddr_t *to)
 {
   int could_send;
 
@@ -156,7 +159,7 @@ mesh_send(struct mesh_conn *c, rimeaddr_t *to)
     }
 
     PRINTF("mesh_send: queueing data, sending rreq\n");
-    c->queued_data = queuebuf_new_from_rimebuf();
+    c->queued_data = queuebuf_new_from_packetbuf();
     rimeaddr_copy(&c->queued_data_dest, to);
     route_discovery_discover(&c->route_discovery_conn, to,
 			     PACKET_TIMEOUT);

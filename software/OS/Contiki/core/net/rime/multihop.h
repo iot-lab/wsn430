@@ -12,6 +12,16 @@
  * up routes is done with another Rime module such as the \ref
  * routediscovery "route-discovery module".
  *
+ * The multihop sends a packet to an identified node in the network by
+ * using multi-hop forwarding at each node in the network.  The
+ * application or protocol that uses the multihop primitive supplies a
+ * routing function for selecting the next-hop neighbor.  If the
+ * multihop primitive is requested to send a packet for which no
+ * suitable next hop neighbor is found, the caller is immediately
+ * notified of this and may choose to initiate a route discovery
+ * process.
+ *
+ *
  * \section channels Channels
  *
  * The multihop module uses 1 channel.
@@ -48,7 +58,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: multihop.h,v 1.1 2008/07/03 22:36:03 adamdunkels Exp $
+ * $Id: multihop.h,v 1.6 2009/03/24 07:15:04 adamdunkels Exp $
  */
 
 /**
@@ -66,15 +76,22 @@
 
 struct multihop_conn;
 
+#define MULTIHOP_ATTRIBUTES   { PACKETBUF_ADDR_ESENDER, PACKETBUF_ADDRSIZE }, \
+                              { PACKETBUF_ADDR_ERECEIVER, PACKETBUF_ADDRSIZE }, \
+                              { PACKETBUF_ATTR_HOPS, PACKETBUF_ATTR_BIT * 5 }, \
+                                UNICAST_ATTRIBUTES
+
+
+
 struct multihop_callbacks {
   void (* recv)(struct multihop_conn *ptr,
-		rimeaddr_t *sender,
-		rimeaddr_t *prevhop,
+		const rimeaddr_t *sender,
+		const rimeaddr_t *prevhop,
 		uint8_t hops);
   rimeaddr_t *(* forward)(struct multihop_conn *ptr,
-			  rimeaddr_t *originator,
-			  rimeaddr_t *dest,
-			  rimeaddr_t *prevhop,
+			  const rimeaddr_t *originator,
+			  const rimeaddr_t *dest,
+			  const rimeaddr_t *prevhop,
 			  uint8_t hops);
 };
 
@@ -86,7 +103,7 @@ struct multihop_conn {
 void multihop_open(struct multihop_conn *c, uint16_t channel,
 	     const struct multihop_callbacks *u);
 void multihop_close(struct multihop_conn *c);
-int multihop_send(struct multihop_conn *c, rimeaddr_t *to);
+int multihop_send(struct multihop_conn *c, const rimeaddr_t *to);
 
 #endif /* __MULTIHOP_H__ */
 /** @} */

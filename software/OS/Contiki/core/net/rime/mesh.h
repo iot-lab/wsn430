@@ -49,7 +49,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: mesh.h,v 1.12 2008/07/03 22:36:02 adamdunkels Exp $
+ * $Id: mesh.h,v 1.15 2009/03/24 07:15:04 adamdunkels Exp $
  */
 
 /**
@@ -73,7 +73,7 @@ struct mesh_conn;
  */
 struct mesh_callbacks {
   /** Called when a packet is received. */
-  void (* recv)(struct mesh_conn *c, rimeaddr_t *from, uint8_t hops);
+  void (* recv)(struct mesh_conn *c, const rimeaddr_t *from, uint8_t hops);
   /** Called when a packet, sent with mesh_send(), is actually transmitted. */
   void (* sent)(struct mesh_conn *c);
   /** Called when a packet, sent with mesh_send(), times out and is dropped. */
@@ -126,13 +126,13 @@ void mesh_close(struct mesh_conn *c);
  * \retval     Non-zero if the packet could be queued for sending, zero otherwise
  *
  *             This function sends a mesh packet. The packet must be
- *             present in the rimebuf before this function is called.
+ *             present in the packetbuf before this function is called.
  *
  *             The parameter c must point to an abc connection that
  *             must have previously been set up with mesh_open().
  *
  */
-int mesh_send(struct mesh_conn *c, rimeaddr_t *dest);
+int mesh_send(struct mesh_conn *c, const rimeaddr_t *dest);
 
 #endif /* __MESH_H__ */
 /** @} */

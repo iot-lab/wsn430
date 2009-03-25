@@ -2,9 +2,6 @@ ifndef CONTIKI
   ${error CONTIKI not defined! You must specify where CONTIKI resides}
 endif
 
-OBJECTDIR = obj_$(TARGET)
-CFLAGS += -DCONTIKI_TARGET=$(TARGET)
-
 ifeq ($(TARGET),)
   -include Makefile.target
   ifeq ($(TARGET),)
@@ -38,36 +35,43 @@ savedefines:
 	@echo "saving Makefile.$(TARGET).defines"
 	@echo >Makefile.$(TARGET).defines "DEFINES = $(DEFINES)"
 
+OBJECTDIR = obj_$(TARGET)
 ifeq (${wildcard $(OBJECTDIR)},)
-DUMMY := ${shell mkdir $(OBJECTDIR)}
+  DUMMY := ${shell mkdir $(OBJECTDIR)}
 endif
+
+LOWERCASE = -abcdefghijklmnopqrstuvwxyz
+UPPERCASE = _ABCDEFGHIJKLMNOPQRSTUVWXYZ
+TARGET_UPPERCASE := ${shell echo $(TARGET) | sed 'y!$(LOWERCASE)!$(UPPERCASE)!'}
+CFLAGS += -DCONTIKI_TARGET_$(TARGET_UPPERCASE)
 
 include $(CONTIKI)/core/net/rime/Makefile.rime
 include $(CONTIKI)/core/net/mac/Makefile.mac
-SYSTEM  = process.c procinit.c autostart.c profile.c timetable.c timetable-aggregate.c
+SYSTEM  = process.c procinit.c autostart.c profile.c \
+          timetable.c timetable-aggregate.c compower.c serial-line.c # elfloader.c
 THREADS = mt.c
 LIBS    = memb.c timer.c list.c etimer.c energest.c rtimer.c stimer.c \
-          print-stats.c ifft.c crc16.c random.c
+          print-stats.c ifft.c crc16.c random.c checkpoint.c ringbuf.c
 
 ifdef UIP_CONF_IPV6
-CFLAGS+=-DUIP_CONF_IPV6=1
-UIP     = uip6.c tcpip.c psock.c uip-udp-packet.c uip-split.c \
+CFLAGS += -DUIP_CONF_IPV6
+  UIP   = uip6.c tcpip.c psock.c uip-udp-packet.c uip-split.c \
           uip-over-mesh.c resolv.c hc.c tcpdump.c uiplib.c
-NET     = $(UIP) uip-icmp6.c uip-nd6.c uip-nd6-io.c uip-netif.c sicslowpan.c
+  NET   = $(UIP) uip-icmp6.c uip-nd6.c uip-nd6-io.c uip-netif.c sicslowpan.c
 else # UIP_CONF_IPV6
-UIP     = uip.c uiplib.c resolv.c tcpip.c psock.c hc.c uip-split.c uip-fw.c \
+  UIP   = uip.c uiplib.c resolv.c tcpip.c psock.c hc.c uip-split.c uip-fw.c \
           uip-fw-drv.c uip_arp.c tcpdump.c uip-neighbor.c uip-udp-packet.c \
           uip-over-mesh.c #rawpacket-udp.c
-NET     = $(UIP) uaodv.c uaodv-rt.c
+  NET   = $(UIP) uaodv.c uaodv-rt.c
 endif # UIP_CONF_IPV6
 
 CTK     = ctk.c
 CTKVNC  = $(CTK) ctk-vncserver.c libconio.c vnc-server.c vnc-out.c ctk-vncfont.c
 
 ifndef CONTIKI_NO_NET
-CONTIKIFILES = $(SYSTEM) $(LIBS) $(NET) $(THREADS) $(DHCP)
+  CONTIKIFILES = $(SYSTEM) $(LIBS) $(NET) $(THREADS) $(DHCP)
 else
-CONTIKIFILES = $(SYSTEM) $(LIBS) $(THREADS) sicslowpan.c fakeuip.c
+  CONTIKIFILES = $(SYSTEM) $(LIBS) $(THREADS) sicslowpan.c fakeuip.c
 endif
 
 CONTIKI_SOURCEFILES += $(CONTIKIFILES)
@@ -82,10 +86,12 @@ CONTIKI_OBJECTFILES = ${addprefix $(OBJECTDIR)/,${call oname, $(CONTIKI_SOURCEFI
 PROJECT_OBJECTFILES = ${addprefix $(OBJECTDIR)/,${call oname, $(PROJECT_SOURCEFILES)}}
 
 ### Include application makefiles
-
 ifdef APPS
-  APPDIRS += ${addprefix $(CONTIKI)/apps/, $(APPS)}
-  APPINCLUDES = ${foreach APP, $(APPS), $(CONTIKI)/apps/$(APP)/Makefile.$(APP)}
+  APPDIRS += ${wildcard ${addprefix $(CONTIKI)/apps/, $(APPS)} \
+                ${addprefix $(CONTIKI)/platform/$(TARGET)/apps/, $(APPS)}}
+  APPINCLUDES = ${foreach APP, $(APPS), ${wildcard \
+                 $(CONTIKI)/apps/$(APP)/Makefile.$(APP) \
+                 $(CONTIKI)/platform/$(TARGET)/apps/$(APP)/Makefile.$(APP)}}
   -include $(APPINCLUDES)
   APP_SOURCES = ${foreach APP, $(APPS), $($(APP)_src)}
   DSC_SOURCES = ${foreach APP, $(APPS), $($(APP)_dsc)}
@@ -93,7 +99,6 @@ ifdef APPS
 endif
 
 ### Include target makefile (TODO Unsafe?)
-
 target_makefile := $(wildcard $(CONTIKI)/platform/$(TARGET)/Makefile.$(TARGET))
 
 # Check if the target makefile exists

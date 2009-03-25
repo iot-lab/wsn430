@@ -34,7 +34,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: runicast.c,v 1.2 2008/07/07 23:27:57 adamdunkels Exp $
+ * $Id: runicast.c,v 1.5 2009/03/12 21:58:21 adamdunkels Exp $
  */
 
 /**
@@ -53,10 +53,10 @@
 
 #define REXMIT_TIME CLOCK_SECOND
 
-static const struct rimebuf_attrlist attributes[] =
+static const struct packetbuf_attrlist attributes[] =
   {
     RUNICAST_ATTRIBUTES
-    RIMEBUF_ATTR_LAST
+    PACKETBUF_ATTR_LAST
   };
 
 #define DEBUG 0
@@ -77,12 +77,13 @@ sent_by_stunicast(struct stunicast_conn *stunicast)
     RIMESTATS_ADD(rexmit);
     PRINTF("%d.%d: runicast: packet %u resent %u\n",
 	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-	   rimebuf_attr(RIMEBUF_ATTR_PACKET_ID), c->rxmit);
+	   packetbuf_attr(PACKETBUF_ATTR_PACKET_ID), c->rxmit);
   }
 
   c->rxmit++;
   if(c->rxmit >= c->max_rxmit) {
     RIMESTATS_ADD(timedout);
+    c->is_tx = 0;
     stunicast_cancel(&c->c);
     if(c->u->timedout) {
       c->u->timedout(c, stunicast_receiver(&c->c), c->rxmit);
@@ -102,22 +103,23 @@ static void
 recv_from_stunicast(struct stunicast_conn *stunicast, rimeaddr_t *from)
 {
   struct runicast_conn *c = (struct runicast_conn *)stunicast;
-  /*  struct runicast_hdr *hdr = rimebuf_dataptr();*/
+  /*  struct runicast_hdr *hdr = packetbuf_dataptr();*/
 
   PRINTF("%d.%d: runicast: recv_from_stunicast from %d.%d type %d seqno %d\n",
 	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
 	 from->u8[0], from->u8[1],
-	 rimebuf_attr(RIMEBUF_ATTR_PACKET_TYPE),
-	 rimebuf_attr(RIMEBUF_ATTR_PACKET_ID));
+	 packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE),
+	 packetbuf_attr(PACKETBUF_ATTR_PACKET_ID));
 
-  if(rimebuf_attr(RIMEBUF_ATTR_PACKET_TYPE) ==
-     RIMEBUF_ATTR_PACKET_TYPE_ACK) {
-    if(rimebuf_attr(RIMEBUF_ATTR_PACKET_ID) == c->sndnxt) {
+  if(packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) ==
+     PACKETBUF_ATTR_PACKET_TYPE_ACK) {
+    if(packetbuf_attr(PACKETBUF_ATTR_PACKET_ID) == c->sndnxt) {
       RIMESTATS_ADD(ackrx);
       PRINTF("%d.%d: runicast: ACKed %d\n",
 	     rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-	     rimebuf_attr(RIMEBUF_ATTR_PACKET_ID));
+	     packetbuf_attr(PACKETBUF_ATTR_PACKET_ID));
       c->sndnxt = (c->sndnxt + 1) % (1 << RUNICAST_PACKET_ID_BITS);
+      c->is_tx = 0;
       stunicast_cancel(&c->c);
       if(c->u->sent != NULL) {
 	c->u->sent(c, stunicast_receiver(&c->c), c->rxmit);
@@ -125,12 +127,12 @@ recv_from_stunicast(struct stunicast_conn *stunicast, rimeaddr_t *from)
     } else {
       PRINTF("%d.%d: runicast: received bad ACK %d for %d\n",
 	     rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
-	     rimebuf_attr(RIMEBUF_ATTR_PACKET_ID),
+	     packetbuf_attr(PACKETBUF_ATTR_PACKET_ID),
 	     c->sndnxt);
       RIMESTATS_ADD(badackrx);
     }
-  } else if(rimebuf_attr(RIMEBUF_ATTR_PACKET_TYPE) ==
-	    RIMEBUF_ATTR_PACKET_TYPE_DATA) {
+  } else if(packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) ==
+	    PACKETBUF_ATTR_PACKET_TYPE_DATA) {
     /*    int send_ack = 1;*/
     uint16_t packet_seqno;
     struct queuebuf *q;
@@ -139,31 +141,31 @@ recv_from_stunicast(struct stunicast_conn *stunicast, rimeaddr_t *from)
 
     PRINTF("%d.%d: runicast: got packet %d\n",
 	   rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
-	   rimebuf_attr(RIMEBUF_ATTR_PACKET_ID));
+	   packetbuf_attr(PACKETBUF_ATTR_PACKET_ID));
 
-    packet_seqno = rimebuf_attr(RIMEBUF_ATTR_PACKET_ID);
+    packet_seqno = packetbuf_attr(PACKETBUF_ATTR_PACKET_ID);
 
-    /*    rimebuf_hdrreduce(sizeof(struct runicast_hdr));*/
+    /*    packetbuf_hdrreduce(sizeof(struct runicast_hdr));*/
 
-    q = queuebuf_new_from_rimebuf();
+    q = queuebuf_new_from_packetbuf();
     if(q != NULL) {
       PRINTF("%d.%d: runicast: Sending ACK to %d.%d for %d\n",
 	     rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
 	     from->u8[0], from->u8[1],
 	     packet_seqno);
-      rimebuf_clear();
-      /*    rimebuf_hdralloc(sizeof(struct runicast_hdr));
-	    hdr = rimebuf_hdrptr();
+      packetbuf_clear();
+      /*    packetbuf_hdralloc(sizeof(struct runicast_hdr));
+	    hdr = packetbuf_hdrptr();
 	    hdr->type = TYPE_ACK;
 	    hdr->seqno = packet_seqno;*/
-      rimebuf_set_attr(RIMEBUF_ATTR_PACKET_TYPE, RIMEBUF_ATTR_PACKET_TYPE_ACK);
-      rimebuf_set_attr(RIMEBUF_ATTR_PACKET_ID, packet_seqno);
+      packetbuf_set_attr(PACKETBUF_ATTR_PACKET_TYPE, PACKETBUF_ATTR_PACKET_TYPE_ACK);
+      packetbuf_set_attr(PACKETBUF_ATTR_PACKET_ID, packet_seqno);
       stunicast_send(&c->c, from);
       RIMESTATS_ADD(acktx);
-      
-      queuebuf_to_rimebuf(q);
+
+      queuebuf_to_packetbuf(q);
       queuebuf_free(q);
-    }      
+    }
     if(c->u->recv != NULL) {
       c->u->recv(c, from, packet_seqno);
     }
@@ -179,6 +181,7 @@ runicast_open(struct runicast_conn *c, uint16_t channel,
   stunicast_open(&c->c, channel, &runicast);
   channel_set_attributes(channel, attributes);
   c->u = u;
+  c->is_tx = 0;
   c->rxmit = 0;
   c->sndnxt = 0;
 }
@@ -189,14 +192,26 @@ runicast_close(struct runicast_conn *c)
   stunicast_close(&c->c);
 }
 /*---------------------------------------------------------------------------*/
+uint8_t
+runicast_is_transmitting(struct runicast_conn *c)
+{
+  return c->is_tx;
+}
+/*---------------------------------------------------------------------------*/
 int
 runicast_send(struct runicast_conn *c, rimeaddr_t *receiver, uint8_t max_retransmissions)
 {
-  rimebuf_set_attr(RIMEBUF_ATTR_RELIABLE, 1);
-  rimebuf_set_attr(RIMEBUF_ATTR_PACKET_TYPE, RIMEBUF_ATTR_PACKET_TYPE_DATA);
-  rimebuf_set_attr(RIMEBUF_ATTR_PACKET_ID, c->sndnxt);
+  if (runicast_is_transmitting(c)) {
+    PRINTF("%d.%d: runicast: already transmitting\n",
+        rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1]);
+    return 0;
+  }
+  packetbuf_set_attr(PACKETBUF_ATTR_RELIABLE, 1);
+  packetbuf_set_attr(PACKETBUF_ATTR_PACKET_TYPE, PACKETBUF_ATTR_PACKET_TYPE_DATA);
+  packetbuf_set_attr(PACKETBUF_ATTR_PACKET_ID, c->sndnxt);
   c->max_rxmit = max_retransmissions;
   c->rxmit = 0;
+  c->is_tx = 1;
   RIMESTATS_ADD(reliabletx);
   PRINTF("%d.%d: runicast: sending packet %d\n",
 	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],

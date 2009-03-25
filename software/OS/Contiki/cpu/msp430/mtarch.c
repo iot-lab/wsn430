@@ -35,13 +35,21 @@
 #include <io.h>
 #include <signal.h>
 #include "sys/mt.h"
-#include "sys/rtimer.h"
+static unsigned short *sptmp;
+static struct mtarch_thread *running;
 
 /*--------------------------------------------------------------------------*/
 void
 mtarch_init(void)
 {
 
+}
+/*--------------------------------------------------------------------------*/
+static void
+mtarch_wrapper(void)
+{
+  /* Call thread function with argument */
+  ((void (*)(void *))running->function)((void*)running->data);
 }
 /*--------------------------------------------------------------------------*/
 void
@@ -59,17 +67,17 @@ mtarch_start(struct mtarch_thread *t,
   *t->sp = (unsigned short)mt_exit;
   --t->sp;
 
-  *t->sp = (unsigned short)function;
+  *t->sp = (unsigned short)mtarch_wrapper;
   --t->sp;
-  
+
   /* Space for registers. */
   t->sp -= 11;
-  
-  *t->sp = (unsigned short) data;
+
+  /* Store function and argument (used in mtarch_wrapper) */
+  t->data = data;
+  t->function = function;
 }
 /*--------------------------------------------------------------------------*/
-static unsigned short *sptmp;
-static struct mtarch_thread *running;
 
 static void
 sw(void)

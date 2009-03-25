@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: clock.c,v 1.16 2008/10/10 12:36:58 nifi Exp $
+ * @(#)$Id: clock.c,v 1.17 2008/12/02 12:44:48 joxe Exp $
  */
 
 
@@ -37,11 +37,12 @@
 
 #include "contiki-conf.h"
 
+#include "sys/energest.h"
 #include "sys/clock.h"
 #include "sys/etimer.h"
-#include "sys/rtimer.h"
+#include "rtimer-arch.h"
 
-#define INTERVAL (4096ULL / CLOCK_SECOND)
+#define INTERVAL (RTIMER_ARCH_SECOND / CLOCK_SECOND)
 
 #define MAX_TICKS (~((clock_time_t)0) / 2)
 
@@ -51,84 +52,101 @@ static volatile clock_time_t count = 0;
 /* last_tar is used for calculating clock_fine, last_ccr might be better? */
 static unsigned short last_tar = 0;
 /*---------------------------------------------------------------------------*/
-interrupt(TIMERA1_VECTOR) timera1 (void)
-{
-    
-    if(TAIV == 2) {
+interrupt(TIMERA1_VECTOR) timera1 (void) {
+  ENERGEST_ON(ENERGEST_TYPE_IRQ);
+  if(TAIV == 2) {
 
-        /* HW timer bug fix: Interrupt handler called before TR==CCR.
-         * Occurrs when timer state is toggled between STOP and CONT. */
-        while (TACTL & MC1 && TACCR1 - TAR == 1);
+    /* HW timer bug fix: Interrupt handler called before TR==CCR.
+     * Occurrs when timer state is toggled between STOP and CONT. */
+    while (TACTL & MC1 && TACCR1 - TAR == 1);
 
-        TACCR1 += INTERVAL;
-        ++count;
+    /* Make sure interrupt time is future */
+    do {
+      TACCR1 += INTERVAL;
+      ++count;
 
-        if(count % CLOCK_CONF_SECOND == 0) {
-            ++seconds;
-        }
+      /* Make sure the CLOCK_CONF_SECOND is a power of two, to ensure
+	 that the modulo operation below becomes a logical and and not
+	 an expensive divide. Algorithm from Wikipedia:
+	 http://en.wikipedia.org/wiki/Power_of_two */
+#if (CLOCK_CONF_SECOND & (CLOCK_CONF_SECOND - 1)) != 0
+#error CLOCK_CONF_SECOND must be a power of two (i.e., 1, 2, 4, 8, 16, 32, 64, ...).
+#error Change CLOCK_CONF_SECOND in contiki-conf.h.
+#endif
+      if(count % CLOCK_CONF_SECOND == 0) {
+	++seconds;
+      }
+    } while((TACCR1 - TAR) > INTERVAL);
 
-        last_tar = TAR;
+    last_tar = TAR;
 
-        if(etimer_pending() && (etimer_next_expiration_time() - count - 1) > MAX_TICKS)
-        {
-            etimer_request_poll();
-            LPM4_EXIT;
-        }
+    if(etimer_pending() &&
+       (etimer_next_expiration_time() - count - 1) > MAX_TICKS) {
+      etimer_request_poll();
+      LPM4_EXIT;
     }
-    
+  }
+  ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
 /*---------------------------------------------------------------------------*/
-clock_time_t clock_time(void)
+clock_time_t
+clock_time(void)
 {
-    return count;
+  return count;
 }
 /*---------------------------------------------------------------------------*/
-void clock_set(clock_time_t clock, clock_time_t fclock)
+void
+clock_set(clock_time_t clock, clock_time_t fclock)
 {
-    TAR = fclock;
-    TACCR1 = fclock + INTERVAL;
-    count = clock;
+  TAR = fclock;
+  TACCR1 = fclock + INTERVAL;
+  count = clock;
 }
 /*---------------------------------------------------------------------------*/
-int clock_fine_max(void)
+int
+clock_fine_max(void)
 {
-    return INTERVAL;
+  return INTERVAL;
 }
 /*---------------------------------------------------------------------------*/
-unsigned short clock_fine(void)
+unsigned short
+clock_fine(void)
 {
-    unsigned short t;
-    /* Assign last_tar to local varible that can not be changed by interrupt */
-    t = last_tar;
-    /* perform calc based on t, TAR will not be changed during interrupt */
-    return (unsigned short) (TAR - t);
+  unsigned short t;
+  /* Assign last_tar to local varible that can not be changed by interrupt */
+  t = last_tar;
+  /* perform calc based on t, TAR will not be changed during interrupt */
+  return (unsigned short) (TAR - t);
 }
 /*---------------------------------------------------------------------------*/
-void clock_init(void)
+void
+clock_init(void)
 {
-    dint();
+  dint();
 
-    /* Select ACLK 32768Hz clock, divide by 8 */
-    TACTL = TASSEL0 | TACLR | ID_3;
+  /* Select SMCLK (2.4576MHz), clear TAR */
+  /* TACTL = TASSEL1 | TACLR | ID_3; */
+  
+  /* Select ACLK 32768Hz clock, divide by 8 */
+  TACTL = TASSEL0 | TACLR | ID_3;
 
-    /* Initialize ccr1 to create the X ms interval. */
-    /* CCR1 interrupt enabled, interrupt occurs when timer equals CCR1. */
-    TACCTL1 = CCIE;
+  /* Initialize ccr1 to create the X ms interval. */
+  /* CCR1 interrupt enabled, interrupt occurs when timer equals CCR1. */
+  TACCTL1 = CCIE;
 
-    /* Interrupt after X ms. */
-    TACCR1 = INTERVAL;
+  /* Interrupt after X ms. */
+  TACCR1 = INTERVAL;
 
-    /* Start Timer_A in continuous mode. */
-    TACTL |= MC1;
+  /* Start Timer_A in continuous mode. */
+  TACTL |= MC1;
 
-    count = 0;
+  count = 0;
 
-    /* Enable interrupts. */
-    eint();
+  /* Enable interrupts. */
+  eint();
 
 }
 /*---------------------------------------------------------------------------*/
-
 /**
  * Delay the CPU for a multiple of 0.5 us.
  */

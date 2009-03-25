@@ -11,7 +11,7 @@ CONTIKI_CPU_DIRS = . dev
 
 MSP430     = msp430_cpu.c clock.c watchdog.c mtarch.c rtimer-arch.c
 
-TARGETLIBS = random.c serial.c
+TARGETLIBS = random.c
 
 CONTIKI_TARGET_SOURCEFILES += $(MSP430) $(SYSAPPS) $(TARGETLIBS)
 

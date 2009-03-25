@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rime.c,v 1.16 2008/02/25 02:14:35 adamdunkels Exp $
+ * $Id: rime.c,v 1.21 2009/03/12 21:58:21 adamdunkels Exp $
  */
 
 /**
@@ -47,11 +47,32 @@
 #include "net/rime/chameleon.h"
 #include "net/rime/neighbor.h"
 #include "net/rime/route.h"
+#include "net/rime/announcement.h"
+#include "net/rime/polite-announcement.h"
 #include "net/mac/mac.h"
 
 #include "lib/list.h"
 
 const struct mac_driver *rime_mac;
+
+#ifdef RIME_CONF_POLITE_ANNOUNCEMENT_CHANNEL
+#define POLITE_ANNOUNCEMENT_CHANNEL RIME_CONF_POLITE_ANNOUNCEMENT_CHANNEL
+#else /* RIME_CONF_POLITE_ANNOUNCEMENT_CHANNEL */
+#define POLITE_ANNOUNCEMENT_CHANNEL 1
+#endif /* RIME_CONF_POLITE_ANNOUNCEMENT_CHANNEL */
+
+#ifdef RIME_CONF_POLITE_ANNOUNCEMENT_START_TIME
+#define POLITE_ANNOUNCEMENT_START_TIME RIME_CONF_POLITE_ANNOUNCEMENT_START_TIME
+#else /* RIME_CONF_POLITE_ANNOUNCEMENT_START_TIME */
+#define POLITE_ANNOUNCEMENT_START_TIME CLOCK_SECOND * 8
+#endif /* RIME_CONF_POLITE_ANNOUNCEMENT_START_TIME */
+
+#ifdef RIME_CONF_POLITE_ANNOUNCEMENT_MAX_TIME
+#define POLITE_ANNOUNCEMENT_MAX_TIME RIME_CONF_POLITE_ANNOUNCEMENT_MAX_TIME
+#else /* RIME_CONF_POLITE_ANNOUNCEMENT_MAX_TIME */
+#define POLITE_ANNOUNCEMENT_MAX_TIME CLOCK_SECOND * 64
+#endif /* RIME_CONF_POLITE_ANNOUNCEMENT_MAX_TIME */
+
 
 LIST(sniffers);
 
@@ -90,12 +111,26 @@ rime_init(const struct mac_driver *m)
 {
   queuebuf_init();
   route_init();
-  rimebuf_clear();
+  packetbuf_clear();
   neighbor_init();
+  announcement_init();
   rime_mac = m;
   rime_mac->set_receive_function(input);
 
   chameleon_init(&chameleon_bitopt);
+#if ! RIME_CONF_NO_POLITE_ANNOUCEMENTS
+  /* XXX This is initializes the transmission of announcements but it
+   * is not currently certain where this initialization is supposed to
+   * be. Also, the times are arbitrarily set for now. They should
+   * either be configurable, or derived from some MAC layer property
+   * (duty cycle, sleep time, or something similar). But this is OK
+   * for now, and should at least get us started with experimenting
+   * with announcements.
+   */
+  polite_announcement_init(POLITE_ANNOUNCEMENT_CHANNEL,
+			   POLITE_ANNOUNCEMENT_START_TIME,
+			   POLITE_ANNOUNCEMENT_MAX_TIME);
+#endif /* ! RIME_CONF_NO_POLITE_ANNOUCEMENTS */
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -104,15 +139,17 @@ rime_output(void)
   struct rime_sniffer *s;
     
   RIMESTATS_ADD(tx);
-  rimebuf_compact();
+  packetbuf_compact();
 
-  for(s = list_head(sniffers); s != NULL; s = s->next) {
-    if(s->output_callback != NULL) {
-      s->output_callback();
-    }
-  }
   if(rime_mac) {
-    rime_mac->send();
+    if(rime_mac->send()) {
+      /* Call sniffers, but only if the packet was sent. */
+      for(s = list_head(sniffers); s != NULL; s = s->next) {
+	if(s->output_callback != NULL) {
+	  s->output_callback();
+	}
+      }
+    }
   }
 }
 /*---------------------------------------------------------------------------*/

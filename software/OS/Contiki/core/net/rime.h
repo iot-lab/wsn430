@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rime.h,v 1.20 2008/07/03 22:36:02 adamdunkels Exp $
+ * $Id: rime.h,v 1.23 2009/03/17 20:28:44 nvt-se Exp $
  */
 
 /**
@@ -46,6 +46,7 @@
 #ifndef __RIME_H__
 #define __RIME_H__
 
+#include "net/rime/announcement.h"
 #include "net/rime/collect.h"
 #include "net/rime/ctimer.h"
 #include "net/rime/ipolite.h"
@@ -54,16 +55,17 @@
 #include "net/rime/neighbor-discovery.h"
 #include "net/rime/neighbor.h"
 #include "net/rime/netflood.h"
+#include "net/rime/polite-announcement.h"
 #include "net/rime/polite.h"
 #include "net/rime/queuebuf.h"
 #include "net/rime/rimeaddr.h"
-#include "net/rime/rimebuf.h"
+#include "net/rime/packetbuf.h"
 #include "net/rime/rimestats.h"
 #include "net/rime/rmh.h"
 #include "net/rime/route-discovery.h"
 #include "net/rime/route.h"
-#include "net/rime/runicast.h"
 #include "net/rime/rucb.h"
+#include "net/rime/runicast.h"
 #include "net/rime/timesynch.h"
 #include "net/rime/trickle.h"
 
@@ -80,9 +82,9 @@ void rime_init(const struct mac_driver *);
  * \brief      Send an incoming packet to Rime
  *
  *             This function should be called by the network driver to
- *             hand over a packet to Rime for furhter processing. The
- *             packet should be placed in the rimebuf (with
- *             rimebuf_copyfrom()) before calling this function.
+ *             hand over a packet to Rime for further processing. The
+ *             packet should be placed in the packetbuf (with
+ *             packetbuf_copyfrom()) before calling this function.
  *
  */
 void rime_input(void);
@@ -91,11 +93,11 @@ void rime_input(void);
  * \brief      Rime calls this function to send out a packet
  *
  *             This function must be implemented by the driver running
- *             below Rime. It is called by abRime to send out a
- *             packet. The packet is consecutive in the rimebuf. A
- *             pointer to the first byte of the packet is obtained
- *             with the rimebuf_hdrptr() function. The length of the
- *             packet to send is obtained with the rimebuf_totlen()
+ *             below Rime. It is called by anonymous broadcast (abc) to
+ *             send out a packet. The packet is consecutive in the
+ *             packetbuf. A pointer to the first byte of the packet is 
+ *             obtained from the packetbuf_hdrptr() function. The length 
+ *             of the packet to send is obtained with the packetbuf_totlen()
  *             function.
  *
  *             The driver, which typically is a MAC protocol, may
