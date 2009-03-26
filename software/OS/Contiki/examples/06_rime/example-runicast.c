@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-runicast.c,v 1.1 2008/07/03 21:52:25 adamdunkels Exp $
+ * $Id: example-runicast.c,v 1.4 2009/03/12 21:58:21 adamdunkels Exp $
  */
 
 /**
@@ -38,24 +38,66 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
+#include <stdio.h>
+
 #include "contiki.h"
 #include "net/rime.h"
 
-//~ #include "dev/button-sensor.h"
+#include "lib/list.h"
+#include "lib/memb.h"
 
+//~ #include "dev/button-sensor.h"
 #include "dev/leds.h"
 
-#include <stdio.h>
-
 #define MAX_RETRANSMISSIONS 4
+#define NUM_HISTORY_ENTRIES 4
 
+extern process_event_t serial_line_event_message;
 /*---------------------------------------------------------------------------*/
 PROCESS(test_runicast_process, "runicast test");
 AUTOSTART_PROCESSES(&test_runicast_process);
 /*---------------------------------------------------------------------------*/
+/* OPTIONAL: Sender history.
+ * Detects duplicate callbacks at receiving nodes.
+ * Duplicates appear when ack messages are lost. */
+struct history_entry {
+  struct history_entry *next;
+  rimeaddr_t addr;
+  uint8_t seq;
+};
+LIST(history_table);
+MEMB(history_mem, struct history_entry, NUM_HISTORY_ENTRIES);
+/*---------------------------------------------------------------------------*/
 static void
 recv_runicast(struct runicast_conn *c, rimeaddr_t *from, uint8_t seqno)
 {
+  /* OPTIONAL: Sender history */
+  struct history_entry *e = NULL;
+  for(e = list_head(history_table); e != NULL; e = e->next) {
+    if (rimeaddr_cmp(&e->addr, from)) {
+      break;
+    }
+  }
+  if (e == NULL) {
+    /* Create new history entry */
+    e = memb_alloc(&history_mem);
+    if(e == NULL) {
+      e = list_chop(history_table); /* Remove oldest at full history */
+    }
+    rimeaddr_copy(&e->addr, from);
+    e->seq = seqno;
+    list_push(history_table, e);
+  } else {
+    /* Detect duplicate callback */
+    if (e->seq == seqno) {
+      printf("runicast message received from %d.%d, seqno %d (DUPLICATE)\n",
+         from->u8[0], from->u8[1], seqno);
+      return;
+    }
+    /* Update existing history entry */
+    e->seq = seqno;
+  }
+
   printf("runicast message received from %d.%d, seqno %d\n",
 	 from->u8[0], from->u8[1], seqno);
 }
@@ -79,27 +121,41 @@ static struct runicast_conn runicast;
 PROCESS_THREAD(test_runicast_process, ev, data)
 {
   PROCESS_EXITHANDLER(runicast_close(&runicast);)
-    
+
   PROCESS_BEGIN();
 
   runicast_open(&runicast, 128, &runicast_callbacks);
 
+  /* OPTIONAL: Sender history */
+  list_init(history_table);
+  memb_init(&history_mem);
+
+  /* Receiver node: do nothing */
+  if(rimeaddr_node_addr.u8[0] == 1 &&
+      rimeaddr_node_addr.u8[1] == 0) {
+    PROCESS_WAIT_EVENT_UNTIL(0);
+  }
+
   while(1) {
     static struct etimer et;
-    rimeaddr_t addr;
-    
-    etimer_set(&et, CLOCK_SECOND*5);
-    
+
+    etimer_set(&et, 10*CLOCK_SECOND);
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
 
-    rimebuf_copyfrom("Hello", 5);
-    addr.u8[0] = 0xbc;
-    addr.u8[1] = 0x73;
-    runicast_send(&runicast, &addr, MAX_RETRANSMISSIONS);
+    if(!runicast_is_transmitting(&runicast)) {
+      rimeaddr_t recv;
 
-    while(1)
-    {
-        PROCESS_WAIT_EVENT_UNTIL(0);
+      packetbuf_copyfrom("Hello", 5);
+      recv.u8[0] = 188;
+      recv.u8[1] = 115;
+
+      printf("%u.%u: sending runicast to address %u.%u\n",
+          rimeaddr_node_addr.u8[0],
+          rimeaddr_node_addr.u8[1],
+          recv.u8[0],
+          recv.u8[1]);
+
+      runicast_send(&runicast, &recv, MAX_RETRANSMISSIONS);
     }
   }
 

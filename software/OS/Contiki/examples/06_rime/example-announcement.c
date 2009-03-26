@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Swedish Institute of Computer Science.
+ * Copyright (c) 2009, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,84 +28,77 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-mesh.c,v 1.4 2009/03/12 21:58:21 adamdunkels Exp $
+ * $Id: example-announcement.c,v 1.1 2009/03/08 20:27:42 adamdunkels Exp $
  */
 
 /**
  * \file
- *         A brief description of what this file is.
+ *         Example code that uses the annuncement module
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
 
 #include "contiki.h"
 #include "net/rime.h"
-#include "net/rime/mesh.h"
 
-//~ #include "dev/button-sensor.h"
-
-#include "dev/leds.h"
+#include "net/rime/announcement.h"
 
 #include <stdio.h>
 
-static struct mesh_conn mesh;
-extern process_event_t serial_line_event_message;
-/*---------------------------------------------------------------------------*/
-PROCESS(example_mesh_process, "Mesh example");
-AUTOSTART_PROCESSES(&example_mesh_process);
-/*---------------------------------------------------------------------------*/
-static void
-sent(struct mesh_conn *c)
-{
-  printf("packet sent\n");
-}
-static void
-timedout(struct mesh_conn *c)
-{
-  printf("packet timedout\n");
-}
-static void
-recv(struct mesh_conn *c, rimeaddr_t *from, uint8_t hops)
-{
-  printf("Data received from %d.%d: %.*s (%d)\n",
-	 from->u8[0], from->u8[1],
-	 packetbuf_datalen(), (char *)packetbuf_dataptr(), packetbuf_datalen());
+#if CONTIKI_TARGET_NETSIM
+#include "ether.h"
+#endif
 
-  packetbuf_copyfrom("Hopp", 4);
-  mesh_send(&mesh, from);
-}
-
-const static struct mesh_callbacks callbacks = {recv, sent, timedout};
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(example_mesh_process, ev, data)
+PROCESS(example_announcement_process, "Example announcement process");
+AUTOSTART_PROCESSES(&example_announcement_process);
+/*---------------------------------------------------------------------------*/
+static void
+received_announcement(struct announcement *a, rimeaddr_t *from,
+		      uint16_t id, uint16_t value)
 {
-  PROCESS_EXITHANDLER(mesh_close(&mesh);)
+  /* We set our own announced value to one plus that of our neighbor. */
+  announcement_set_value(a, value + 1);
+
+  printf("Got announcement from %d.%d, id %d, value %d, our new value is %d\n",
+	 from->u8[0], from->u8[1], id, value, value + 1);
+
+#if CONTIKI_TARGET_NETSIM
+  {
+    char buf[8];
+    sprintf(buf, "%d", value + 1);
+    ether_set_text(buf);
+  }
+#endif
+
+}
+static struct announcement example_announcement;
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(example_announcement_process, ev, data)
+{
+  PROCESS_EXITHANDLER(announcement_remove(&example_announcement);)
+    
   PROCESS_BEGIN();
 
-  mesh_open(&mesh, 128, &callbacks);
-
-  //~ button_sensor.activate();
+  /* Register an announcement with ID 128 and the lowest eight bytes
+     of the Rime address as the value. We provide the
+     'received_announcement' function pointer so that this function
+     will be called when a announcements from neighbors are heard. */
+  
+  announcement_register(&example_announcement,
+			128,
+			rimeaddr_node_addr.u8[0],
+			received_announcement);
 
   while(1) {
-    rimeaddr_t addr;
     static struct etimer et;
 
-    /*    etimer_set(&et, CLOCK_SECOND * 4);*/
-    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et) ||
-			     (ev == serial_line_event_message));
-
-    printf("Send\n");
-
-    /*
-     * Send a message containing "Hej" (3 characters) to node number
-     * 6.
-     */
-    
-    packetbuf_copyfrom("Hej", 3);
-    addr.u8[0] = 161;
-    addr.u8[1] = 161;
-    mesh_send(&mesh, &addr);
+    /* Listen for announcements every ten seconds. */
+    etimer_set(&et, CLOCK_SECOND * 10);
+    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
+    announcement_listen(1);
   }
+
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/

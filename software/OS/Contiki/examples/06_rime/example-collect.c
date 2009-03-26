@@ -28,17 +28,18 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-collect.c,v 1.2 2008/02/24 22:15:46 adamdunkels Exp $
+ * $Id: example-collect.c,v 1.8 2009/03/12 21:58:21 adamdunkels Exp $
  */
 
 /**
  * \file
- *         A brief description of what this file is.
+ *         Example of how the collect primitive works.
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
 
 #include "contiki.h"
+#include "lib/random.h"
 #include "net/rime.h"
 #include "net/rime/collect.h"
 #include "net/rime/neighbor.h"
@@ -48,51 +49,19 @@
 #include <stdio.h>
 
 static struct collect_conn tc;
-
+extern process_event_t serial_line_event_message;
 /*---------------------------------------------------------------------------*/
 PROCESS(example_collect_process, "Test collect process");
-PROCESS(depth_blink_process, "Depth indicator");
-AUTOSTART_PROCESSES(&example_collect_process, &depth_blink_process);
-/*---------------------------------------------------------------------------*/
-PROCESS_THREAD(depth_blink_process, ev, data)
-{
-  static struct etimer et;
-  static int count;
-
-  PROCESS_BEGIN();
-
-  while(1) {
-    etimer_set(&et, CLOCK_SECOND * 1);
-    PROCESS_WAIT_UNTIL(etimer_expired(&et));
-    count = collect_depth(&tc);
-    if(count == COLLECT_MAX_DEPTH) {
-      leds_on(LEDS_RED);
-    } else {
-      leds_off(LEDS_RED);
-      count /= NEIGHBOR_ETX_SCALE;
-      while(count > 0) {
-	leds_on(LEDS_RED);
-	etimer_set(&et, CLOCK_SECOND / 16);
-	PROCESS_WAIT_UNTIL(etimer_expired(&et));
-	leds_off(LEDS_RED);
-	etimer_set(&et, CLOCK_SECOND / 4);
-	PROCESS_WAIT_UNTIL(etimer_expired(&et));
-	--count;
-      }
-    }
-  }
-  
-  PROCESS_END();
-}
+AUTOSTART_PROCESSES(&example_collect_process);
 /*---------------------------------------------------------------------------*/
 static void
-recv(rimeaddr_t *originator, uint8_t seqno, uint8_t hops)
+recv(const rimeaddr_t *originator, uint8_t seqno, uint8_t hops)
 {
   printf("Sink got message from %d.%d, seqno %d, hops %d: len %d '%s'\n",
 	 originator->u8[0], originator->u8[1],
 	 seqno, hops,
-	 rimebuf_datalen(),
-	 (char *)rimebuf_dataptr());
+	 packetbuf_datalen(),
+	 (char *)packetbuf_dataptr());
 
 }
 /*---------------------------------------------------------------------------*/
@@ -103,29 +72,36 @@ PROCESS_THREAD(example_collect_process, ev, data)
   PROCESS_BEGIN();
 
   collect_open(&tc, 128, &callbacks);
-  
+
   while(1) {
     static struct etimer et;
+    uint16_t tmp;
 
-    etimer_set(&et, CLOCK_SECOND * 10);
+    /* Send a packet every 16 seconds; first wait 8 seconds, than a
+       random time between 0 and 8 seconds. */
+
+    etimer_set(&et, CLOCK_SECOND * 16 + random_rand() % (CLOCK_SECOND * 16));
     PROCESS_WAIT_EVENT();
 
     if(etimer_expired(&et)) {
-      rimebuf_clear();
-      rimebuf_set_datalen(sprintf(rimebuf_dataptr(),
+      while(tc.forwarding) {
+	PROCESS_PAUSE();
+      }
+      printf("Sending\n");
+      packetbuf_clear();
+      packetbuf_set_datalen(sprintf(packetbuf_dataptr(),
 				  "%s", "Hello") + 1);
       collect_send(&tc, 4);
     }
 
-    if(ev == sensors_event) {
-      if(data == &button_sensor) {
-	printf("Button\n");
+    if(ev == serial_line_event_message) {
+	printf("I am sink\n");
 	collect_set_sink(&tc, 1);
       }
     }
-    
+
   }
-  
+
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/

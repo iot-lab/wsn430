@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-trickle.c,v 1.1 2008/01/25 18:00:51 adamdunkels Exp $
+ * $Id: example-trickle.c,v 1.2 2009/03/12 21:58:21 adamdunkels Exp $
  */
 
 /**
@@ -46,6 +46,7 @@
 #include "dev/leds.h"
 
 #include <stdio.h>
+extern process_event_t serial_line_event_message;
 /*---------------------------------------------------------------------------*/
 PROCESS(example_trickle_process, "Trickle example");
 AUTOSTART_PROCESSES(&example_trickle_process);
@@ -53,9 +54,9 @@ AUTOSTART_PROCESSES(&example_trickle_process);
 static void
 trickle_recv(struct trickle_conn *c)
 {
-  printf("%.2x.%.2x: trickle message received '%s'\n",
+  printf("%d.%d: trickle message received '%s'\n",
 	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-	 (char *)rimebuf_dataptr());
+	 (char *)packetbuf_dataptr());
 }
 const static struct trickle_callbacks trickle_call = {trickle_recv};
 static struct trickle_conn trickle;
@@ -68,18 +69,11 @@ PROCESS_THREAD(example_trickle_process, ev, data)
   trickle_open(&trickle, CLOCK_SECOND, 128, &trickle_call);
   //~ button_sensor.activate();
 
-  static struct etimer et;
-  //~ etimer_set(&et, CLOCK_SECOND * 5);
-    
   while(1) {
-    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
-    //~ PROCESS_WAIT_EVENT_UNTIL(ev == sensors_event &&
-			     //~ data == &button_sensor);
-    
-    //~ PROCESS_WAIT_EVENT();
-    rimebuf_copyfrom("Hello, world", 13);
+    PROCESS_WAIT_EVENT_UNTIL(ev == serial_line_event_message);
+    printf("UART: sent\n");
+    packetbuf_copyfrom("Hello, world", 13);
     trickle_send(&trickle);
-    printf("trickle sent\n");
 
   }
   PROCESS_END();

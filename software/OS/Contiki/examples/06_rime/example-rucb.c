@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-rucb.c,v 1.3 2008/04/24 11:50:04 fros4943 Exp $
+ * $Id: example-rucb.c,v 1.5 2008/11/17 22:52:10 oliverschmidt Exp $
  */
 
 /**
@@ -51,10 +51,10 @@
 
 #include <stdio.h>
 
-#if NETSIM
+#if CONTIKI_TARGET_NETSIM
 #include "ether.h"
 #include "node.h"
-#endif /* NETSIM */
+#endif /* CONTIKI_TARGET_NETSIM */
 
 #define FILESIZE 40000
 
@@ -62,6 +62,7 @@ static unsigned long bytecount;
 static clock_time_t start_time;
 
 extern int profile_max_queuelen;
+extern process_event_t serial_line_event_message;
 
 /*---------------------------------------------------------------------------*/
 PROCESS(example_rucb_process, "Rucb example");
@@ -71,6 +72,14 @@ static void
 write_chunk(struct rucb_conn *c, int offset, int flag,
 	    char *data, int datalen)
 {
+#if CONTIKI_TARGET_NETSIM
+  {
+    char buf[100];
+    printf("received %d; %d\n", offset, datalen);
+    sprintf(buf, "%d%%", (100 * (offset + datalen)) / FILESIZE);
+    ether_set_text(buf);
+  }
+#endif /* CONTIKI_TARGET_NETSIM */
 
 }
 static int
@@ -111,22 +120,31 @@ PROCESS_THREAD(example_rucb_process, ev, data)
   //~ button_sensor.activate();
 
   PROCESS_PAUSE();
-  
 
-  if(rimeaddr_node_addr.u16[0] == 2) {
-
+  if(rimeaddr_node_addr.u8[0] == 51 &&
+      rimeaddr_node_addr.u8[1] == 0) {
     rimeaddr_t recv;
-    
-    recv.u16[0] = 1;
 
+    recv.u8[0] = 52;
+    recv.u8[1] = 0;
     start_time = clock_time();
-    rucb_send(&rucb, &recv);
 
+    /*printf("%u.%u: sending rucb to address %u.%u at time %u\n",
+        rimeaddr_node_addr.u8[0],
+        rimeaddr_node_addr.u8[1],
+        recv.u8[0],
+        recv.u8[1],
+        start_time);*/
+
+    rucb_send(&rucb, &recv);
+#if CONTIKI_TARGET_NETSIM
+    ether_send_done();
+#endif /* CONTIKI_TARGET_NETSIM */
   }
-  
+
   while(1) {
 
-    PROCESS_WAIT_EVENT();
+    PROCESS_WAIT_EVENT_UNTIL(ev == serial_line_event_message);
     /*rucb_stop(&rucb);*/
 
   }

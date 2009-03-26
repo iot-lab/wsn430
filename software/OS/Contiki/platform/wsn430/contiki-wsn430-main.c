@@ -83,6 +83,11 @@ main(int argc, char **argv)
     uart0_init(UART0_CONFIG_1MHZ_115200);
     eint();
     
+    /*
+    * Initialize Contiki and our processes.
+    */
+    process_init();
+    
   #if !WITH_SLIP
     uart0_register_callback(serial_line_input_byte);
     serial_line_init();
@@ -100,10 +105,6 @@ main(int argc, char **argv)
     energest_init();
     ENERGEST_ON(ENERGEST_TYPE_CPU);
     
-    /*
-    * Initialize Contiki and our processes.
-    */
-    process_init();
     
     /* Start the event timer process */
     process_start(&etimer_process, NULL);
