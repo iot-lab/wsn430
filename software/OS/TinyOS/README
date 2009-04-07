@@ -1,0 +1,5 @@
+Here you can find the files needed to compile applications using TinyOS for the WSN430v13b platform. Simply add the provided files in a working tinyOS environment (as checkouted from CVS), and run:
+ make wsn430v13
+In order to compile an application.
+
+Try Blink and BlinkToRadio apps for examples.
