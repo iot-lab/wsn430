@@ -1,5 +1,12 @@
-Here you can find the files needed to compile applications using TinyOS for the WSN430v13b platform. Simply add the provided files in a working tinyOS environment (as checkouted from CVS), and run:
- make wsn430v13
-In order to compile an application.
+Here you can find the files needed to compile applications using TinyOS for the WSN430v13b platform. You need the TinyOS tools installed (nesc compiler, tinyos-tools ...), and you must set up the following environment variables:
+TOSDIR: points to this TinyOS folder, containing 'apps', support' and 'tos'
+TOSROOT: points to TOSDIR/tos
+CLASSPATH: points to TOSDIR/"support/sdk/java/tinyos.jar:."
 
-Try Blink and BlinkToRadio apps for examples.
+
+Then you can compile applications using the following command:
+ make wsn430v13
+
+Examples applications are found in 'apps'.
+
+The whole TinyOS source is based from TinyOS Release 2.1
