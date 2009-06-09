@@ -1,49 +1,51 @@
 /*
-	FreeRTOS.org V5.0.4 - Copyright (C) 2003-2008 Richard Barry.
+	FreeRTOS.org V5.3.0 - Copyright (C) 2003-2009 Richard Barry.
 
 	This file is part of the FreeRTOS.org distribution.
 
-	FreeRTOS.org is free software; you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation; either version 2 of the License, or
-	(at your option) any later version.
+	FreeRTOS.org is free software; you can redistribute it and/or modify it
+	under the terms of the GNU General Public License (version 2) as published
+	by the Free Software Foundation and modified by the FreeRTOS exception.
+	**NOTE** The exception to the GPL is included to allow you to distribute a
+	combined work that includes FreeRTOS.org without being obliged to provide
+	the source code for any proprietary components.  Alternative commercial
+	license and support terms are also available upon request.  See the 
+	licensing section of http://www.FreeRTOS.org for full details.
 
-	FreeRTOS.org is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+	FreeRTOS.org is distributed in the hope that it will be useful,	but WITHOUT
+	ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+	FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+	more details.
 
-	You should have received a copy of the GNU General Public License
-	along with FreeRTOS.org; if not, write to the Free Software
-	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+	You should have received a copy of the GNU General Public License along
+	with FreeRTOS.org; if not, write to the Free Software Foundation, Inc., 59
+	Temple Place, Suite 330, Boston, MA  02111-1307  USA.
 
-	A special exception to the GPL can be applied should you wish to distribute
-	a combined work that includes FreeRTOS.org, without being obliged to provide
-	the source code for any proprietary components.  See the licensing section
-	of http://www.FreeRTOS.org for full details of how and when the exception
-	can be applied.
 
-    ***************************************************************************
-    ***************************************************************************
-    *                                                                         *
-    * SAVE TIME AND MONEY!  We can port FreeRTOS.org to your own hardware,    *
-    * and even write all or part of your application on your behalf.          *
-    * See http://www.OpenRTOS.com for details of the services we provide to   *
-    * expedite your project.                                                  *
-    *                                                                         *
-    ***************************************************************************
-    ***************************************************************************
+	***************************************************************************
+	*                                                                         *
+	* Get the FreeRTOS eBook!  See http://www.FreeRTOS.org/Documentation      *
+	*                                                                         *
+	* This is a concise, step by step, 'hands on' guide that describes both   *
+	* general multitasking concepts and FreeRTOS specifics. It presents and   *
+	* explains numerous examples that are written using the FreeRTOS API.     *
+	* Full source code for all the examples is provided in an accompanying    *
+	* .zip file.                                                              *
+	*                                                                         *
+	***************************************************************************
+
+	1 tab == 4 spaces!
 
 	Please ensure to read the configuration and relevant port sections of the
 	online documentation.
 
-	http://www.FreeRTOS.org - Documentation, latest information, license and 
+	http://www.FreeRTOS.org - Documentation, latest information, license and
 	contact details.
 
-	http://www.SafeRTOS.com - A version that is certified for use in safety 
+	http://www.SafeRTOS.com - A version that is certified for use in safety
 	critical systems.
 
-	http://www.OpenRTOS.com - Commercial support, development, porting, 
+	http://www.OpenRTOS.com - Commercial support, development, porting,
 	licensing and training services.
 */
 
@@ -67,7 +69,7 @@ extern "C" {
  * MACROS AND DEFINITIONS
  *----------------------------------------------------------*/
 
-#define tskKERNEL_VERSION_NUMBER "V5.0.4"
+#define tskKERNEL_VERSION_NUMBER "V5.3.0"
 
 /**
  * task. h
@@ -217,13 +219,13 @@ typedef struct xTIME_OUT
  {
  static unsigned char ucParameterToPass;
  xTaskHandle xHandle;
-		
+
      // Create the task, storing the handle.  Note that the passed parameter ucParameterToPass
      // must exist for the lifetime of the task, so in this case is declared static.  If it was just an
      // an automatic stack variable it might no longer exist, or at least have been corrupted, by the time
      // the new time attempts to access it.
      xTaskCreate( vTaskCode, "NAME", STACK_SIZE, &ucParameterToPass, tskIDLE_PRIORITY, &xHandle );
-		
+
      // Use the handle to delete the task.
      vTaskDelete( xHandle );
  }
@@ -261,10 +263,10 @@ signed portBASE_TYPE xTaskCreate( pdTASK_CODE pvTaskCode, const signed portCHAR 
  void vOtherFunction( void )
  {
  xTaskHandle xHandle;
-		
+
      // Create the task, storing the handle.
      xTaskCreate( vTaskCode, "NAME", STACK_SIZE, NULL, tskIDLE_PRIORITY, &xHandle );
-		
+
      // Use the handle to delete the task.
      vTaskDelete( xHandle );
  }
@@ -293,15 +295,15 @@ void vTaskDelete( xTaskHandle pxTask );
  *
  *
  * vTaskDelay() specifies a time at which the task wishes to unblock relative to
- * the time at which vTaskDelay() is called.  For example, specifying a block 
- * period of 100 ticks will cause the task to unblock 100 ticks after 
+ * the time at which vTaskDelay() is called.  For example, specifying a block
+ * period of 100 ticks will cause the task to unblock 100 ticks after
  * vTaskDelay() is called.  vTaskDelay() does not therefore provide a good method
- * of controlling the frequency of a cyclical task as the path taken through the 
- * code, as well as other task and interrupt activity, will effect the frequency 
- * at which vTaskDelay() gets called and therefore the time at which the task 
- * next executes.  See vTaskDelayUntil() for an alternative API function designed 
- * to facilitate fixed frequency execution.  It does this by specifying an 
- * absolute time (rather than a relative time) at which the calling task should 
+ * of controlling the frequency of a cyclical task as the path taken through the
+ * code, as well as other task and interrupt activity, will effect the frequency
+ * at which vTaskDelay() gets called and therefore the time at which the task
+ * next executes.  See vTaskDelayUntil() for an alternative API function designed
+ * to facilitate fixed frequency execution.  It does this by specifying an
+ * absolute time (rather than a relative time) at which the calling task should
  * unblock.
  *
  * @param xTicksToDelay The amount of time, in tick periods, that
@@ -407,10 +409,10 @@ void vTaskDelayUntil( portTickType * const pxPreviousWakeTime, portTickType xTim
  void vAFunction( void )
  {
  xTaskHandle xHandle;
-		
+
      // Create a task, storing the handle.
      xTaskCreate( vTaskCode, "NAME", STACK_SIZE, NULL, tskIDLE_PRIORITY, &xHandle );
-		
+
      // ...
 
      // Use the handle to obtain the priority of the created task.
@@ -457,7 +459,7 @@ unsigned portBASE_TYPE uxTaskPriorityGet( xTaskHandle pxTask );
  void vAFunction( void )
  {
  xTaskHandle xHandle;
-		
+
      // Create a task, storing the handle.
      xTaskCreate( vTaskCode, "NAME", STACK_SIZE, NULL, tskIDLE_PRIORITY, &xHandle );
 
@@ -499,22 +501,22 @@ void vTaskPrioritySet( xTaskHandle pxTask, unsigned portBASE_TYPE uxNewPriority 
  void vAFunction( void )
  {
  xTaskHandle xHandle;
-		
+
      // Create a task, storing the handle.
      xTaskCreate( vTaskCode, "NAME", STACK_SIZE, NULL, tskIDLE_PRIORITY, &xHandle );
-		
+
      // ...
 
      // Use the handle to suspend the created task.
      vTaskSuspend( xHandle );
 
      // ...
-		
+
      // The created task will not run during this period, unless
      // another task calls vTaskResume( xHandle ).
-		
+
      //...
-		
+
 
      // Suspend ourselves.
      vTaskSuspend( NULL );
@@ -548,22 +550,22 @@ void vTaskSuspend( xTaskHandle pxTaskToSuspend );
  void vAFunction( void )
  {
  xTaskHandle xHandle;
-		
+
      // Create a task, storing the handle.
      xTaskCreate( vTaskCode, "NAME", STACK_SIZE, NULL, tskIDLE_PRIORITY, &xHandle );
-		
+
      // ...
 
      // Use the handle to suspend the created task.
      vTaskSuspend( xHandle );
 
      // ...
-	
+
      // The created task will not run during this period, unless
      // another task calls vTaskResume( xHandle ).
-		
+
      //...
-		
+
 
      // Resume the suspended task ourselves.
      vTaskResume( xHandle );
@@ -581,7 +583,7 @@ void vTaskResume( xTaskHandle pxTaskToResume );
  * task. h
  * <pre>void xTaskResumeFromISR( xTaskHandle pxTaskToResume );</pre>
  *
- * INCLUDE_xTaskResumeFromISR must be defined as 1 for this function to be 
+ * INCLUDE_xTaskResumeFromISR must be defined as 1 for this function to be
  * available.  See the configuration section for more information.
  *
  * An implementation of vTaskResume() that can be called from within an ISR.
@@ -699,8 +701,8 @@ void vTaskEndScheduler( void );
  * without risk of being swapped out until a call to xTaskResumeAll () has been
  * made.
  *
- * API functions that have the potential to cause a context switch (for example, 
- * vTaskDelayUntil(), xQueueSend(), etc.) must not be called while the scheduler 
+ * API functions that have the potential to cause a context switch (for example,
+ * vTaskDelayUntil(), xQueueSend(), etc.) must not be called while the scheduler
  * is suspended.
  *
  * Example usage:
@@ -835,9 +837,8 @@ unsigned portBASE_TYPE uxTaskGetNumberOfTasks( void );
  * task. h
  * <PRE>void vTaskList( portCHAR *pcWriteBuffer );</PRE>
  *
- * configUSE_TRACE_FACILITY, INCLUDE_vTaskDelete and INCLUDE_vTaskSuspend
- * must all be defined as 1 for this function to be available.
- * See the configuration section for more information.
+ * configUSE_TRACE_FACILITY must be defined as 1 for this function to be
+ * available.  See the configuration section for more information.
  *
  * NOTE: This function will disable interrupts for its duration.  It is
  * not intended for normal application runtime use but as a debug aid.
@@ -857,6 +858,38 @@ unsigned portBASE_TYPE uxTaskGetNumberOfTasks( void );
  * \ingroup TaskUtils
  */
 void vTaskList( signed portCHAR *pcWriteBuffer );
+
+/**
+ * task. h
+ * <PRE>void vTaskGetRunTimeStats( portCHAR *pcWriteBuffer );</PRE>
+ *
+ * configGENERATE_RUN_TIME_STATS must be defined as 1 for this function
+ * to be available.  The application must also then provide definitions
+ * for portCONFIGURE_TIMER_FOR_RUN_TIME_STATS() and
+ * portGET_RUN_TIME_COUNTER_VALUE to configure a peripheral timer/counter
+ * and return the timers current count value respectively.  The counter
+ * should be at least 10 times the frequency of the tick count.
+ *
+ * NOTE: This function will disable interrupts for its duration.  It is
+ * not intended for normal application runtime use but as a debug aid.
+ *
+ * Setting configGENERATE_RUN_TIME_STATS to 1 will result in a total
+ * accumulated execution time being stored for each task.  The resolution
+ * of the accumulated time value depends on the frequency of the timer
+ * configured by the portCONFIGURE_TIMER_FOR_RUN_TIME_STATS() macro.
+ * Calling vTaskGetRunTimeStats() writes the total execution time of each
+ * task into a buffer, both as an absolute count value and as a percentage
+ * of the total system execution time.
+ *
+ * @param pcWriteBuffer A buffer into which the execution times will be
+ * written, in ascii form.  This buffer is assumed to be large enough to
+ * contain the generated report.  Approximately 40 bytes per task should
+ * be sufficient.
+ *
+ * \page vTaskGetRunTimeStats vTaskGetRunTimeStats
+ * \ingroup TaskUtils
+ */
+void vTaskGetRunTimeStats( signed portCHAR *pcWriteBuffer );
 
 /**
  * task. h
@@ -921,6 +954,14 @@ unsigned portBASE_TYPE uxTaskGetStackHighWaterMark( xTaskHandle xTask );
  * function.
  */
 void vTaskSetApplicationTaskTag( xTaskHandle xTask, pdTASK_HOOK_CODE pxHookFunction );
+
+/**
+ * task.h
+ * <pre>void xTaskGetApplicationTaskTag( xTaskHandle xTask );</pre>
+ *
+ * Returns the pxHookFunction value assigned to the task xTask.
+ */
+pdTASK_HOOK_CODE xTaskGetApplicationTaskTag( xTaskHandle xTask );
 
 /**
  * task.h

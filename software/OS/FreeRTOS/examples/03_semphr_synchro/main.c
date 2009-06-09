@@ -20,7 +20,7 @@
 /* Function Prototypes */
 static void prvSetupHardware( void );
 static void vLEDTask(void* pvParameters);
-static void rx_char_cb(uint8_t c);
+static uint16_t rx_char_cb(uint8_t c);
 
 int putchar(int c)
 {
@@ -100,9 +100,15 @@ static void vLEDTask(void* pvParameters)
  * It gives the semaphore.
  * \param c the received char
  */
-static void rx_char_cb(uint8_t c)
+static uint16_t rx_char_cb(uint8_t c)
 {
     static portBASE_TYPE xHigherPriorityTaskWoken;
     /* Give the semaphore */
     xSemaphoreGiveFromISR(xSemaphore, &xHigherPriorityTaskWoken);
+    
+    if (xHigherPriorityTaskWoken)
+    {
+        return 1;
+    }
+    return 0;
 }

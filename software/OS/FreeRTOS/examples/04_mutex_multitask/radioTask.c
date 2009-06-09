@@ -13,7 +13,7 @@
 #include "leds.h"
 
 
-static void vEndOfTx_cb(void);
+static uint16_t vEndOfTx_cb(void);
 static void vRadioTask(void* pvParameters);
 
 /* File variables */
@@ -143,10 +143,12 @@ static void vRadioTask(void* pvParameters)
 /**
  * Callback function called when a packet has been sent.
  */
-void vEndOfTx_cb(void)
+static uint16_t vEndOfTx_cb(void)
 {
     uint16_t xHigherPriorityTaskWoken; 
     
     /* Give the semaphore, indicating the task the packer is sent */
     xSemaphoreGiveFromISR(xTxSem, &xHigherPriorityTaskWoken);
+    
+    return 1;
 }
