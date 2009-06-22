@@ -55,6 +55,7 @@
 // WSN430 drivers
 #include "uart0.h"
 #include "ds2411.h"
+#include "ds1722.h"
 
 /*---------------------------------------------------------------------------*/
 static void
@@ -97,6 +98,7 @@ main(int argc, char **argv)
     rtimer_init();
 
     ds2411_init();
+    ds1722_init();
     xmem_init();
     
     /*
@@ -104,7 +106,6 @@ main(int argc, char **argv)
      */
     energest_init();
     ENERGEST_ON(ENERGEST_TYPE_CPU);
-    
     
     /* Start the event timer process */
     process_start(&etimer_process, NULL);

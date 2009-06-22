@@ -1,4 +1,8 @@
-# $Id: Makefile.msp430,v 1.24 2008/07/02 14:11:34 adamdunkels Exp $
+# $Id: Makefile.msp430,v 1.28 2009/03/17 15:56:32 adamdunkels Exp $
+
+ifdef nodeid
+CFLAGS += -DNODEID=$(nodeid)
+endif
 
 .SUFFIXES:
 

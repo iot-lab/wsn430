@@ -1,0 +1,7 @@
+shell_src = shell.c shell-reboot.c shell-ps.c \
+            shell-blink.c shell-text.c shell-time.c \
+            shell-power.c
+
+ifeq ($(TARGET),wsn430)
+  shell_src += shell-wsn430.c
+endif
