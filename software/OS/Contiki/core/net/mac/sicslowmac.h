@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, Swedish Institute of Computer Science
+ * Copyright (c) 2008, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,52 +28,29 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: crc16.c,v 1.4 2009/05/14 12:05:04 nvt-se Exp $
+ * $Id: sicslowmac.h,v 1.1 2009/04/06 13:19:03 nifi Exp $
  */
-
-/** \addtogroup crc16
- * @{ */
 
 /**
  * \file
- *         Implementation of the CRC16 calculcation
+ *         MAC interface for packaging radio packets into 802.15.4 frames
+ *
  * \author
  *         Adam Dunkels <adam@sics.se>
- *
+ *         Eric Gnoske <egnoske@gmail.com>
+ *         Blake Leverett <bleverett@gmail.com>
+ *         Niclas Finne <nfi@sics.se>
+ *         Joakim Eriksson <joakime@sics.se>
  */
 
-/* CITT CRC16 polynomial ^16 + ^12 + ^5 + 1 */
-/*---------------------------------------------------------------------------*/
-unsigned short
-crc16_add(unsigned char b, unsigned short acc)
-{
-  /*
-    acc  = (unsigned char)(acc >> 8) | (acc << 8);
-    acc ^= b;
-    acc ^= (unsigned char)(acc & 0xff) >> 4;
-    acc ^= (acc << 8) << 4;
-    acc ^= ((acc & 0xff) << 4) << 1;
-  */
+#ifndef __SICSLOWMAC_H__
+#define __SICSLOWMAC_H__
 
-  acc ^= b;
-  acc  = (acc >> 8) | (acc << 8);
-  acc ^= (acc & 0xff00) << 4;
-  acc ^= (acc >> 8) >> 4;
-  acc ^= (acc & 0xff00) >> 5;
-  return acc;
-}
-/*---------------------------------------------------------------------------*/
-unsigned short
-crc16_data(const unsigned char *data, int len, unsigned short acc)
-{
-  int i;
-  
-  for(i = 0; i < len; ++i) {
-    acc = crc16_add(*data, acc);
-    ++data;
-  }
-  return acc;
-}
-/*---------------------------------------------------------------------------*/
+#include "net/mac/mac.h"
+#include "dev/radio.h"
 
-/** @} */
+extern const struct mac_driver sicslowmac_driver;
+
+const struct mac_driver *sicslowmac_init(const struct radio_driver *r);
+
+#endif /* __SICSLOWMAC_H__ */

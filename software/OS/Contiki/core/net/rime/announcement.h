@@ -54,7 +54,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: announcement.h,v 1.2 2009/03/02 21:59:28 adamdunkels Exp $
+ * $Id: announcement.h,v 1.4 2009/05/26 13:58:53 nvt-se Exp $
  */
 
 /**
@@ -75,6 +75,12 @@ typedef void (*announcement_callback_t)(struct announcement *a,
 					rimeaddr_t *from,
 					uint16_t id, uint16_t val);
 
+/**
+ * \brief      Representation of an announcement.
+ *
+ *             This structure holds the state of an announcement. It
+ *             is an opaque structure with no user-visible elements.
+ */
 struct announcement {
   struct announcement *next;
   uint16_t id;
@@ -148,7 +154,7 @@ void announcement_set_value(struct announcement *a, uint16_t value);
 void announcement_set_id(struct announcement *a, uint16_t id);
 
 /**
- * \brief      Listen for announcements for a spefic amount of
+ * \brief      Listen for announcements for a specific amount of
  *             announcement periods
  * \param periods The number of periods to listen for announcement
  *

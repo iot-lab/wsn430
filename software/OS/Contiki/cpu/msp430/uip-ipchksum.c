@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, Swedish Institute of Computer Science
+ * Copyright (c) 2007, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,52 +28,42 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: crc16.c,v 1.4 2009/05/14 12:05:04 nvt-se Exp $
+ * $Id: uip-ipchksum.c,v 1.4 2007/04/04 11:53:07 bg- Exp $
  */
-
-/** \addtogroup crc16
- * @{ */
 
 /**
  * \file
- *         Implementation of the CRC16 calculcation
- * \author
- *         Adam Dunkels <adam@sics.se>
- *
+ *         uIP checksum calculation for MSP430
  */
 
-/* CITT CRC16 polynomial ^16 + ^12 + ^5 + 1 */
-/*---------------------------------------------------------------------------*/
-unsigned short
-crc16_add(unsigned char b, unsigned short acc)
-{
-  /*
-    acc  = (unsigned char)(acc >> 8) | (acc << 8);
-    acc ^= b;
-    acc ^= (unsigned char)(acc & 0xff) >> 4;
-    acc ^= (acc << 8) << 4;
-    acc ^= ((acc & 0xff) << 4) << 1;
-  */
+#include "net/uip.h"
 
-  acc ^= b;
-  acc  = (acc >> 8) | (acc << 8);
-  acc ^= (acc & 0xff00) << 4;
-  acc ^= (acc >> 8) >> 4;
-  acc ^= (acc & 0xff00) >> 5;
-  return acc;
-}
+#define asmv(arg) __asm__ __volatile__(arg)
 /*---------------------------------------------------------------------------*/
-unsigned short
-crc16_data(const unsigned char *data, int len, unsigned short acc)
+#ifdef UIP_ARCH_IPCHKSUM
+u16_t
+uip_ipchksum(void)
 {
-  int i;
-  
-  for(i = 0; i < len; ++i) {
-    acc = crc16_add(*data, acc);
-    ++data;
-  }
-  return acc;
-}
-/*---------------------------------------------------------------------------*/
+  /* Assumes proper alignement of uip_buf. */
+  u16_t *p = (u16_t *)&uip_buf[UIP_LLH_LEN];
+  register u16_t sum;
 
-/** @} */
+  sum = p[0];
+  asmv("add  %[p], %[sum]": [sum] "+r" (sum): [p] "m" (p[1]));
+  asmv("addc %[p], %[sum]": [sum] "+r" (sum): [p] "m" (p[2]));
+  asmv("addc %[p], %[sum]": [sum] "+r" (sum): [p] "m" (p[3]));
+  asmv("addc %[p], %[sum]": [sum] "+r" (sum): [p] "m" (p[4]));
+  asmv("addc %[p], %[sum]": [sum] "+r" (sum): [p] "m" (p[5]));
+  asmv("addc %[p], %[sum]": [sum] "+r" (sum): [p] "m" (p[6]));
+  asmv("addc %[p], %[sum]": [sum] "+r" (sum): [p] "m" (p[7]));
+  asmv("addc %[p], %[sum]": [sum] "+r" (sum): [p] "m" (p[8]));
+  asmv("addc %[p], %[sum]": [sum] "+r" (sum): [p] "m" (p[9]));
+
+  /* Finally, add the remaining carry bit. */
+  asmv("addc #0, %[sum]": [sum] "+r" (sum));
+
+  /* Return sum in network byte order. */
+  return (sum == 0) ? 0xffff : sum;
+}
+#endif
+/*---------------------------------------------------------------------------*/
