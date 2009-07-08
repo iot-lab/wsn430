@@ -44,6 +44,7 @@
 #include "dev/leds.h"
 
 #include <stdio.h>
+#include <string.h>
 /*---------------------------------------------------------------------------*/
 PROCESS(example_abc_process, "ABC example");
 AUTOSTART_PROCESSES(&example_abc_process);
@@ -51,10 +52,13 @@ AUTOSTART_PROCESSES(&example_abc_process);
 static void
 abc_recv(struct abc_conn *c)
 {
-  printf("abc message received '%s'\n", (char *)packetbuf_dataptr());
+  ((char*)packetbuf_dataptr())[packetbuf_datalen()] = 0;
+  printf("abc message received (%d): '%s'\n",packetbuf_datalen(), (char *)packetbuf_dataptr());
 }
 static const struct abc_callbacks abc_call = {abc_recv};
 static struct abc_conn abc;
+
+char text[] = "Hello World, sent by the ABC module, part of the Rime communication stack";
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(example_abc_process, ev, data)
 {
@@ -67,16 +71,19 @@ PROCESS_THREAD(example_abc_process, ev, data)
   abc_open(&abc, 128, &abc_call);
 
   etimer_set(&et, 2 * CLOCK_SECOND);
-
+  static int len = 2;
   while(1) {
 
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
 
-    packetbuf_copyfrom("Hello", 6);
+    packetbuf_copyfrom(text, len);
     abc_send(&abc);
-    printf("abc message sent\n");
-
+    printf("abc message sent [%i bytes]\n", len);
+    len += 2;
+    
+    if (len > strlen(text)) len = 2;
     etimer_reset(&et);
+    
   }
 
   PROCESS_END();

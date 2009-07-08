@@ -2,7 +2,7 @@
 
 
 ARCH = uart0.c ds2411.c ds1722.c m25p80.c xmem.c leds_arch.c leds.c \
-       cc1100.c cc1100_driver.c cc1100_uip.c slip_arch.c \
+       cc1100-radio.c cc1100.c cc1100_driver.c cc1100_uip.c slip_arch.c \
        cfs-coffee.c
 
 ARCH += $(ADDITIONNAL_DRIVERS)
