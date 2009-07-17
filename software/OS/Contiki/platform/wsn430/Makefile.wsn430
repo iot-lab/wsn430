@@ -2,12 +2,9 @@
 
 
 ARCH = uart0.c ds2411.c ds1722.c m25p80.c xmem.c leds_arch.c leds.c \
-       cc1100-radio.c cc1100.c cc1100_driver.c cc1100_uip.c slip_arch.c \
-       cfs-coffee.c
+       cc1100-radio.c cc1100.c slip_arch.c cfs-coffee.c
 
 ARCH += $(ADDITIONNAL_DRIVERS)
-
-UIPDRIVERS = me.c me_tabs.c slip.c crc16.c
 
 CONTIKI_TARGET_DIRS = . dev net
 CONTIKI_DRIVERS_DIR = $(WSN430_DRIVERS_PATH)
@@ -16,9 +13,13 @@ ifndef CONTIKI_TARGET_MAIN
 CONTIKI_TARGET_MAIN = contiki-wsn430-main.c
 endif
 
+ifdef UIP_CONF_IPV6
+CFLAGS += -DWITH_UIP6=1
+endif
+
 CONTIKI_TARGET_SOURCEFILES += contiki-wsn430-init-net.c
 
-CONTIKI_TARGET_SOURCEFILES += $(ARCH) $(UIPDRIVERS) $(CONTIKI_TARGET_MAIN)
+CONTIKI_TARGET_SOURCEFILES += $(ARCH) $(CONTIKI_TARGET_MAIN)
 
 MCU=msp430x1611
 include $(CONTIKI)/cpu/msp430/Makefile.msp430

@@ -1,6 +1,6 @@
 /**
  * \file
- *         A network application that listens on UDP port 12345 and echoes.
+ *         A network application that listens on UDP port 50000 and echoes.
  * \author
  *         Clément Burin des Roziers <clement.burin-des-roziers@inrialpes.fr>
  */

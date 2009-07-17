@@ -1,4 +1,4 @@
-all: example-udp-sender example-udp-receiver
+all: example-udp-sender example-udp-receiver udp-client udp-server
 
 CFLAGS += -DUSE_CONF_APP
 

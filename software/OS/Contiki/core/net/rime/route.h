@@ -74,7 +74,7 @@ void route_refresh(struct route_entry *e);
 void route_remove(struct route_entry *e);
 void route_flush_all(void);
 void route_set_lifetime(int seconds);
-
+void route_decay(struct route_entry *e);
 int route_num(void);
 struct route_entry *route_get(int num);
 

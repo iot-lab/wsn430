@@ -38,19 +38,17 @@
 #include "contiki.h"
 #include "contiki-wsn430.h"
 
-#include "sys/autostart.h"
-#include "sys/clock.h"
-#include "dev/serial-line.h"
-#include "dev/watchdog.h"
 #include "dev/leds.h"
-
-// IP
-#if WITH_UIP
-    #include "net/uip.h"
-#endif
-
-// local dev
+#include "dev/watchdog.h"
 #include "dev/xmem.h"
+#include "dev/cc1100-radio.h"
+
+#include "lib/random.h"
+
+#include "cfs-coffee-arch.h"
+#include "cfs/cfs-coffee.h"
+#include "sys/autostart.h"
+#include "sys/profile.h"
 
 // WSN430 drivers
 #include "uart0.h"
@@ -78,45 +76,74 @@ main(int argc, char **argv)
     */
     msp430_cpu_init();
     clock_init();
-    
     leds_init();
-    
     uart0_init(UART0_CONFIG_1MHZ_115200);
-    eint();
+    wsn430_slip_init();
+    
+    /*
+     * Initialize Unique ID.
+     */
+    leds_on(LEDS_GREEN);
+    ds2411_init();
+    
+    /* XXX hack: Fix it so that the 802.15.4 MAC address is compatible
+     with an Ethernet MAC address - byte 0 (byte 2 in the DS ID)
+     cannot be odd. */
+    ds2411_id.raw[2] &= 0xfe;
+    
+    /*
+     * Initialize External Flash.
+     */
+    leds_on(LEDS_BLUE);
+    xmem_init();
+    
+    /*
+     * Initialize realtime timer.
+     */
+    leds_off(LEDS_RED);
+    rtimer_init();
+    /*
+     * Hardware initialization done!
+     */
+
+    random_init(ds2411_id.raw[6]);
+    leds_off(LEDS_BLUE);
     
     /*
     * Initialize Contiki and our processes.
     */
     process_init();
     
-  #if !WITH_SLIP
-    uart0_register_callback(serial_line_input_byte);
-    serial_line_init();
-  #endif
-    
+    /* Start the event timer process */
+    process_start(&etimer_process, NULL);
     ctimer_init();
-    rtimer_init();
-
-    ds2411_init();
-    ds1722_init();
-    xmem_init();
     
+    printf(CONTIKI_VERSION_STRING " started. ");
+    wsn430_set_rime_addr();
+    printf("MAC %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x\n",
+        ds2411_id.raw[0], ds2411_id.raw[1], ds2411_id.raw[2], ds2411_id.raw[3],
+        ds2411_id.raw[4], ds2411_id.raw[5], ds2411_id.raw[6], ds2411_id.raw[7]);
+    
+    /* Initialize the network */
+    cc1100_radio_init();
+    wsn430_network_init();
+    
+  #if PROFILE_CONF_ON
+    profile_init();
+  #endif /* PROFILE_CONF_ON */
+
+    leds_off(LEDS_GREEN);
+
+  #if TIMESYNCH_CONF_ENABLED
+    timesynch_init();
+    timesynch_set_authority_level(rimeaddr_node_addr.u8[0]);
+  #endif /* TIMESYNCH_CONF_ENABLED */
+
     /*
      * Start energy management
      */
     energest_init();
     ENERGEST_ON(ENERGEST_TYPE_CPU);
-    
-    /* Start the event timer process */
-    process_start(&etimer_process, NULL);
-    
-    /* Initialize the network */
-    network_init();
-    
-    printf(CONTIKI_VERSION_STRING " started. ");
-    printf("MAC %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x\n",
-        ds2411_id.raw[0], ds2411_id.raw[1], ds2411_id.raw[2], ds2411_id.raw[3],
-        ds2411_id.raw[4], ds2411_id.raw[5], ds2411_id.raw[6], ds2411_id.raw[7]);
     
     /* Start the application processes registered in the autostart */
     print_processes(autostart_processes);
@@ -129,11 +156,17 @@ main(int argc, char **argv)
     
     while(1) {
         int r;
+      #if PROFILE_CONF_ON
+        profile_episode_start();
+      #endif /* PROFILE_CONF_ON */
         do {
             /* Reset watchdog. */
             watchdog_periodic();
             r = process_run();
         } while(r > 0);
+      #if PROFILE_CONF_ON
+        profile_episode_end();
+      #endif /* PROFILE_CONF_ON */
         
         /*
         * Idle processing.
@@ -157,9 +190,13 @@ main(int argc, char **argv)
             
             watchdog_stop();
             eint();
-            _BIS_SR(LPM1_bits); /* LPM1 sleep. This
-                            statement will block until the CPU is woken up by an
-                            interrupt that sets the wake up flag. */
+            _BIS_SR(LPM1_bits);
+            //~ _BIS_SR(GIE | SCG0 | SCG1 | CPUOFF); /* LPM3 sleep. This
+                      //~ statement will block
+                      //~ until the CPU is
+                      //~ woken up by an
+                      //~ interrupt that sets
+                      //~ the wake up flag. */
                             
             /* We get the current processing time for interrupts that was
              * done during the LPM and store it for next time around.  */
@@ -176,3 +213,10 @@ main(int argc, char **argv)
     return 0;
 }
 /*---------------------------------------------------------------------------*/
+#if LOG_CONF_ENABLED
+void
+log_message(char *m1, char *m2)
+{
+  printf("%s%s\n", m1, m2);
+}
+#endif /* LOG_CONF_ENABLED */

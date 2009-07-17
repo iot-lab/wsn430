@@ -50,13 +50,12 @@ PROCESS(serial_line_process, "Serial driver");
 
 process_event_t serial_line_event_message;
 
-
 /*---------------------------------------------------------------------------*/
 int
 serial_line_input_byte(unsigned char c)
 {
-  if(!buffer_full && !IGNORE_CHAR(c)) {
-    if(c == END) {
+  if(!buffer_full) {
+    if(c == END || IGNORE_CHAR(c)) {
       /* terminate the string */
       buffer[bufwptr++] = '\0';
       buffer_full++;
