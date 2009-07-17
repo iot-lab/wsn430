@@ -7,6 +7,5 @@ all: example-abc example-broadcast example-unicast example-polite example-trickl
 #     example-rudolph1 example-rudolph2 \
 #    
 
-CFLAGS = -DUSE_CONF_APP
 
 include $(CONTIKI)/Makefile.include

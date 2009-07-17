@@ -1,6 +1,4 @@
-all: example-udp-sender example-udp-receiver udp-client udp-server
-
-CFLAGS += -DUSE_CONF_APP
+all: udp-client udp-server
 
 UIP_CONF_IPV6=1
 

@@ -2,7 +2,5 @@ CONTIKI_PROJECT = event-post
 ADDITIONNAL_DRIVERS = ds1722.c
 all: $(CONTIKI_PROJECT)
 
-CFLAGS += -DUSE_CONF_APP
-
 CONTIKI = ../..
 include $(CONTIKI)/Makefile.include

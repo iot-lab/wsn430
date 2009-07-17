@@ -8,10 +8,6 @@
 #define MSP430_MEMCPY_WORKAROUND 1
 #include "msp430def.h"
 
-#ifdef USE_CONF_APP
-#include "contiki-conf-app.h"
-#endif
-
 /* Specifies the default MAC driver */
 #define MAC_CONF_DRIVER nullmac_driver
 
@@ -137,24 +133,6 @@ typedef unsigned long off_t;
 #define CFS_XMEM_CONF_SIZE      (1 * XMEM_ERASE_UNIT_SIZE)
 
 #define CFS_RAM_CONF_SIZE 4096
-
-/// UIP SECTION ///
-
-#ifndef WITH_UIP
-    #define WITH_UIP  0
-#endif
-
-#ifndef WITH_UIP6
-    #define WITH_UIP6 0
-#endif
-
-#ifndef WITH_SLIP
-    #define WITH_SLIP 0
-#endif
-
-#if WITH_SLIP
-#define UIP_CONF_IP_FORWARD 1
-#endif
 
 
 #endif /* CONTIKI_CONF_H */
