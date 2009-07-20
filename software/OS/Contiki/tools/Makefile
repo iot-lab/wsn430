@@ -1,1 +1,1 @@
-all: tunslip tunslip-sim
+all: tunslip tunslip-sim tapslip6

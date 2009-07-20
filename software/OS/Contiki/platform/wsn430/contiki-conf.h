@@ -1,12 +1,8 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.31 2008/11/06 20:45:06 nvt-se Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.56 2009/06/26 12:01:23 joxe Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
-
-#define HAVE_STDINT_H
-#define MSP430_MEMCPY_WORKAROUND 1
-#include "msp430def.h"
 
 /* Specifies the default MAC driver */
 #define MAC_CONF_DRIVER nullmac_driver
@@ -37,6 +33,9 @@
 #define PROFILE_CONF_ON 0
 #define ENERGEST_CONF_ON 1
 
+#define HAVE_STDINT_H
+#define MSP430_MEMCPY_WORKAROUND 1
+#include "msp430def.h"
 
 #ifndef RF_CHANNEL
 #define RF_CHANNEL              26
@@ -56,12 +55,15 @@
 
 #define PROCESS_CONF_NUMEVENTS 8
 #define PROCESS_CONF_STATS 1
+/*#define PROCESS_CONF_FASTPOLL    4*/
 
 /* CPU target speed in Hz */
 #define F_CPU 8000000uL
 
 /* Our clock resolution, this is the same as Unix HZ. */
 #define CLOCK_CONF_SECOND 64
+
+#define BAUD2UBR(baud) ((F_CPU/baud))
 
 #ifdef WITH_UIP6
 
@@ -106,6 +108,7 @@
 #define UIP_CONF_UDP_CONNS       12
 #define UIP_CONF_FWCACHE_SIZE    30
 #define UIP_CONF_BROADCAST       1
+#define UIP_ARCH_IPCHKSUM        0
 #define UIP_CONF_UDP             1
 #define UIP_CONF_UDP_CHECKSUMS   1
 #define UIP_CONF_PINGADDRCONF    0
@@ -134,5 +137,9 @@ typedef unsigned long off_t;
 
 #define CFS_RAM_CONF_SIZE 4096
 
+
+#ifdef PROJECT_CONF_H
+#include PROJECT_CONF_H
+#endif /* PROJECT_CONF_H */
 
 #endif /* CONTIKI_CONF_H */
