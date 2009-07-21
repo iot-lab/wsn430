@@ -1,0 +1,51 @@
+This application will act as a 6LoWPAN network interface for your computer. It will *not* be a node of the network that you'll be able to ping or do anything, it will just convert ethernet+IPv6 frames to 802.15.5+6LoWPAN frames.
+
+You'll be able to interact with other nodes programmed with the uIPv6 stack and 6LoWPAN.
+
+Compile the bridge application (make) and load it to a node. Connect it to a serial port of your computer, say /dev/ttyS0.
+
+Your computer needs to run the radvd program (IPv6 router advertisement daemon), so install the radvd package: (with fedora core10, as root)
+ # yum install radvd
+
+This software need then to be configured. Edit the /etd/radvd.conf file as follows:
+# /etc/radvd.conf BEGIN
+interface tap0 {
+      AdvSendAdvert on;
+      AdvLinkMTU 1280;
+      AdvCurHopLimit 128;
+          AdvReachableTime 360000;
+          MinRtrAdvInterval 100;
+          MaxRtrAdvInterval 150;
+          AdvDefaultLifetime 200;
+	  # here you may put the prefix you want
+          prefix 2001:0123:4567:89ab::/64
+      {
+               AdvOnLink on;
+           AdvAutonomous on;
+           AdvPreferredLifetime 4294967295;
+           AdvValidLifetime 4294967295;
+      };
+};
+# /etc/radvd.conf END
+
+Before launching the daemon, you need to enable IPv6 forwarding on your machine:
+# sysctl -x net.ipv6.conf.all.forwarding=1
+
+You now have to set up the new network interface. In the Contiki/tools folder, type 'make' to build the tapslip6 program that'll do it, and then launch it (as root):
+# ./tapslip6 -t tap0 -s ttyS0 127.0.0.1 255.0.0.0
+You can also use the bash script tapslip6.sh, that contains this line.
+
+
+Launch the daemon:
+# /etc/init.d/radvd start
+
+The tap0 interface has obtained a link-local IPv6 address from the bridge node, you can observe that if you run 'ifconfig tap0'. It should look like:
+inet6 addr: fe80::212:91ff:fec7:1b01/64 Scope:Link
+
+You finally need to set up a global address for this interface, using the same prefix as the one from the radvd.conf file, for example:
+# ifconfig tap0 add 2001:0123:4567:89ab::1/64
+
+That's it! Now when a node will ask for a router, the PC will respond using this prefix and the node will get this address added to its link local one.
+You are now able to ping6 the running nodes, provided you know their IP addresses, and interact with them depending on the application they embedd.
+
+

@@ -108,7 +108,7 @@
 #define UIP_CONF_UDP_CONNS       12
 #define UIP_CONF_FWCACHE_SIZE    30
 #define UIP_CONF_BROADCAST       1
-#define UIP_ARCH_IPCHKSUM        0
+#define UIP_ARCH_IPCHKSUM        1
 #define UIP_CONF_UDP             1
 #define UIP_CONF_UDP_CHECKSUMS   1
 #define UIP_CONF_PINGADDRCONF    0

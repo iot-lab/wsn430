@@ -1,29 +1,5 @@
-This example features a simple application sending udp packets on port 0xF0B0, 
-from port F0B1, to a udp receiver. It must be used in conjonction with a node 
-running the udp-receiver-ipv6 example.
+This example features a simple application "udp-server" listening on UDP port 3000, and using IPv6. It's a UDP server that waits for incoming messages, displays it on the serial link and send a reply.
 
-We use this example to test UDP, and most particularly UDP header compression
-with IPv6 and 6lowpan support. When IPv6 is used over an 802.15.4 link, 
-6lowpan acts as teh adaptation layer between IPv6 and MAC. In particular, it
-can compress packet headers. IP header is compressed, as well as UDP header.
+The other application "udp-client" sends periodically a message to the server. The server address must be specified in the source file, depending on the node IP address that embeds the server application.
 
-With both HC1 and HC01 header compression schemes, UDP 16-bit ports are 
-compressed to 4 bits if they are between F0B0 and F0BF.
-
-sender behavior:
-The sender is implemented in apps/udp/udp-sender.c and acts the following way:
-it waits 15 seconds (to be sure the node configures a global address, in case
-a router on the link sends router advertisements usable for address 
-autoconfiguration) , then sends 5 UDP packets to the receiver address 
-entered staticvally in apps/udp/udp-sender.c.
-
-receiver behavior:
-When receiving a packet, the receiver answers with a simmilar packet.
-
-To run this example, contiki-conf.h must have at least the following flags 
-values:
-#define UIP_CONF_UDP             1
-#define UIP_CONF_IPV6            1
-
-You must configure addresses in apps/udp/udp-sender.c and apps/udp/udp-receiver.c
-which match your platforms addresses.
+It is also possible to interogate the server from a computer, for this refer to the uip6-bridge application README found at: Contiki/tools/uip6-bridge/README

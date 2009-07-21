@@ -58,7 +58,7 @@ abc_recv(struct abc_conn *c)
 static const struct abc_callbacks abc_call = {abc_recv};
 static struct abc_conn abc;
 
-char text[] = "Hello World, sent by the ABC module, part of the Rime communication stack";
+char text[] = "Hello World, sent by the ABC module, part of the Rime communication stack, I need a longer text so I'll just write something";
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(example_abc_process, ev, data)
 {
@@ -70,7 +70,7 @@ PROCESS_THREAD(example_abc_process, ev, data)
 
   abc_open(&abc, 128, &abc_call);
 
-  etimer_set(&et, 2 * CLOCK_SECOND);
+  etimer_set(&et, 1 * CLOCK_SECOND);
   static int len = 2;
   while(1) {
 
@@ -79,7 +79,7 @@ PROCESS_THREAD(example_abc_process, ev, data)
     packetbuf_copyfrom(text, len);
     abc_send(&abc);
     printf("abc message sent [%i bytes]\n", len);
-    len += 2;
+    len += 4;
     
     if (len > strlen(text)) len = 2;
     etimer_reset(&et);
