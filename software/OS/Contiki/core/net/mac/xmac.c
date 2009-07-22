@@ -93,8 +93,7 @@ struct xmac_hdr {
 #ifdef XMAC_CONF_ON_TIME
 #define DEFAULT_ON_TIME (XMAC_CONF_ON_TIME)
 #else
-#define DEFAULT_ON_TIME 100
-//~ #define DEFAULT_ON_TIME (RTIMER_ARCH_SECOND / 200)
+#define DEFAULT_ON_TIME (RTIMER_ARCH_SECOND / 200)
 #endif
 
 #ifdef XMAC_CONF_OFF_TIME
@@ -110,13 +109,12 @@ struct xmac_hdr {
    cycle. */
 #define ANNOUNCEMENT_TIME (random_rand() % (ANNOUNCEMENT_PERIOD))
 
-//~ #define DEFAULT_STROBE_WAIT_TIME (7 * DEFAULT_ON_TIME / 8)
-#define DEFAULT_STROBE_WAIT_TIME 50
+#define DEFAULT_STROBE_WAIT_TIME (7 * DEFAULT_ON_TIME / 8)
 
 struct xmac_config xmac_config = {
   DEFAULT_ON_TIME,
   DEFAULT_OFF_TIME,
-  2*DEFAULT_ON_TIME + DEFAULT_OFF_TIME,
+  20 * DEFAULT_ON_TIME + DEFAULT_OFF_TIME,
   DEFAULT_STROBE_WAIT_TIME
 };
 
@@ -140,7 +138,7 @@ static const struct radio_driver *radio;
 #define LEDS_ON(x) leds_on(x)
 #define LEDS_OFF(x) leds_off(x)
 #define LEDS_TOGGLE(x) leds_toggle(x)
-#define DEBUG 1
+#define DEBUG 0
 #if DEBUG
 #include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)
@@ -441,8 +439,6 @@ send_packet(void)
       if(!is_broadcast) {
         len = radio->read((uint8_t *)&strobe, sizeof(struct xmac_hdr));
         if(len > 0) {
-          printf("xmac: got ACK\n");
-
           if(rimeaddr_cmp(&strobe.hdr.sender, &rimeaddr_node_addr) &&
               rimeaddr_cmp(&strobe.hdr.receiver, &rimeaddr_node_addr)) {
             /* We got an ACK from the receiver, so we can immediately send
@@ -486,8 +482,7 @@ send_packet(void)
   if(is_broadcast || got_strobe_ack) {
     LEDS_ON(LEDS_GREEN);
     radio->send(packetbuf_hdrptr(), packetbuf_totlen());
-    LEDS_OFF(LEDS_GREEN);
-  }
+    LEDS_OFF(LEDS_GREEN);  }
   watchdog_start();
 
   PRINTF("xmac: send (strobes=%u,len=%u,%s), done\n", strobes,
@@ -541,12 +536,9 @@ qsend_packet(void)
 
 }
 /*---------------------------------------------------------------------------*/
-uint16_t tt1, tt2;
-
 static void
 input_packet(const struct radio_driver *d)
 {
-  tt1 = TAR;
   if(receiver_callback) {
     receiver_callback(&xmac_driver);
   }
@@ -594,13 +586,10 @@ read_packet(void)
              packet. */
           someone_is_sending = 1;
           waiting_for_packet = 1;
-          clock_delay(5*2*1000); // delay 4ms
           on();
           LEDS_ON(LEDS_GREEN);
           radio->send((const uint8_t *)&msg, sizeof(struct xmac_hdr));
           LEDS_OFF(LEDS_GREEN);
-          tt2 = TAR;
-          printf("xmac: ack sent with delay %u\n", tt2-tt1);
         }
       } else if(rimeaddr_cmp(&hdr->receiver, &rimeaddr_null)) {
         /* If the receiver address is null, the strobe is sent to
@@ -620,7 +609,6 @@ read_packet(void)
       LEDS_OFF(LEDS_BLUE);
       return RIME_OK;
     } else if(hdr->type == TYPE_DATA) {
-      printf("xmac: got data\n");
       someone_is_sending = 0;
       if(rimeaddr_cmp(&hdr->receiver, &rimeaddr_node_addr) ||
          rimeaddr_cmp(&hdr->receiver, &rimeaddr_null)) {

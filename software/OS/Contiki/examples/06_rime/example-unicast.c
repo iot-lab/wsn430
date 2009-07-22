@@ -70,6 +70,8 @@ PROCESS_THREAD(example_unicast_process, ev, data)
   
   printf("rimeaddr_node_addr = [%u, %u]\n", rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
   
+  static int i = 0;
+  
   while(1) {
     static struct etimer et;
     rimeaddr_t addr;
@@ -77,8 +79,12 @@ PROCESS_THREAD(example_unicast_process, ev, data)
     etimer_set(&et, 3*CLOCK_SECOND);
     
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
-
-    packetbuf_copyfrom("Hello", 5);
+    
+    char msg[15];
+    sprintf(msg, "hello #%u", i);
+    i++;
+    
+    packetbuf_copyfrom(msg, strlen(msg));
     addr.u8[0] = 1;
     addr.u8[1] = 27;
     
