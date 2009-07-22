@@ -24,6 +24,11 @@ uint8_t leds_arch_get(void)
 
 void leds_arch_set(uint8_t leds)
 {
+    uint8_t leds_corrected = 0;
+    leds_corrected |= (leds&LEDS_BLUE)?BIT_BLUE:0;
+    leds_corrected |= (leds&LEDS_GREEN)?BIT_GREEN:0;
+    leds_corrected |= (leds&LEDS_RED)?BIT_RED:0;
+    
     LED_OUT |=  (BIT_BLUE | BIT_GREEN | BIT_RED);
-    LED_OUT &= ( (~(leds<<4)) & 0x70 );
+    LED_OUT &= ( (~leds_corrected) & 0x70 );
 }

@@ -55,7 +55,7 @@ static void
 recv_uc(struct unicast_conn *c, rimeaddr_t *from)
 {
   printf("unicast message received from %d.%d: %s\n",
-	 from->u8[0], from->u8[1], packetbuf_dataptr());
+	 from->u8[0], from->u8[1], (char*)packetbuf_dataptr());
 }
 static const struct unicast_callbacks unicast_callbacks = {recv_uc};
 static struct unicast_conn uc;
@@ -67,19 +67,24 @@ PROCESS_THREAD(example_unicast_process, ev, data)
   PROCESS_BEGIN();
 
   unicast_open(&uc, 128, &unicast_callbacks);
-
+  
+  printf("rimeaddr_node_addr = [%u, %u]\n", rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
+  
   while(1) {
     static struct etimer et;
     rimeaddr_t addr;
     
-    etimer_set(&et, CLOCK_SECOND);
+    etimer_set(&et, 3*CLOCK_SECOND);
     
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
 
     packetbuf_copyfrom("Hello", 5);
-    addr.u8[0] = 188;
-    addr.u8[1] = 115;
-    unicast_send(&uc, &addr);
+    addr.u8[0] = 1;
+    addr.u8[1] = 27;
+    
+    if (rimeaddr_node_addr.u8[0] != 1 || rimeaddr_node_addr.u8[1] != 27) {
+      unicast_send(&uc, &addr);
+    }
 
   }
 

@@ -66,15 +66,15 @@ interrupt(TIMERA1_VECTOR) timera1 (void) {
       ++count;
 
       /* Make sure the CLOCK_CONF_SECOND is a power of two, to ensure
-	 that the modulo operation below becomes a logical and and not
-	 an expensive divide. Algorithm from Wikipedia:
-	 http://en.wikipedia.org/wiki/Power_of_two */
+         that the modulo operation below becomes a logical and and not
+         an expensive divide. Algorithm from Wikipedia:
+         http://en.wikipedia.org/wiki/Power_of_two */
 #if (CLOCK_CONF_SECOND & (CLOCK_CONF_SECOND - 1)) != 0
 #error CLOCK_CONF_SECOND must be a power of two (i.e., 1, 2, 4, 8, 16, 32, 64, ...).
 #error Change CLOCK_CONF_SECOND in contiki-conf.h.
 #endif
       if(count % CLOCK_CONF_SECOND == 0) {
-	++seconds;
+        ++seconds;
       }
     } while((TACCR1 - TAR) > INTERVAL);
 

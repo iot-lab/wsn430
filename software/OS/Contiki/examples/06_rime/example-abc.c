@@ -70,7 +70,7 @@ PROCESS_THREAD(example_abc_process, ev, data)
 
   abc_open(&abc, 128, &abc_call);
 
-  etimer_set(&et, 1 * CLOCK_SECOND);
+  etimer_set(&et, 4 * CLOCK_SECOND);
   static int len = 2;
   while(1) {
 
@@ -79,9 +79,9 @@ PROCESS_THREAD(example_abc_process, ev, data)
     packetbuf_copyfrom(text, len);
     abc_send(&abc);
     printf("abc message sent [%i bytes]\n", len);
-    len += 4;
+    len += 2;
     
-    if (len > strlen(text)) len = 2;
+    if (len >= 120) len = 2;
     etimer_reset(&et);
     
   }

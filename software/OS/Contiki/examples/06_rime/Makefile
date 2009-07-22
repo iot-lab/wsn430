@@ -7,5 +7,6 @@ all: example-abc example-broadcast example-unicast example-polite example-trickl
 #     example-rudolph1 example-rudolph2 \
 #    
 
+# CFLAGS += -DWITH_NULLMAC
 
 include $(CONTIKI)/Makefile.include
