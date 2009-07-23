@@ -146,9 +146,10 @@ PROCESS_THREAD(test_runicast_process, ev, data)
       rimeaddr_t recv;
 
       packetbuf_copyfrom("Hello", 5);
-      recv.u8[0] = 188;
-      recv.u8[1] = 115;
+      recv.u8[0] = 1;
+      recv.u8[1] = 27;
 
+    if (rimeaddr_node_addr.u8[0] != 1 || rimeaddr_node_addr.u8[1] != 27) {
       printf("%u.%u: sending runicast to address %u.%u\n",
           rimeaddr_node_addr.u8[0],
           rimeaddr_node_addr.u8[1],
@@ -156,6 +157,7 @@ PROCESS_THREAD(test_runicast_process, ev, data)
           recv.u8[1]);
 
       runicast_send(&runicast, &recv, MAX_RETRANSMISSIONS);
+    }
     }
   }
 
