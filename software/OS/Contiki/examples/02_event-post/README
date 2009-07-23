@@ -1,7 +1,7 @@
 The event-post example implements two concurrent processes.
-The first is called "temp" and will periodically measure the ambiant temperature. When a few samples have been made, the average is made and an event is posted to the next process to inform it.
+The first is called "temp" and will periodically measure the temperature. When a few samples have been recorded, the average is computed and an event is posted to the next process.
 The second is called "print" and will wait for the first process to tell it some data is ready, such that it can print the measured value on the serial port.
 
-The file contiki-conf-app.h defines the system modules to use, and by default no communication stack is used. The print output can be observed on a PC with a serial terminal.
+The print output can be observed on a PC with a serial terminal.
 
 The environment variable WSN430_DRIVERS_PATH must point to the wsn430 drivers folder location.

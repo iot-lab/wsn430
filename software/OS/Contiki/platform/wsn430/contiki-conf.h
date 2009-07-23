@@ -1,6 +1,11 @@
 /* -*- C -*- */
 /* @(#)$Id: contiki-conf.h,v 1.56 2009/06/26 12:01:23 joxe Exp $ */
 
+/*
+ * Code mostly copied from the sky platform.
+ * Ported by Clément Burin des Roziers <clement.burin-des-roziers@inrialpes.fr>
+ */
+
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
 

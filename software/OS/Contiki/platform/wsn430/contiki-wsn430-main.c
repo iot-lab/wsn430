@@ -29,6 +29,11 @@
  * @(#)$Id: contiki-sky-main.c,v 1.40 2008/11/09 12:22:04 adamdunkels Exp $
  */
 
+/*
+ * Code mostly copied from the sky platform.
+ * Ported by Clément Burin des Roziers <clement.burin-des-roziers@inrialpes.fr>
+ */
+
 #include <signal.h>
 #include <stdio.h>
 #include <string.h>

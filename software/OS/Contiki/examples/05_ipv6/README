@@ -2,4 +2,4 @@ This example features a simple application "udp-server" listening on UDP port 30
 
 The other application "udp-client" sends periodically a message to the server. The server address must be specified in the source file, depending on the node IP address that embeds the server application.
 
-It is also possible to interogate the server from a computer, for this refer to the uip6-bridge application README found at: Contiki/tools/uip6-bridge/README
+It is also possible to interact with the server from a computer. To do this, refer to the uip6-bridge application README found at: Contiki/tools/uip6-bridge/README

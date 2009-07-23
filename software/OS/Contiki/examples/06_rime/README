@@ -1,2 +1,2 @@
 The different Rime examples implement the different communication schemes of Rime.
-In order to test them, UIP must not be used. Some of them have the destination address hard coded, and must be updated depending on the nodes in use.
+In order to test them. Some of them have the destination address hard coded in their source files, and must be updated depending on the nodes in use.
