@@ -71,17 +71,21 @@ PROCESS_THREAD(example_abc_process, ev, data)
   abc_open(&abc, 128, &abc_call);
 
   etimer_set(&et, 4 * CLOCK_SECOND);
-  static int len = 2;
+  static int len = 120;
   while(1) {
 
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
-
-    packetbuf_copyfrom(text, len);
-    abc_send(&abc);
-    printf("abc message sent [%i bytes]\n", len);
-    len += 2;
     
-    if (len >= 120) len = 2;
+    if (rimeaddr_node_addr.u8[0] != 1 ||
+        rimeaddr_node_addr.u8[1] != 27) {
+      packetbuf_copyfrom(text, len);
+      abc_send(&abc);
+      printf("abc message sent [%i bytes]\n", len);
+    //  len += 2;
+      
+      //~ if (len >= 120) len = 2;
+    }
+    
     etimer_reset(&et);
     
   }

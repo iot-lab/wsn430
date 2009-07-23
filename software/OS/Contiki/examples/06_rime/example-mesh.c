@@ -94,6 +94,7 @@ PROCESS_THREAD(example_mesh_process, ev, data)
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et) ||
 			     (ev == serial_line_event_message));
 
+    
     printf("Send\n");
 
     /*
@@ -102,8 +103,8 @@ PROCESS_THREAD(example_mesh_process, ev, data)
      */
     
     packetbuf_copyfrom("Hej", 3);
-    addr.u8[0] = 161;
-    addr.u8[1] = 161;
+    addr.u8[0] = 1;
+    addr.u8[1] = 27;
     mesh_send(&mesh, &addr);
   }
   PROCESS_END();
