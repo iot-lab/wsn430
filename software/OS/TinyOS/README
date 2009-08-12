@@ -1,12 +1,23 @@
-Here you can find the files needed to compile applications using TinyOS for the WSN430v13b platform. You need the TinyOS tools installed (nesc compiler, tinyos-tools ...), and you must set up the following environment variables:
-TOSDIR: points to this TinyOS folder, containing 'apps', support' and 'tos'
-TOSROOT: points to TOSDIR/tos
-CLASSPATH: points to TOSDIR/"support/sdk/java/tinyos.jar:."
 
+In order to use TinyOS with the WSN430v13 motesn you must first install TinyOS, as explained on its website. (www.tinyos.net)
+This being done, you should have a folder 'tinyos-2.x' in your /opt/ folder containing the tinyos source files. If you installed tinyos somewhere else, do the maths to apply what follows.
 
-Then you can compile applications using the following command:
- make wsn430v13
+Move the provided tinyos-2.x-contrib folder beside the tinyos-2.x one, thus in /opt/
 
-Examples applications are found in 'apps'.
+Export the following environment variables, for example by putting this in your .bashrc file:
+
+export TOSROOT=/opt/tinyos-2.x
+export TOSDIR=$TOSROOT/tos
+export CLASSPATH=$TOSROOT/support/sdk/java/tinyos.jar:.
+export MAKERULES=$TOSROOT/support/make/Makerules
+export TOSMAKE_PATH=${TOSROOT}/../tinyos-2.x-contrib/senstools/support/make
+
+You can now compile examples by going in the Blink example of the apps folder:
+  $ cd $(TOSROOT)/apps/Blink
+
+Compile it and program a node, if a JTAG probe is plugged in it:
+  $ make wsn430v13 install jtag
+
+That's it!
 
 The whole TinyOS source is based from TinyOS Release 2.1
