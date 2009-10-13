@@ -85,6 +85,10 @@ int putchar(int c)
 }
 #endif
 /*---------------------------------------------------------------------------*/
+
+static uint16_t uart0_callback(uint8_t c) {
+  return (uint16_t) slip_input_byte(c);
+}
 /**
  * Initalize the RS232 port and the SLIP driver.
  *
