@@ -19,3 +19,18 @@ PROJECT_SOURCEFILES = fakeuip.c sicslow_ethernet.c
 all:	uip6-bridge-tap.wsn430
 
 include $(CONTIKI)/Makefile.include
+
+../../tapslip6: ../../tapslip6.c
+	(cd ../../; $(MAKE) tapslip6)
+
+ifndef MOTE
+MOTE=1
+endif
+
+connect: ../../tapslip6
+	sudo ../../tapslip6 -t tap0 -s $(USBDEVPREFIX)$(word $(MOTE), $(CMOTES)) 127.0.0.1 255.0.0.0
+
+bridge:
+	@sudo service radvd restart || echo radvd could not be restarted
+	sudo route add -6 aaaa::/64 tap0
+	sudo ip -6 address add aaaa::1/64 dev tap0

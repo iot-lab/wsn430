@@ -96,6 +96,6 @@ static uint16_t uart0_callback(uint8_t c) {
 void
 slip_arch_init(unsigned long ubr)
 {
-    uart0_register_callback(slip_input_byte);
+    uart0_register_callback(uart0_callback);
 }
 /*---------------------------------------------------------------------------*/

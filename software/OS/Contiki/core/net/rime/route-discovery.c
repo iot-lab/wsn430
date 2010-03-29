@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: route-discovery.c,v 1.17 2009/05/10 21:10:23 adamdunkels Exp $
+ * $Id: route-discovery.c,v 1.20 2010/01/27 08:12:56 adamdunkels Exp $
  */
 
 /**
@@ -72,11 +72,13 @@ struct rrep_hdr {
 #define DEBUG 0
 #if DEBUG
 #include <stdio.h>
-#define PRINTF(...) PRINTF(__VA_ARGS__)
+#define PRINTF(...) printf(__VA_ARGS__)
 #else
 #define PRINTF(...)
 #endif
 
+/*---------------------------------------------------------------------------*/
+static char rrep_pending;		/* A reply for a request is pending. */
 /*---------------------------------------------------------------------------*/
 static void
 send_rreq(struct route_discovery_conn *c, const rimeaddr_t *dest)
@@ -100,7 +102,7 @@ send_rreq(struct route_discovery_conn *c, const rimeaddr_t *dest)
 }
 /*---------------------------------------------------------------------------*/
 static void
-send_rrep(struct route_discovery_conn *c, rimeaddr_t *dest)
+send_rrep(struct route_discovery_conn *c, const rimeaddr_t *dest)
 {
   struct rrep_hdr *rrepmsg;
   struct route_entry *rt;
@@ -130,7 +132,8 @@ send_rrep(struct route_discovery_conn *c, rimeaddr_t *dest)
 }
 /*---------------------------------------------------------------------------*/
 static void
-insert_route(rimeaddr_t *originator, rimeaddr_t *last_hop, uint8_t hops)
+insert_route(const rimeaddr_t *originator, const rimeaddr_t *last_hop,
+	     uint8_t hops)
 {
   PRINTF("%d.%d: Inserting %d.%d into routing table, next hop %d.%d, hop count %d\n",
 	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
@@ -158,7 +161,7 @@ insert_route(rimeaddr_t *originator, rimeaddr_t *last_hop, uint8_t hops)
 }
 /*---------------------------------------------------------------------------*/
 static void
-rrep_packet_received(struct unicast_conn *uc, rimeaddr_t *from)
+rrep_packet_received(struct unicast_conn *uc, const rimeaddr_t *from)
 {
   struct rrep_hdr *msg = packetbuf_dataptr();
   struct route_entry *rt;
@@ -182,9 +185,16 @@ rrep_packet_received(struct unicast_conn *uc, rimeaddr_t *from)
 
   if(rimeaddr_cmp(&msg->dest, &rimeaddr_node_addr)) {
     PRINTF("rrep for us!\n");
+    rrep_pending = 0;
     ctimer_stop(&c->t);
     if(c->cb->new_route) {
-      c->cb->new_route(c, &msg->originator);
+      rimeaddr_t originator;
+
+      /* If the callback modifies the packet, the originator address
+         will be lost. Therefore, we need to copy it into a local
+         variable before calling the callback. */
+      rimeaddr_copy(&originator, &msg->originator);
+      c->cb->new_route(c, &originator);
     }
 
   } else {
@@ -202,8 +212,8 @@ rrep_packet_received(struct unicast_conn *uc, rimeaddr_t *from)
 }
 /*---------------------------------------------------------------------------*/
 static int
-rreq_packet_received(struct netflood_conn *nf, rimeaddr_t *from,
-		      rimeaddr_t *originator, uint8_t seqno, uint8_t hops)
+rreq_packet_received(struct netflood_conn *nf, const rimeaddr_t *from,
+		     const rimeaddr_t *originator, uint8_t seqno, uint8_t hops)
 {
   struct route_msg *msg = packetbuf_dataptr();
   struct route_discovery_conn *c = (struct route_discovery_conn *)
@@ -285,18 +295,26 @@ timeout_handler(void *ptr)
 {
   struct route_discovery_conn *c = ptr;
   PRINTF("route_discovery: timeout, timed out\n");
+  rrep_pending = 0;
   if(c->cb->timedout) {
     c->cb->timedout(c);
   }
 }
 /*---------------------------------------------------------------------------*/
-void
+int
 route_discovery_discover(struct route_discovery_conn *c, const rimeaddr_t *addr,
 			 clock_time_t timeout)
 {
+  if(rrep_pending) {
+    PRINTF("route_discovery_send: ignoring request because of pending response\n");
+    return 0;
+  }
+
   PRINTF("route_discovery_send: sending route request\n");
   ctimer_set(&c->t, timeout, timeout_handler, c);
+  rrep_pending = 1;
   send_rreq(c, addr);
+  return 1;
 }
 /*---------------------------------------------------------------------------*/
 /** @} */

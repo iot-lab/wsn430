@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rudolph1.c,v 1.12 2009/03/12 21:58:21 adamdunkels Exp $
+ * $Id: rudolph1.c,v 1.14 2010/01/25 13:54:06 adamdunkels Exp $
  */
 
 /**
@@ -232,7 +232,7 @@ dropped_ipolite(struct ipolite_conn *ipolite)
 }
 /*---------------------------------------------------------------------------*/
 static void
-recv_ipolite(struct ipolite_conn *ipolite, rimeaddr_t *from)
+recv_ipolite(struct ipolite_conn *ipolite, const rimeaddr_t *from)
 {
   struct rudolph1_conn *c = (struct rudolph1_conn *)
     ((char *)ipolite - offsetof(struct rudolph1_conn, ipolite));
@@ -295,7 +295,8 @@ send_next_packet(void *ptr)
   c->nacks = 0;
 }
 /*---------------------------------------------------------------------------*/
-static const struct ipolite_callbacks ipolite = { recv_ipolite, sent_ipolite, dropped_ipolite };
+static const struct ipolite_callbacks ipolite = { recv_ipolite, sent_ipolite,
+						  dropped_ipolite };
 static const struct trickle_callbacks trickle = { recv_trickle };
 /*---------------------------------------------------------------------------*/
 void
@@ -303,7 +304,7 @@ rudolph1_open(struct rudolph1_conn *c, uint16_t channel,
 	      const struct rudolph1_callbacks *cb)
 {
   trickle_open(&c->trickle, TRICKLE_INTERVAL, channel, &trickle);
-  ipolite_open(&c->ipolite, channel + 1, &ipolite);
+  ipolite_open(&c->ipolite, channel + 1, 1, &ipolite);
   c->cb = cb;
   c->version = 0;
   c->send_interval = DEFAULT_SEND_INTERVAL;

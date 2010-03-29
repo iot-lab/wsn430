@@ -538,6 +538,7 @@ shell_start(void)
 {
   shell_output_str(NULL, "Contiki command shell", "");
   shell_output_str(NULL, "Type '?' and return for help", "");
+  shell_prompt("Contiki> ");
 }
 /*---------------------------------------------------------------------------*/
 void

@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: clock.c,v 1.17 2008/12/02 12:44:48 joxe Exp $
+ * @(#)$Id: clock.c,v 1.21 2010/01/30 14:03:35 adamdunkels Exp $
  */
 
 
@@ -54,11 +54,12 @@ static unsigned short last_tar = 0;
 /*---------------------------------------------------------------------------*/
 interrupt(TIMERA1_VECTOR) timera1 (void) {
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
+
   if(TAIV == 2) {
 
     /* HW timer bug fix: Interrupt handler called before TR==CCR.
      * Occurrs when timer state is toggled between STOP and CONT. */
-    while (TACTL & MC1 && TACCR1 - TAR == 1);
+    while(TACTL & MC1 && TACCR1 - TAR == 1);
 
     /* Make sure interrupt time is future */
     do {
@@ -66,15 +67,15 @@ interrupt(TIMERA1_VECTOR) timera1 (void) {
       ++count;
 
       /* Make sure the CLOCK_CONF_SECOND is a power of two, to ensure
-         that the modulo operation below becomes a logical and and not
-         an expensive divide. Algorithm from Wikipedia:
-         http://en.wikipedia.org/wiki/Power_of_two */
+	 that the modulo operation below becomes a logical and and not
+	 an expensive divide. Algorithm from Wikipedia:
+	 http://en.wikipedia.org/wiki/Power_of_two */
 #if (CLOCK_CONF_SECOND & (CLOCK_CONF_SECOND - 1)) != 0
 #error CLOCK_CONF_SECOND must be a power of two (i.e., 1, 2, 4, 8, 16, 32, 64, ...).
 #error Change CLOCK_CONF_SECOND in contiki-conf.h.
 #endif
       if(count % CLOCK_CONF_SECOND == 0) {
-        ++seconds;
+	++seconds;
       }
     } while((TACCR1 - TAR) > INTERVAL);
 
@@ -85,7 +86,12 @@ interrupt(TIMERA1_VECTOR) timera1 (void) {
       etimer_request_poll();
       LPM4_EXIT;
     }
+
   }
+  /*  if(process_nevents() >= 0) {
+    LPM4_EXIT;
+    }*/
+    
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
 /*---------------------------------------------------------------------------*/
@@ -127,8 +133,8 @@ clock_init(void)
   /* Select SMCLK (2.4576MHz), clear TAR */
   /* TACTL = TASSEL1 | TACLR | ID_3; */
   
-  /* Select ACLK 32768Hz clock, divide by 8 */
-  TACTL = TASSEL0 | TACLR | ID_3;
+  /* Select ACLK 32768Hz clock, divide by 4 */
+  TACTL = TASSEL0 | TACLR | ID_2;
 
   /* Initialize ccr1 to create the X ms interval. */
   /* CCR1 interrupt enabled, interrupt occurs when timer equals CCR1. */

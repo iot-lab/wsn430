@@ -41,7 +41,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip.c,v 1.15 2008/10/15 08:08:32 adamdunkels Exp $
+ * $Id: uip.c,v 1.22 2010/02/15 18:03:07 adamdunkels Exp $
  *
  */
 
@@ -174,10 +174,10 @@ void uip_setipid(u16_t id) { ipid = id; }
 static u8_t iss[4];          /* The iss variable is used for the TCP
 				initial sequence number. */
 
-#if UIP_ACTIVE_OPEN
+#if UIP_ACTIVE_OPEN || UIP_UDP
 static u16_t lastport;       /* Keeps track of the last port used for
 				a new connection. */
-#endif /* UIP_ACTIVE_OPEN */
+#endif /* UIP_ACTIVE_OPEN || UIP_UDP */
 
 /* Temporary variables. */
 u8_t uip_acc32[4];
@@ -378,9 +378,9 @@ uip_init(void)
   for(c = 0; c < UIP_CONNS; ++c) {
     uip_conns[c].tcpstateflags = UIP_CLOSED;
   }
-#if UIP_ACTIVE_OPEN
+#if UIP_ACTIVE_OPEN || UIP_UDP
   lastport = 1024;
-#endif /* UIP_ACTIVE_OPEN */
+#endif /* UIP_ACTIVE_OPEN || UIP_UDP */
 
 #if UIP_UDP
   for(c = 0; c < UIP_UDP_CONNS; ++c) {
@@ -693,6 +693,12 @@ uip_process(u8_t flag)
 	uip_flags = UIP_POLL;
 	UIP_APPCALL();
 	goto appsend;
+#if UIP_ACTIVE_OPEN
+    } else if((uip_connr->tcpstateflags & UIP_TS_MASK) == UIP_SYN_SENT) {
+      /* In the SYN_SENT state, we retransmit out SYN. */
+      BUF->flags = 0;
+      goto tcp_send_syn;
+#endif /* UIP_ACTIVE_OPEN */
     }
     goto drop;
     
@@ -903,9 +909,16 @@ uip_process(u8_t flag)
 #if UIP_BROADCAST
     DEBUG_PRINTF("UDP IP checksum 0x%04x\n", uip_ipchksum());
     if(BUF->proto == UIP_PROTO_UDP &&
-       uip_ipaddr_cmp(&BUF->destipaddr, &uip_broadcast_addr)
-       /*&&
-	 uip_ipchksum() == 0xffff*/) {
+       (uip_ipaddr_cmp(&BUF->destipaddr, &uip_broadcast_addr) ||
+	(BUF->destipaddr.u8[0] & 224) == 224)) {  /* XXX this is a
+						     hack to be able
+						     to receive UDP
+						     multicast
+						     packets. We check
+						     for the bit
+						     pattern of the
+						     multicast
+						     prefix. */
       goto udp_input;
     }
 #endif /* UIP_BROADCAST */
@@ -1093,6 +1106,12 @@ uip_process(u8_t flag)
   uip_len = uip_len - UIP_IPUDPH_LEN;
 #endif /* UIP_UDP_CHECKSUMS */
 
+  /* Make sure that the UDP destination port number is not zero. */
+  if(UDPBUF->destport == 0) {
+    UIP_LOG("udp: zero port.");
+    goto drop;
+  }
+
   /* Demultiplex this UDP packet between the UDP "connections". */
   for(uip_udp_conn = &uip_udp_conns[0];
       uip_udp_conn < &uip_udp_conns[UIP_UDP_CONNS];
@@ -1206,6 +1225,12 @@ uip_process(u8_t flag)
     UIP_STAT(++uip_stat.tcp.drop);
     UIP_STAT(++uip_stat.tcp.chkerr);
     UIP_LOG("tcp: bad checksum.");
+    goto drop;
+  }
+
+  /* Make sure that the TCP port number is not zero. */
+  if(BUF->destport == 0 || BUF->srcport == 0) {
+    UIP_LOG("tcp: zero port.");
     goto drop;
   }
   
@@ -1429,9 +1454,13 @@ uip_process(u8_t flag)
 
   /* First, check if the sequence number of the incoming packet is
      what we're expecting next. If not, we send out an ACK with the
-     correct numbers in. */
-  if(!(((uip_connr->tcpstateflags & UIP_TS_MASK) == UIP_SYN_SENT) &&
-       ((BUF->flags & TCP_CTL) == (TCP_SYN | TCP_ACK)))) {
+     correct numbers in, unless we are in the SYN_RCVD state and
+     receive a SYN, in which case we should retransmit our SYNACK
+     (which is done futher down). */
+  if(!((((uip_connr->tcpstateflags & UIP_TS_MASK) == UIP_SYN_SENT) &&
+	((BUF->flags & TCP_CTL) == (TCP_SYN | TCP_ACK))) ||
+       (((uip_connr->tcpstateflags & UIP_TS_MASK) == UIP_SYN_RCVD) &&
+	((BUF->flags & TCP_CTL) == TCP_SYN)))) {
     if((uip_len > 0 || ((BUF->flags & (TCP_SYN | TCP_FIN)) != 0)) &&
        (BUF->seqno[0] != uip_connr->rcv_nxt[0] ||
 	BUF->seqno[1] != uip_connr->rcv_nxt[1] ||
@@ -1506,6 +1535,10 @@ uip_process(u8_t flag)
       uip_slen = 0;
       UIP_APPCALL();
       goto appsend;
+    }
+    /* We need to retransmit the SYNACK */
+    if((BUF->flags & TCP_CTL) == TCP_SYN) {
+      goto tcp_send_synack;
     }
     goto drop;
 #if UIP_ACTIVE_OPEN
@@ -1814,7 +1847,7 @@ uip_process(u8_t flag)
      to set the appropriate TCP sequence numbers in the TCP header. */
  tcp_send_ack:
   BUF->flags = TCP_ACK;
-
+  
  tcp_send_nodata:
   uip_len = UIP_IPTCPH_LEN;
 
@@ -1852,7 +1885,7 @@ uip_process(u8_t flag)
     BUF->wnd[0] = ((UIP_RECEIVE_WINDOW) >> 8);
     BUF->wnd[1] = ((UIP_RECEIVE_WINDOW) & 0xff);
   }
-
+  
  tcp_send_noconn:
   BUF->ttl = UIP_TTL;
 #if UIP_CONF_IPV6

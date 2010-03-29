@@ -28,13 +28,12 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: mtarch.c,v 1.5 2008/08/27 13:10:29 fros4943 Exp $
+ * @(#)$Id: mtarch.c,v 1.6 2008/11/21 10:28:32 fros4943 Exp $
  */
 
 #include <stdio.h>
-#include <io.h>
-#include <signal.h>
 #include "sys/mt.h"
+
 static unsigned short *sptmp;
 static struct mtarch_thread *running;
 
@@ -138,14 +137,13 @@ mtarch_yield(void)
 void
 mtarch_pstop(void)
 {
-    TBCCTL0 = 0;
+
 }
 /*--------------------------------------------------------------------------*/
 void
-mtarch_pstart(void) // run the thread for #4ms
+mtarch_pstart(void)
 {
-    TBCCR0 = TBR + (RTIMER_ARCH_SECOND/256);
-    TBCCTL0 = CCIE;
+
 }
 /*--------------------------------------------------------------------------*/
 void
@@ -168,9 +166,3 @@ mtarch_stack_usage(struct mt_thread *t)
   return MTARCH_STACKSIZE;
 }
 /*--------------------------------------------------------------------------*/
-
-/*---------------------------------------------------------------------------*/
-interrupt(TIMERB0_VECTOR) timerb0 (void) {
-  mt_yield();
-}
-/*---------------------------------------------------------------------------*/

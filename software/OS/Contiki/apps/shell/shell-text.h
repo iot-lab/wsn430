@@ -28,12 +28,12 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-text.h,v 1.1 2008/02/04 23:42:17 adamdunkels Exp $
+ * $Id: shell-text.h,v 1.2 2010/02/03 20:37:29 adamdunkels Exp $
  */
 
 /**
  * \file
- *         A brief description of what this file is.
+ *         Text-related shell commands
  * \author
  *         Adam Dunkels <adam@sics.se>
  */

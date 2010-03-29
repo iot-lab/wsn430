@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: lpp.c,v 1.23 2009/06/22 11:14:11 nifi Exp $
+ * $Id: lpp.c,v 1.30 2010/02/02 23:28:58 adamdunkels Exp $
  */
 
 /**
@@ -79,6 +79,7 @@
 #define WITH_ENCOUNTER_OPTIMIZATION   1
 #define WITH_ADAPTIVE_OFF_TIME        0
 #define WITH_PENDING_BROADCAST        1
+#define WITH_STREAMING                1
 
 #ifdef LPP_CONF_LISTEN_TIME
 #define LISTEN_TIME LPP_CONF_LISTEN_TIME
@@ -89,7 +90,7 @@
 #ifdef LPP_CONF_OFF_TIME
 #define OFF_TIME LPP_CONF_OFF_TIME
 #else
-#define OFF_TIME (CLOCK_SECOND / 2)
+#define OFF_TIME (CLOCK_SECOND / MAC_CHANNEL_CHECK_RATE - LISTEN_TIME)
 #endif /* LPP_CONF_OFF_TIME */
 
 #define PACKET_LIFETIME (LISTEN_TIME + OFF_TIME)
@@ -137,6 +138,8 @@ struct lpp_hdr {
   rimeaddr_t receiver;
 };
 
+static uint8_t lpp_is_on;
+
 static struct compower_activity current_packet;
 
 static const struct radio_driver *radio;
@@ -178,6 +181,13 @@ struct encounter {
 #define MAX_ENCOUNTERS 4
 LIST(encounter_list);
 MEMB(encounter_memb, struct encounter, MAX_ENCOUNTERS);
+
+#if WITH_STREAMING
+static uint8_t is_streaming;
+static struct ctimer stream_probe_timer, stream_off_timer;
+#define STREAM_PROBE_TIME CLOCK_SECOND / 128
+#define STREAM_OFF_TIME CLOCK_SECOND / 2
+#endif /* WITH_STREAMING */
 /*---------------------------------------------------------------------------*/
 static void
 turn_radio_on(void)
@@ -189,7 +199,9 @@ turn_radio_on(void)
 static void
 turn_radio_off(void)
 {
-  radio->off();
+  if(lpp_is_on && is_streaming == 0) {
+    radio->off();
+  }
   /*  leds_off(LEDS_YELLOW);*/
 }
 /*---------------------------------------------------------------------------*/
@@ -243,6 +255,12 @@ turn_radio_on_callback(void *packet)
   /*  printf("enc\n");*/
 }
 /*---------------------------------------------------------------------------*/
+static void
+stream_off(void *dummy)
+{
+  is_streaming = 0;
+}
+/*---------------------------------------------------------------------------*/
 /* This function goes through all encounters to see if it finds a
    matching neighbor. If so, we set a ctimer that will turn on the
    radio just before we expect the neighbor to send a probe packet. If
@@ -257,6 +275,18 @@ turn_radio_on_for_neighbor(rimeaddr_t *neighbor, struct queue_list_item *i)
 {
   struct encounter *e;
 
+#if WITH_STREAMING
+  if(packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) ==
+     PACKETBUF_ATTR_PACKET_TYPE_STREAM) {
+    is_streaming = 1;
+    turn_radio_on();
+    list_add(queued_packets_list, i);
+    ctimer_set(&stream_off_timer, STREAM_OFF_TIME,
+	       stream_off, NULL);
+    return;
+  }
+#endif /* WITH_STREAMING */
+  
   if(rimeaddr_cmp(neighbor, &rimeaddr_null)) {
 #if ! WITH_PENDING_BROADCAST
     /* We have been asked to turn on the radio for a broadcast, so we
@@ -284,7 +314,7 @@ turn_radio_on_for_neighbor(rimeaddr_t *neighbor, struct queue_list_item *i)
 	 time with modulo OFF_TIME. */
 
       now = clock_time();
-      wait = ((clock_time_t)(e->time - now)) % (OFF_TIME);
+      wait = ((clock_time_t)(e->time - now)) % (OFF_TIME + LISTEN_TIME) - LISTEN_TIME;
 
       /*      printf("now %d e %d e-n %d w %d %d\n", now, e->time, e->time - now, (e->time - now) % (OFF_TIME), wait);
       
@@ -398,6 +428,19 @@ send_probe(void)
   compower_accumulate(&compower_idle_activity);
 }
 /*---------------------------------------------------------------------------*/
+static void
+send_stream_probe(void *dummy)
+{
+  /* Turn on the radio for sending a probe packet and 
+     anticipating a data packet from a neighbor. */
+  turn_radio_on();
+  
+  /* Send a probe packet. */
+  send_probe();
+
+  is_streaming = 1;
+}
+/*---------------------------------------------------------------------------*/
 static int
 num_packets_to_send(void)
 {
@@ -426,14 +469,14 @@ static int
 dutycycle(void *ptr)
 {
   struct ctimer *t = ptr;
-  
+  struct queue_list_item *p;
+	
   PT_BEGIN(&dutycycle_pt);
 
   while(1) {
 
 #if WITH_PENDING_BROADCAST
     {
-	struct queue_list_item *p;
 	/* Before sending the probe, we mark all broadcast packets in
 	   our output queue to be pending. This means that they are
 	   ready to be sent, once we know that no neighbor is
@@ -446,13 +489,13 @@ dutycycle(void *ptr)
 	}
       }
 #endif /* WITH_PENDING_BROADCAST */
+    
+    /* Turn on the radio for sending a probe packet and 
+       anticipating a data packet from a neighbor. */
+    turn_radio_on();
 
     /* Send a probe packet. */
     send_probe();
-    
-    /* Turn on the radio for a while in anticipation of a data packet
-       from a neighbor. */
-    turn_radio_on();
 
     /* Set a timer so that we keep the radio on for LISTEN_TIME. */
     ctimer_set(t, LISTEN_TIME, (void (*)(void *))dutycycle, t);
@@ -714,6 +757,13 @@ read_packet(void)
 	      /* Send a probe packet to catch any reply from the other node. */
 	      restart_dutycycle(PROBE_AFTER_TRANSMISSION_TIME);
 #endif /* WITH_PROBE_AFTER_TRANSMISSION */
+
+#if WITH_STREAMING
+	      if(is_streaming) {
+		ctimer_set(&stream_probe_timer, STREAM_PROBE_TIME,
+			   send_stream_probe, NULL);
+	      }
+#endif /* WITH_STREAMING */
 	    }
 
 #if WITH_ACK_OPTIMIZATION
@@ -730,6 +780,18 @@ read_packet(void)
       }
 
     } else if(hdr->type == TYPE_DATA) {
+      if(!rimeaddr_cmp(&hdr->receiver, &rimeaddr_null)) {
+        if(!rimeaddr_cmp(&hdr->receiver, &rimeaddr_node_addr)) {
+          /* Not broadcast or for us */
+          PRINTF("%d.%d: data not for us from %d.%d\n",
+                 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+                 hdr->sender.u8[0], hdr->sender.u8[1]);
+          return 0;
+        }
+        packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, &hdr->receiver);
+      }
+      packetbuf_set_addr(PACKETBUF_ADDR_SENDER, &hdr->sender);
+
       PRINTF("%d.%d: got data from %d.%d\n",
 	     rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	     hdr->sender.u8[0], hdr->sender.u8[1]);
@@ -803,6 +865,7 @@ set_receive_function(void (* recv)(const struct mac_driver *))
 static int
 on(void)
 {
+  lpp_is_on = 1;
   turn_radio_on();
   return 1;
 }
@@ -810,12 +873,19 @@ on(void)
 static int
 off(int keep_radio_on)
 {
+  lpp_is_on = 0;
   if(keep_radio_on) {
     turn_radio_on();
   } else {
     turn_radio_off();
   }
   return 1;
+}
+/*---------------------------------------------------------------------------*/
+static unsigned short
+channel_check_interval(void)
+{
+  return OFF_TIME + LISTEN_TIME;
 }
 /*---------------------------------------------------------------------------*/
 const struct mac_driver lpp_driver = {
@@ -826,6 +896,7 @@ const struct mac_driver lpp_driver = {
   set_receive_function,
   on,
   off,
+  channel_check_interval,
 };
 /*---------------------------------------------------------------------------*/
 static void
@@ -843,6 +914,8 @@ lpp_init(const struct radio_driver *d)
   radio->set_receive_function(input_packet);
   restart_dutycycle(random_rand() % OFF_TIME);
 
+  lpp_is_on = 1;
+  
   announcement_register_listen_callback(listen_callback);
 
   memb_init(&queued_packets_memb);

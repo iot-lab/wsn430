@@ -34,7 +34,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: runicast.c,v 1.6 2009/04/06 21:19:34 adamdunkels Exp $
+ * $Id: runicast.c,v 1.9 2010/01/26 10:19:26 adamdunkels Exp $
  */
 
 /**
@@ -51,7 +51,11 @@
 
 #define RUNICAST_PACKET_ID_BITS 2
 
+#ifdef RUNICAST_CONF_REXMIT_TIME
+#define REXMIT_TIME RUNICAST_CONF_REXMIT_TIME
+#else /* RUNICAST_CONF_REXMIT_TIME */
 #define REXMIT_TIME CLOCK_SECOND
+#endif /* RUNICAST_CONF_REXMIT_TIME */
 
 static const struct packetbuf_attrlist attributes[] =
   {
@@ -100,7 +104,7 @@ sent_by_stunicast(struct stunicast_conn *stunicast)
 }
 /*---------------------------------------------------------------------------*/
 static void
-recv_from_stunicast(struct stunicast_conn *stunicast, rimeaddr_t *from)
+recv_from_stunicast(struct stunicast_conn *stunicast, const rimeaddr_t *from)
 {
   struct runicast_conn *c = (struct runicast_conn *)stunicast;
   /*  struct runicast_hdr *hdr = packetbuf_dataptr();*/
@@ -182,7 +186,8 @@ recv_from_stunicast(struct stunicast_conn *stunicast, rimeaddr_t *from)
   }
 }
 /*---------------------------------------------------------------------------*/
-static const struct stunicast_callbacks runicast = {recv_from_stunicast, sent_by_stunicast};
+static const struct stunicast_callbacks runicast = {recv_from_stunicast,
+						    sent_by_stunicast};
 /*---------------------------------------------------------------------------*/
 void
 runicast_open(struct runicast_conn *c, uint16_t channel,
@@ -209,9 +214,11 @@ runicast_is_transmitting(struct runicast_conn *c)
 }
 /*---------------------------------------------------------------------------*/
 int
-runicast_send(struct runicast_conn *c, rimeaddr_t *receiver, uint8_t max_retransmissions)
+runicast_send(struct runicast_conn *c, const rimeaddr_t *receiver,
+	      uint8_t max_retransmissions)
 {
-  if (runicast_is_transmitting(c)) {
+  int ret;
+  if(runicast_is_transmitting(c)) {
     PRINTF("%d.%d: runicast: already transmitting\n",
         rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1]);
     return 0;
@@ -226,7 +233,11 @@ runicast_send(struct runicast_conn *c, rimeaddr_t *receiver, uint8_t max_retrans
   PRINTF("%d.%d: runicast: sending packet %d\n",
 	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
 	 c->sndnxt);
-  return stunicast_send_stubborn(&c->c, receiver, REXMIT_TIME);
+  ret = stunicast_send_stubborn(&c->c, receiver, REXMIT_TIME);
+  if(!ret) {
+    c->is_tx = 0;
+  }
+  return ret;
 }
 /*---------------------------------------------------------------------------*/
 /** @} */

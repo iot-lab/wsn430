@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: nullmac.c,v 1.10 2009/06/22 11:14:11 nifi Exp $
+ * $Id: nullmac.c,v 1.13 2010/01/25 11:43:32 adamdunkels Exp $
  */
 
 /**
@@ -47,7 +47,10 @@ static void (* receiver_callback)(const struct mac_driver *);
 static int
 send_packet(void)
 {
-  return radio->send(packetbuf_hdrptr(), packetbuf_totlen());
+  if(radio->send(packetbuf_hdrptr(), packetbuf_totlen()) == RADIO_TX_OK) {
+    return MAC_TX_OK;
+  }
+  return MAC_TX_ERR;
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -90,6 +93,12 @@ off(int keep_radio_on)
   }
 }
 /*---------------------------------------------------------------------------*/
+static unsigned short
+channel_check_interval(void)
+{
+  return 0;
+}
+/*---------------------------------------------------------------------------*/
 const struct mac_driver nullmac_driver = {
   "nullmac",
   nullmac_init,
@@ -98,6 +107,7 @@ const struct mac_driver nullmac_driver = {
   set_receive_function,
   on,
   off,
+  channel_check_interval,
 };
 /*---------------------------------------------------------------------------*/
 const struct mac_driver *

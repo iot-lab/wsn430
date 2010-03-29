@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: mesh.c,v 1.17 2009/03/24 07:15:04 adamdunkels Exp $
+ * $Id: mesh.c,v 1.20 2009/12/18 14:57:15 nvt-se Exp $
  */
 
 /**
@@ -69,6 +69,14 @@ data_packet_received(struct multihop_conn *multihop,
   struct mesh_conn *c = (struct mesh_conn *)
     ((char *)multihop - offsetof(struct mesh_conn, multihop));
 
+  struct route_entry *rt;
+
+  /* Refresh the route when we hear a packet from a neighbor. */
+  rt = route_lookup(from);
+  if(rt != NULL) {
+    route_refresh(rt);
+  }
+  
   if(c->cb->recv) {
     c->cb->recv(c, from, hops);
   }
@@ -83,7 +91,6 @@ data_packet_forward(struct multihop_conn *multihop,
   struct route_entry *rt;
 
   rt = route_lookup(dest);
-
   if(rt == NULL) {
     return NULL;
   }
@@ -92,7 +99,7 @@ data_packet_forward(struct multihop_conn *multihop,
 }
 /*---------------------------------------------------------------------------*/
 static void
-found_route(struct route_discovery_conn *rdc, rimeaddr_t *dest)
+found_route(struct route_discovery_conn *rdc, const rimeaddr_t *dest)
 {
   struct mesh_conn *c = (struct mesh_conn *)
     ((char *)rdc - offsetof(struct mesh_conn, route_discovery_conn));
@@ -102,7 +109,11 @@ found_route(struct route_discovery_conn *rdc, rimeaddr_t *dest)
     queuebuf_to_packetbuf(c->queued_data);
     queuebuf_free(c->queued_data);
     c->queued_data = NULL;
-    multihop_send(&c->multihop, dest);
+    if(multihop_send(&c->multihop, dest)) {
+      c->cb->sent(c);
+    } else {
+      c->cb->timedout(c);
+    }
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -131,6 +142,7 @@ void
 mesh_open(struct mesh_conn *c, uint16_t channels,
 	  const struct mesh_callbacks *callbacks)
 {
+  route_init();
   multihop_open(&c->multihop, channels, &data_callbacks);
   route_discovery_open(&c->route_discovery_conn,
 		       CLOCK_SECOND * 2,
@@ -151,6 +163,10 @@ mesh_send(struct mesh_conn *c, const rimeaddr_t *to)
 {
   int could_send;
 
+  PRINTF("%d.%d: mesh_send to %d.%d\n",
+	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	 to->u8[0], to->u8[1]);
+  
   could_send = multihop_send(&c->multihop, to);
 
   if(!could_send) {
@@ -165,7 +181,7 @@ mesh_send(struct mesh_conn *c, const rimeaddr_t *to)
 			     PACKET_TIMEOUT);
     return 0;
   }
-
+  c->cb->sent(c);
   return 1;
 }
 /*---------------------------------------------------------------------------*/

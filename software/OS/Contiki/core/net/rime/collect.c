@@ -36,7 +36,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.c,v 1.28 2009/05/30 19:54:05 nvt-se Exp $
+ * $Id: collect.c,v 1.32 2010/02/08 21:59:49 adamdunkels Exp $
  */
 
 /**
@@ -81,7 +81,7 @@ static struct recent_packet recent_packets[NUM_RECENT_PACKETS];
 static uint8_t recent_packet_ptr;
 
 #define FORWARD_PACKET_LIFETIME (CLOCK_SECOND * 16)
-#define MAX_FORWARDING_QUEUE 4
+#define MAX_FORWARDING_QUEUE 6
 PACKETQUEUE(forwarding_queue, MAX_FORWARDING_QUEUE);
 
 #define SINK 0
@@ -227,7 +227,8 @@ update_rtmetric(struct collect_conn *tc)
 }
 /*---------------------------------------------------------------------------*/
 static void
-node_packet_received(struct runicast_conn *c, rimeaddr_t *from, uint8_t seqno)
+node_packet_received(struct runicast_conn *c, const rimeaddr_t *from,
+		     uint8_t seqno)
 {
   struct collect_conn *tc = (struct collect_conn *)
     ((char *)c - offsetof(struct collect_conn, runicast_conn));
@@ -288,6 +289,9 @@ node_packet_received(struct runicast_conn *c, rimeaddr_t *from, uint8_t seqno)
     if(packetqueue_enqueue_packetbuf(&forwarding_queue, FORWARD_PACKET_LIFETIME,
 				     tc)) {
       send_queued_packet();
+    } else {
+      PRINTF("%d.%d: packet dropped: no queue buffer available\n",
+	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
     }
   }
   
@@ -295,7 +299,8 @@ node_packet_received(struct runicast_conn *c, rimeaddr_t *from, uint8_t seqno)
 }
 /*---------------------------------------------------------------------------*/
 static void
-node_packet_sent(struct runicast_conn *c, rimeaddr_t *to, uint8_t transmissions)
+node_packet_sent(struct runicast_conn *c, const rimeaddr_t *to,
+		 uint8_t transmissions)
 {
   struct collect_conn *tc = (struct collect_conn *)
     ((char *)c - offsetof(struct collect_conn, runicast_conn));
@@ -318,12 +323,13 @@ node_packet_sent(struct runicast_conn *c, rimeaddr_t *to, uint8_t transmissions)
 }
 /*---------------------------------------------------------------------------*/
 static void
-node_packet_timedout(struct runicast_conn *c, rimeaddr_t *to, uint8_t transmissions)
+node_packet_timedout(struct runicast_conn *c, const rimeaddr_t *to,
+		     uint8_t transmissions)
 {
   struct collect_conn *tc = (struct collect_conn *)
     ((char *)c - offsetof(struct collect_conn, runicast_conn));
 
-  PRINTF("%d.%d: timedout after %d retransmissions\n",
+  PRINTF("%d.%d: timedout after %d retransmissions: packet dropped\n",
 	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1], transmissions);
   
   tc->forwarding = 0;
@@ -339,7 +345,8 @@ node_packet_timedout(struct runicast_conn *c, rimeaddr_t *to, uint8_t transmissi
 /*---------------------------------------------------------------------------*/
 #if !COLLECT_ANNOUNCEMENTS
 static void
-adv_received(struct neighbor_discovery_conn *c, rimeaddr_t *from, uint16_t rtmetric)
+adv_received(struct neighbor_discovery_conn *c, const rimeaddr_t *from,
+	     uint16_t rtmetric)
 {
   struct collect_conn *tc = (struct collect_conn *)
     ((char *)c - offsetof(struct collect_conn, neighbor_discovery_conn));
@@ -360,7 +367,7 @@ adv_received(struct neighbor_discovery_conn *c, rimeaddr_t *from, uint16_t rtmet
 }
 #else
 static void
-received_announcement(struct announcement *a, rimeaddr_t *from,
+received_announcement(struct announcement *a, const rimeaddr_t *from,
 		      uint16_t id, uint16_t value)
 {
   struct collect_conn *tc = (struct collect_conn *)
@@ -415,6 +422,7 @@ collect_open(struct collect_conn *tc, uint16_t channels,
 #else
   neighbor_discovery_start(&tc->neighbor_discovery_conn, tc->rtmetric);
 #endif /* COLLECT_ANNOUNCEMENTS */
+  neighbor_init();
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -477,6 +485,9 @@ collect_send(struct collect_conn *tc, int rexmits)
 				       tc)) {
 	send_queued_packet();
 	return 1;
+      } else {
+        PRINTF("%d.%d: drop originated packet: no queuebuf\n",
+               rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
       }
     } else {
       /*      printf("Didn't find any neighbor\n");*/
@@ -486,6 +497,9 @@ collect_send(struct collect_conn *tc, int rexmits)
       if(packetqueue_enqueue_packetbuf(&forwarding_queue, FORWARD_PACKET_LIFETIME,
 				       tc)) {
 	return 1;
+      } else {
+        PRINTF("%d.%d: drop originated packet: no queuebuf\n",
+               rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
       }
     }
   }

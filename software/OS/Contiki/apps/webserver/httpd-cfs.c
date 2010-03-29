@@ -30,9 +30,13 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: httpd-cfs.c,v 1.11 2009/02/09 13:04:37 fros4943 Exp $
+ * $Id: httpd-cfs.c,v 1.15 2010/02/03 23:19:40 oliverschmidt Exp $
  */
 
+#include <stdio.h>
+#ifndef HAVE_SNPRINTF
+int snprintf(char *str, size_t size, const char *format, ...);
+#endif /* HAVE_SNPRINTF */
 #include <string.h>
 
 #include "contiki-net.h"
@@ -83,6 +87,16 @@ PT_THREAD(send_file(struct httpd_state *s))
 }
 /*---------------------------------------------------------------------------*/
 static
+PT_THREAD(send_string(struct httpd_state *s, const char *str))
+{
+  PSOCK_BEGIN(&s->sout);
+
+  SEND_STRING(&s->sout, str);
+
+  PSOCK_END(&s->sout);
+}
+/*---------------------------------------------------------------------------*/
+static
 PT_THREAD(send_headers(struct httpd_state *s, const char *statushdr))
 {
   char *ptr;
@@ -117,15 +131,21 @@ PT_THREAD(handle_output(struct httpd_state *s))
   s->fd = cfs_open(s->filename, CFS_READ);
   petsciiconv_toascii(s->filename, sizeof(s->filename));
   if(s->fd < 0) {
-    s->fd = cfs_open("notfound.html", CFS_READ);
+    strcpy(s->filename, "notfound.html");
+    s->fd = cfs_open(s->filename, CFS_READ);
+    petsciiconv_toascii(s->filename, sizeof(s->filename));
     if(s->fd < 0) {
-      uip_abort();
-      memb_free(&conns, s);
-      webserver_log_file(&uip_conn->ripaddr, "reset (no notfound.html)");
+      PT_WAIT_THREAD(&s->outputpt,
+                     send_headers(s, http_header_404));
+      PT_WAIT_THREAD(&s->outputpt,
+                     send_string(s, "not found"));
+      uip_close();
+      webserver_log_file(&uip_conn->ripaddr, "404 (no notfound.html)");
       PT_EXIT(&s->outputpt);
     }
     PT_WAIT_THREAD(&s->outputpt,
 		   send_headers(s, http_header_404));
+    webserver_log_file(&uip_conn->ripaddr, "404 - notfound.html");
   } else {
     PT_WAIT_THREAD(&s->outputpt,
 		   send_headers(s, http_header_200));

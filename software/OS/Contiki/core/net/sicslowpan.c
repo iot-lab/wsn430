@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sicslowpan.c,v 1.7 2009/04/06 15:54:07 nifi Exp $
+ * $Id: sicslowpan.c,v 1.17 2010/02/08 21:59:21 adamdunkels Exp $
  */
 /**
  * \file
@@ -48,6 +48,7 @@
 #include <string.h>
 
 #include "contiki.h"
+#include "dev/watchdog.h"
 #include "net/tcpip.h"
 #include "net/uip.h"
 #include "net/uip-netif.h"
@@ -56,9 +57,12 @@
 
 #define DEBUG 0
 #if DEBUG
+/* PRINTFI and PRINTFO are defined for input and output to debug one without changing the timing of the other */
 u8_t p;
 #include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)
+#define PRINTFI(...) printf(__VA_ARGS__)
+#define PRINTFO(...) printf(__VA_ARGS__)
 #define PRINT6ADDR(addr) PRINTF(" %02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x ", ((u8_t *)addr)[0], ((u8_t *)addr)[1], ((u8_t *)addr)[2], ((u8_t *)addr)[3], ((u8_t *)addr)[4], ((u8_t *)addr)[5], ((u8_t *)addr)[6], ((u8_t *)addr)[7], ((u8_t *)addr)[8], ((u8_t *)addr)[9], ((u8_t *)addr)[10], ((u8_t *)addr)[11], ((u8_t *)addr)[12], ((u8_t *)addr)[13], ((u8_t *)addr)[14], ((u8_t *)addr)[15])
 #define PRINTLLADDR(lladdr) PRINTF(" %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x ",lladdr->addr[0], lladdr->addr[1], lladdr->addr[2], lladdr->addr[3],lladdr->addr[4], lladdr->addr[5],lladdr->addr[6], lladdr->addr[7])
 #define PRINTPACKETBUF() PRINTF("RIME buffer: "); for(p = 0; p < packetbuf_datalen(); p++){PRINTF("%.2X", *(rime_ptr + p));} PRINTF("\n")
@@ -66,6 +70,8 @@ u8_t p;
 #define PRINTSICSLOWPANBUF() PRINTF("SICSLOWPAN buffer: "); for(p = 0; p < sicslowpan_len; p++){PRINTF("%.2X", sicslowpan_buf[p]);}PRINTF("\n")
 #else
 #define PRINTF(...)
+#define PRINTFI(...)
+#define PRINTFO(...)
 #define PRINT6ADDR(addr)
 #define PRINTLLADDR(lladdr)
 #define PRINTPACKETBUF()
@@ -137,7 +143,7 @@ void uip_log(char *msg);
  *  @{
  */
 /** A pointer to the mac driver */
-static const struct mac_driver *mac;
+const struct mac_driver *sicslowpan_mac;
 
 /**
  * A pointer to the rime buffer.
@@ -1104,11 +1110,15 @@ send_packet(rimeaddr_t *dest)
    */
   packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, dest);
 
-  if(mac != NULL) {
+  if(sicslowpan_mac != NULL) {
   /** \todo: Fix sending delays so they aren't blocking, or even better would
    *         be to figure out how to get rid of delays entirely */
-    mac->send();
+    sicslowpan_mac->send();
   }
+
+  /* If we are sending multiple packets in a row, we need to let the
+     watchdog know that we are still alive. */
+  watchdog_periodic();
 }
 
 /** \brief Take an IP packet and format it to be sent on an 802.15.4
@@ -1134,7 +1144,12 @@ output(uip_lladdr_t *localdest)
   /* reset rime buffer */
   packetbuf_clear();
   rime_ptr = packetbuf_dataptr();
-  
+
+  if(UIP_IP_BUF->proto == UIP_PROTO_TCP) {
+    /*    packetbuf_set_attr(PACKETBUF_ATTR_PACKET_TYPE,
+          PACKETBUF_ATTR_PACKET_TYPE_STREAM);*/
+  }
+    
   /*
    * The destination address will be tagged to each outbound
    * packet. If the argument localdest is NULL, we are sending a
@@ -1146,7 +1161,7 @@ output(uip_lladdr_t *localdest)
     rimeaddr_copy(&dest, (const rimeaddr_t *)localdest);
   }
   
-  PRINTF("sicslowpan output: sending packet len %d\n", uip_len);
+  PRINTFO("sicslowpan output: sending packet len %d\n", uip_len);
   
   /* Try to compress the headers */
 #if SICSLOWPAN_CONF_COMPRESSION == SICSLOWPAN_CONF_COMPRESSION_HC1
@@ -1158,10 +1173,11 @@ output(uip_lladdr_t *localdest)
 #if SICSLOWPAN_CONF_COMPRESSION == SICSLOWPAN_CONF_COMPRESSION_HC01
   compress_hdr_hc01(&dest);
 #endif /*SICSLOWPAN_CONF_COMPRESSION == SICSLOWPAN_CONF_COMPRESSION_HC01*/
-  PRINTF("sicslowpan output: header of len %d\n", rime_hdr_len);
+  PRINTFO("sicslowpan output: header of len %d\n", rime_hdr_len);
   
   if(uip_len - uncomp_hdr_len > MAC_MAX_PAYLOAD - rime_hdr_len) {
 #if SICSLOWPAN_CONF_FRAG
+    struct queuebuf *q;
     /*
      * The outbound IPv6 packet is too large to fit into a single 15.4
      * packet, so we fragment it into multiple packets and send them.
@@ -1171,7 +1187,7 @@ output(uip_lladdr_t *localdest)
      */
 
     /* Create 1st Fragment */
-    PRINTF("sicslowpan output: 1rst fragment ");
+    PRINTFO("sicslowpan output: 1rst fragment ");
 
     /* move HC1/HC01/IPv6 header */
     memmove(rime_ptr + SICSLOWPAN_FRAG1_HDR_LEN, rime_ptr, rime_hdr_len);
@@ -1190,11 +1206,19 @@ output(uip_lladdr_t *localdest)
     /* Copy payload and send */
     rime_hdr_len += SICSLOWPAN_FRAG1_HDR_LEN;
     rime_payload_len = (MAC_MAX_PAYLOAD - rime_hdr_len) & 0xf8;
-    PRINTF("(len %d, tag %d)\n", rime_payload_len, my_tag);
+    PRINTFO("(len %d, tag %d)\n", rime_payload_len, my_tag);
     memcpy(rime_ptr + rime_hdr_len,
            (void *)UIP_IP_BUF + uncomp_hdr_len, rime_payload_len);
     packetbuf_set_datalen(rime_payload_len + rime_hdr_len);
+    q = queuebuf_new_from_packetbuf();
+    if(q == NULL) {
+      PRINTFO("could not allocate queuebuf for first fragment, dropping packet\n");
+      return 0;
+    }
     send_packet(&dest);
+    queuebuf_to_packetbuf(q);
+    queuebuf_free(q);
+    q = NULL;
 
     /* set processed_ip_len to what we already sent from the IP payload*/
     processed_ip_len = rime_payload_len + uncomp_hdr_len;
@@ -1211,7 +1235,7 @@ output(uip_lladdr_t *localdest)
           ((SICSLOWPAN_DISPATCH_FRAGN << 8) | uip_len));
     rime_payload_len = (MAC_MAX_PAYLOAD - rime_hdr_len) & 0xf8;
     while(processed_ip_len < uip_len){
-      PRINTF("sicslowpan output: fragment ");
+      PRINTFO("sicslowpan output: fragment ");
 /*       RIME_FRAG_BUF->offset = processed_ip_len >> 3; */
       RIME_FRAG_PTR[RIME_FRAG_OFFSET] = processed_ip_len >> 3;
       
@@ -1220,12 +1244,20 @@ output(uip_lladdr_t *localdest)
         /* last fragment */
         rime_payload_len = uip_len - processed_ip_len;
       }
-      PRINTF("(offset %d, len %d, tag %d)\n",
+      PRINTFO("(offset %d, len %d, tag %d)\n",
              processed_ip_len >> 3, rime_payload_len, my_tag);
       memcpy(rime_ptr + rime_hdr_len,
              (void *)UIP_IP_BUF + processed_ip_len, rime_payload_len);
       packetbuf_set_datalen(rime_payload_len + rime_hdr_len);
+      q = queuebuf_new_from_packetbuf();
+      if(q == NULL) {
+        PRINTFO("could not allocate queuebuf, dropping fragment\n");
+        return 0;
+      }
       send_packet(&dest);
+      queuebuf_to_packetbuf(q);
+      queuebuf_free(q);
+      q = NULL;
       processed_ip_len += rime_payload_len;
     }
     
@@ -1233,7 +1265,7 @@ output(uip_lladdr_t *localdest)
     my_tag++;
     processed_ip_len = 0;
 #else /* SICSLOWPAN_CONF_FRAG */
-    PRINTF("sicslowpan output: Packet too large to be sent without fragmentation support; dropping packet\n");
+    PRINTFO("sicslowpan output: Packet too large to be sent without fragmentation support; dropping packet\n");
     return 0;
 #endif /* SICSLOWPAN_CONF_FRAG */
   } else {
@@ -1280,15 +1312,6 @@ input(const struct mac_driver *r)
   }
 #endif /* SICSLOWPAN_CONF_CONVENTIONAL_MAC */
 
-#if UIP_CONF_ROUTER
-  if(!rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
-                   &rimeaddr_node_addr) &&
-     !rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &rimeaddr_null)) {
-    PRINTF("sicslowpan: dropping packet not for us\n");
-    return;
-  }
-#endif /* UIP_CONF_ROUTER */
-
   /* init */
   uncomp_hdr_len = 0;
   rime_hdr_len = 0;
@@ -1309,13 +1332,13 @@ input(const struct mac_driver *r)
 /*   switch((ntohs(RIME_FRAG_BUF->dispatch_size) & 0xf800) >> 8) { */
   switch((GET16(RIME_FRAG_PTR, RIME_FRAG_DISPATCH_SIZE) & 0xf800) >> 8) {
     case SICSLOWPAN_DISPATCH_FRAG1:
-      PRINTF("sicslowpan input: FRAG1 ");
+      PRINTFI("sicslowpan input: FRAG1 ");
       frag_offset = 0;
 /*       frag_size = (ntohs(RIME_FRAG_BUF->dispatch_size) & 0x07ff); */
       frag_size = GET16(RIME_FRAG_PTR, RIME_FRAG_DISPATCH_SIZE) & 0x07ff;
 /*       frag_tag = ntohs(RIME_FRAG_BUF->tag); */
       frag_tag = GET16(RIME_FRAG_PTR, RIME_FRAG_TAG);
-      PRINTF("size %d, tag %d, offset %d)\n",
+      PRINTFI("size %d, tag %d, offset %d)\n",
              frag_size, frag_tag, frag_offset);
       rime_hdr_len += SICSLOWPAN_FRAG1_HDR_LEN;
 	  
@@ -1325,14 +1348,14 @@ input(const struct mac_driver *r)
        * set offset, tag, size
        * Offset is in units of 8 bytes
        */
-      PRINTF("sicslowpan input: FRAGN ");
+      PRINTFI("sicslowpan input: FRAGN ");
 /*       frag_offset = RIME_FRAG_BUF->offset; */
       frag_offset = RIME_FRAG_PTR[RIME_FRAG_OFFSET];
 /*       frag_tag = ntohs(RIME_FRAG_BUF->tag); */
       frag_tag = GET16(RIME_FRAG_PTR, RIME_FRAG_TAG);
 /*       frag_size = (ntohs(RIME_FRAG_BUF->dispatch_size) & 0x07ff); */
       frag_size = GET16(RIME_FRAG_PTR, RIME_FRAG_DISPATCH_SIZE) & 0x07ff;
-      PRINTF("size %d, tag %d, offset %d)\n",
+      PRINTFI("size %d, tag %d, offset %d)\n",
              frag_size, frag_tag, frag_offset);
       rime_hdr_len += SICSLOWPAN_FRAGN_HDR_LEN;
       break;
@@ -1351,7 +1374,7 @@ input(const struct mac_driver *r)
        * the packet is a fragment that does not belong to the packet
        * being reassembled or the packet is not a fragment.
        */
-      PRINTF("sicslowpan input: Dropping 6lowpan packet\n");
+      PRINTFI("sicslowpan input: Dropping 6lowpan packet that is not a fragment of the packet currently being reassembled\n");
       return;
     }
   } else {
@@ -1363,7 +1386,7 @@ input(const struct mac_driver *r)
       sicslowpan_len = frag_size;
       reass_tag = frag_tag;
       timer_set(&reass_timer, SICSLOWPAN_REASS_MAXAGE*CLOCK_SECOND);
-      PRINTF("sicslowpan input: INIT FRAGMENTATION (len %d, tag %d)\n",
+      PRINTFI("sicslowpan input: INIT FRAGMENTATION (len %d, tag %d)\n",
              sicslowpan_len, reass_tag);
       rimeaddr_copy(&frag_sender, packetbuf_addr(PACKETBUF_ADDR_SENDER));
     }
@@ -1380,18 +1403,18 @@ input(const struct mac_driver *r)
   switch(RIME_HC1_PTR[RIME_HC1_DISPATCH]) {
 #if SICSLOWPAN_CONF_COMPRESSION == SICSLOWPAN_CONF_COMPRESSION_HC1
     case SICSLOWPAN_DISPATCH_HC1:
-      PRINTF("sicslowpan input: HC1\n");
+      PRINTFI("sicslowpan input: HC1\n");
       uncompress_hdr_hc1(frag_size);
       break;
 #endif /*SICSLOWPAN_CONF_COMPRESSION == SICSLOWPAN_CONF_COMPRESSION_HC1*/
 #if SICSLOWPAN_CONF_COMPRESSION == SICSLOWPAN_CONF_COMPRESSION_HC01
     case SICSLOWPAN_DISPATCH_IPHC:
-      PRINTF("sicslowpan input: IPHC\n");
+      PRINTFI("sicslowpan input: IPHC\n");
       uncompress_hdr_hc01(frag_size);
       break;
 #endif /*SICSLOWPAN_CONF_COMPRESSION == SICSLOWPAN_CONF_COMPRESSION_HC01*/
     case SICSLOWPAN_DISPATCH_IPV6:
-      PRINTF("sicslowpan input: IPV6\n");
+      PRINTFI("sicslowpan input: IPV6\n");
       rime_hdr_len += SICSLOWPAN_IPV6_HDR_LEN;
 
       /* Put uncompressed IP header in sicslowpan_buf. */
@@ -1404,7 +1427,7 @@ input(const struct mac_driver *r)
     default:
       /* unknown header */
 /*       PRINTF("sicslowpan input: unknown dispatch\n"); */
-      PRINTF("sicslowpan input: unknown dispatch: %u\n",
+      PRINTFI("sicslowpan input: unknown dispatch: %u\n",
              RIME_HC1_PTR[RIME_HC1_DISPATCH]);
       return;
   }
@@ -1442,13 +1465,14 @@ input(const struct mac_driver *r)
    * the IP stack
    */
   if(processed_ip_len == 0 || (processed_ip_len == sicslowpan_len)){
-    PRINTF("sicslowpan input: IP packet ready (length %d)\n",
+    PRINTFI("sicslowpan input: IP packet ready (length %d)\n",
            sicslowpan_len);
     memcpy((void *)UIP_IP_BUF, (void *)SICSLOWPAN_IP_BUF, sicslowpan_len);
     uip_len = sicslowpan_len;
     sicslowpan_len = 0;
     processed_ip_len = 0;
 #endif /* SICSLOWPAN_CONF_FRAG */
+
     tcpip_input();
 #if SICSLOWPAN_CONF_FRAG
   }
@@ -1464,10 +1488,10 @@ void
 sicslowpan_init(const struct mac_driver *m)
 {
   /* remember the mac driver */
-  mac = m;
+  sicslowpan_mac = m;
  
   /* Set our input function as the receive function of the MAC. */
-  mac->set_receive_function(input);
+  sicslowpan_mac->set_receive_function(input);
 
   /*
    * Set out output function as the function to be called from uIP to
@@ -1478,7 +1502,7 @@ sicslowpan_init(const struct mac_driver *m)
 #if SICSLOWPAN_CONF_COMPRESSION == SICSLOWPAN_CONF_COMPRESSION_HC01
 #if SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS < 1
 #error sicslowpan compression HC01 requires at least one address context.
-#error Change SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS int contiki-conf.h.
+#error Change SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS in contiki-conf.h.
 #endif
 
   /*

@@ -41,7 +41,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip6.c,v 1.6 2009/05/19 11:54:50 nvt-se Exp $
+ * $Id: uip6.c,v 1.13 2010/02/15 19:23:54 adamdunkels Exp $
  *
  */
 
@@ -200,10 +200,10 @@ struct uip_conn *uip_conn;
 static u8_t c;
 #endif
 
-#if UIP_ACTIVE_OPEN
+#if UIP_ACTIVE_OPEN || UIP_UDP
 /* Keeps track of the last port used for a new connection. */
 static u16_t lastport;
-#endif /* UIP_ACTIVE_OPEN */
+#endif /* UIP_ACTIVE_OPEN || UIP_UDP */
 /** @} */
 
 /*---------------------------------------------------------------------------*/
@@ -417,9 +417,9 @@ uip_init(void)
   }
 #endif /* UIP_TCP */
 
-#if UIP_ACTIVE_OPEN
+#if UIP_ACTIVE_OPEN || UIP_UDP
   lastport = 1024;
-#endif /* UIP_ACTIVE_OPEN */
+#endif /* UIP_ACTIVE_OPEN || UIP_UDP */
 
 #if UIP_UDP
   for(c = 0; c < UIP_UDP_CONNS; ++c) {
@@ -901,6 +901,12 @@ uip_process(u8_t flag)
       uip_flags = UIP_POLL;
       UIP_APPCALL();
       goto appsend;
+#if UIP_ACTIVE_OPEN
+    } else if((uip_connr->tcpstateflags & UIP_TS_MASK) == UIP_SYN_SENT) {
+      /* In the SYN_SENT state, we retransmit out SYN. */
+      UIP_TCP_BUF->flags = 0;
+      goto tcp_send_syn;
+#endif /* UIP_ACTIVE_OPEN */
     }
     goto drop;
 #endif /* UIP_TCP */
@@ -1097,7 +1103,8 @@ uip_process(u8_t flag)
       UIP_IP_BUF->ttl = UIP_IP_BUF->ttl - 1;
       UIP_STAT(++uip_stat.ip.forwarded);
       goto send;
-    } else if(!uip_is_addr_linklocal_allnodes_mcast(&UIP_IP_BUF->destipaddr)) {
+    } else if(!uip_is_addr_linklocal_allnodes_mcast(&UIP_IP_BUF->destipaddr) &&
+	      !uip_is_addr_linklocal_allrouters_mcast(&UIP_IP_BUF->destipaddr)) {
       PRINTF("Dropping packet, not for me\n");
       UIP_STAT(++uip_stat.ip.drop);
       goto drop;
@@ -1351,6 +1358,12 @@ uip_process(u8_t flag)
   uip_len = uip_len - UIP_IPUDPH_LEN;
 #endif /* UIP_UDP_CHECKSUMS */
 
+  /* Make sure that the UDP destination port number is not zero. */
+  if(UIP_UDP_BUF->destport == 0) {
+    UIP_LOG("udp: zero port.");
+    goto drop;
+  }
+
   /* Demultiplex this UDP packet between the UDP "connections". */
   for(uip_udp_conn = &uip_udp_conns[0];
       uip_udp_conn < &uip_udp_conns[UIP_UDP_CONNS];
@@ -1436,7 +1449,13 @@ uip_process(u8_t flag)
     UIP_LOG("tcp: bad checksum.");
     goto drop;
   }
-  
+
+  /* Make sure that the TCP port number is not zero. */
+  if(UIP_TCP_BUF->destport == 0 || UIP_TCP_BUF->srcport == 0) {
+    UIP_LOG("tcp: zero port.");
+    goto drop;
+  }
+
   /* Demultiplex this segment. */
   /* First check any active connections. */
   for(uip_connr = &uip_conns[0]; uip_connr <= &uip_conns[UIP_CONNS - 1];
@@ -1659,14 +1678,22 @@ uip_process(u8_t flag)
 
   /* First, check if the sequence number of the incoming packet is
      what we're expecting next. If not, we send out an ACK with the
-     correct numbers in. */
-  if(!(((uip_connr->tcpstateflags & UIP_TS_MASK) == UIP_SYN_SENT) &&
-       ((UIP_TCP_BUF->flags & TCP_CTL) == (TCP_SYN | TCP_ACK)))) {
+     correct numbers in, unless we are in the SYN_RCVD state and
+     receive a SYN, in which case we should retransmit our SYNACK
+     (which is done futher down). */
+  if(!((((uip_connr->tcpstateflags & UIP_TS_MASK) == UIP_SYN_SENT) &&
+	((UIP_TCP_BUF->flags & TCP_CTL) == (TCP_SYN | TCP_ACK))) ||
+       (((uip_connr->tcpstateflags & UIP_TS_MASK) == UIP_SYN_RCVD) &&
+	((UIP_TCP_BUF->flags & TCP_CTL) == TCP_SYN)))) {
     if((uip_len > 0 || ((UIP_TCP_BUF->flags & (TCP_SYN | TCP_FIN)) != 0)) &&
        (UIP_TCP_BUF->seqno[0] != uip_connr->rcv_nxt[0] ||
         UIP_TCP_BUF->seqno[1] != uip_connr->rcv_nxt[1] ||
         UIP_TCP_BUF->seqno[2] != uip_connr->rcv_nxt[2] ||
         UIP_TCP_BUF->seqno[3] != uip_connr->rcv_nxt[3])) {
+
+      if(UIP_TCP_BUF->flags & TCP_SYN) {
+        goto tcp_send_synack;
+      }
       goto tcp_send_ack;
     }
   }
@@ -1736,6 +1763,10 @@ uip_process(u8_t flag)
         uip_slen = 0;
         UIP_APPCALL();
         goto appsend;
+      }
+      /* We need to retransmit the SYNACK */
+      if((UIP_TCP_BUF->flags & TCP_CTL) == TCP_SYN) {
+	goto tcp_send_synack;
       }
       goto drop;
 #if UIP_ACTIVE_OPEN

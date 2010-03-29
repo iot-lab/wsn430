@@ -184,7 +184,7 @@ slip_poll_handler(uint8_t *outbuf, uint16_t blen)
       return 0;
     }
   } else if(rxbuf[begin] == '?') {
-    int j;
+    int i, j;
     char* hexchar = "0123456789abcdef";
     if(begin < end && (end - begin) >= 2
        && rxbuf[begin + 1] == 'M') {

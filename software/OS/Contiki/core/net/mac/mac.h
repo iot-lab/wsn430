@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: mac.h,v 1.5 2009/06/22 11:14:11 nifi Exp $
+ * $Id: mac.h,v 1.11 2010/02/03 16:45:12 adamdunkels Exp $
  */
 
 /**
@@ -41,6 +41,7 @@
 #ifndef __MAC_H__
 #define __MAC_H__
 
+#include "contiki-conf.h"
 #include "dev/radio.h"
 
 /**
@@ -66,7 +67,43 @@ struct mac_driver {
 
   /** Turn the MAC layer off. */
   int (* off)(int keep_radio_on);
+
+  /** Returns the channel check interval, expressed in clock_time_t ticks. */
+  unsigned short (* channel_check_interval)(void);
 };
 
+/* Generic MAC return values. */
+enum {
+  /**< The MAC layer transmission was OK. */
+  MAC_TX_OK,
+
+  /**< The MAC layer transmission could not be performed due to a
+     collision. */
+  MAC_TX_COLLISION,
+
+  /**< The MAC layer did not get an acknowledgement for the packet. */
+  MAC_TX_NOACK,
+
+  /**< The MAC layer transmission could not be performed because of an
+     error. The upper layer may try again later. */
+  MAC_TX_ERR,
+
+  /**< The MAC layer transmission could not be performed because of a
+     fatal error. The upper layer does not need to try again, as the
+     error will be fatal then as well. */
+  MAC_TX_ERR_FATAL,
+};
+#ifndef MAC_CHANNEL_CHECK_RATE
+#ifdef MAC_CONF_CHANNEL_CHECK_RATE
+#define MAC_CHANNEL_CHECK_RATE MAC_CONF_CHANNEL_CHECK_RATE
+#else /* MAC_CONF_CHANNEL_CHECK_RATE */
+#define MAC_CHANNEL_CHECK_RATE 4
+#endif /* MAC_CONF_CHANNEL_CHECK_RATE */
+#endif /* MAC_CHANNEL_CHECK_RATE */
+
+#if (MAC_CHANNEL_CHECK_RATE & (MAC_CHANNEL_CHECK_RATE - 1)) != 0
+#error MAC_CONF_CHANNEL_CHECK_RATE must be a power of two (i.e., 1, 2, 4, 8, 16, 32, 64, ...).
+#error Change MAC_CONF_CHANNEL_CHECK_RATE in contiki-conf.h or in your Makefile.
+#endif
 
 #endif /* __MAC_H__ */

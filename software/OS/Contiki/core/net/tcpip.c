@@ -29,7 +29,7 @@
  * This file is part of the Contiki operating system.
  *
  *
- * $Id: tcpip.c,v 1.21 2009/04/13 19:54:07 nvt-se Exp $
+ * $Id: tcpip.c,v 1.24 2010/02/09 12:58:53 adamdunkels Exp $
  */
 /**
  * \file
@@ -71,8 +71,12 @@ void uip_log(char *msg);
 
 #define UIP_ICMP_BUF ((struct uip_icmp_hdr *)&uip_buf[UIP_LLIPH_LEN + uip_ext_len])
 #define UIP_IP_BUF ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
+#define UIP_TCP_BUF ((struct uip_tcpip_hdr *)&uip_buf[UIP_LLH_LEN])
 
 process_event_t tcpip_event;
+#if UIP_CONF_ICMP6
+process_event_t tcpip_icmp6_event;
+#endif /* UIP_CONF_ICMP6 */
 
 /*static struct tcpip_event_args ev_args;*/
 
@@ -113,8 +117,10 @@ static u8_t (* outputfunc)(uip_lladdr_t *a);
 u8_t
 tcpip_output(uip_lladdr_t *a)
 {
+  int ret;
   if(outputfunc != NULL) {
-    return outputfunc(a);
+    ret = outputfunc(a);
+    return ret;
   }
   UIP_LOG("tcpip_output: Use tcpip_set_outputfunc() to set an output function");
   return 0;
@@ -153,6 +159,29 @@ PROCESS(tcpip_process, "TCP/IP stack");
 
 /*---------------------------------------------------------------------------*/
 static void
+start_periodic_tcp_timer(void)
+{
+  if(etimer_expired(&periodic)) {
+    etimer_restart(&periodic);
+  }
+}
+/*---------------------------------------------------------------------------*/
+static void
+check_for_tcp_syn(void)
+{
+  /* This is a hack that is needed to start the periodic TCP timer if
+     an incoming packet contains a SYN: since uIP does not inform the
+     application if a SYN arrives, we have no other way of starting
+     this timer.  This function is called for every incoming IP packet
+     to check for such SYNs. */
+#define TCP_SYN 0x02
+  if(UIP_IP_BUF->proto == UIP_PROTO_TCP &&
+     (UIP_TCP_BUF->flags & TCP_SYN) == TCP_SYN) {
+    start_periodic_tcp_timer();
+  }
+}
+/*---------------------------------------------------------------------------*/
+static void
 packet_input(void)
 {
 #if UIP_CONF_IP_FORWARD
@@ -160,6 +189,7 @@ packet_input(void)
     tcpip_is_forwarding = 1;
     if(uip_fw_forward() == UIP_FW_LOCAL) {
       tcpip_is_forwarding = 0;
+      check_for_tcp_syn();
       uip_input();
       if(uip_len > 0) {
 #if UIP_CONF_TCP_SPLIT
@@ -178,6 +208,7 @@ packet_input(void)
   }
 #else /* UIP_CONF_IP_FORWARD */
   if(uip_len > 0) {
+    check_for_tcp_syn();
     uip_input();
     if(uip_len > 0) {
 #if UIP_CONF_TCP_SPLIT
@@ -194,12 +225,8 @@ packet_input(void)
   }
 #endif /* UIP_CONF_IP_FORWARD */
 }
-
 /*---------------------------------------------------------------------------*/
-/*---------------------------------------------------------------------------*/
-
 #if UIP_TCP
-
 #if UIP_ACTIVE_OPEN
 struct uip_conn *
 tcp_connect(uip_ipaddr_t *ripaddr, u16_t port, void *appstate)
@@ -268,10 +295,7 @@ tcp_attach(struct uip_conn *conn,
 }
 
 #endif /* UIP_TCP */
-
 /*---------------------------------------------------------------------------*/
-/*---------------------------------------------------------------------------*/
-
 #if UIP_UDP
 void
 udp_attach(struct uip_udp_conn *conn,
@@ -320,8 +344,6 @@ udp_broadcast_new(u16_t port, void *appstate)
   return conn;
 }
 #endif /* UIP_UDP */
-
-/*---------------------------------------------------------------------------*/
 /*---------------------------------------------------------------------------*/
 #if UIP_CONF_ICMP6
 u8_t
@@ -334,14 +356,18 @@ icmp6_new(void *appstate) {
   return 1;
 }
 
-void tcpip_icmp6_call(u8_t type) {
-  process_post_synch(uip_icmp6_conns.appstate.p, type, 0);
+void
+tcpip_icmp6_call(u8_t type)
+{
+  if(uip_icmp6_conns.appstate.p != PROCESS_NONE) {
+    /* XXX: This is a hack that needs to be updated. Passing a pointer (&type)
+       like this only works with process_post_synch. */
+    process_post_synch(uip_icmp6_conns.appstate.p, tcpip_icmp6_event, &type);
+  }
   return;
 }
-
-#endif /*UIP_CONF_ICMP6*/
+#endif /* UIP_CONF_ICMP6 */
 /*---------------------------------------------------------------------------*/
-
 static void
 eventhandler(process_event_t ev, process_data_t data)
 {
@@ -475,17 +501,14 @@ eventhandler(process_event_t ev, process_data_t data)
         uip_poll_conn(data);
 #if UIP_CONF_IPV6
         tcpip_ipv6_output();
-#else
+#else /* UIP_CONF_IPV6 */
         if(uip_len > 0) {
 	  PRINTF("tcpip_output from tcp poll len %d\n", uip_len);
           tcpip_output();
         }
 #endif /* UIP_CONF_IPV6 */
         /* Start the periodic polling, if it isn't already active. */
-        if(etimer_expired(&periodic)) {
-          etimer_restart(&periodic);
-        }
-        
+        start_periodic_tcp_timer();
       }
       break;
 #endif /* UIP_TCP */
@@ -712,12 +735,10 @@ tcpip_uipcall(void)
      }
      
      /* Start the periodic polling, if it isn't already active. */
-     if(etimer_expired(&periodic)) {
-       etimer_restart(&periodic);
-     }
+     start_periodic_tcp_timer();
    }
  }
-#endif
+#endif /* UIP_TCP */
   
   if(ts->p != NULL) {
     process_post_synch(ts->p, tcpip_event, ts->state);
@@ -740,7 +761,10 @@ PROCESS_THREAD(tcpip_process, ev, data)
 #endif
 
   tcpip_event = process_alloc_event();
-  etimer_set(&periodic, CLOCK_SECOND/2);
+#if UIP_CONF_ICMP6
+  tcpip_icmp6_event = process_alloc_event();
+#endif /* UIP_CONF_ICMP6 */
+  etimer_set(&periodic, CLOCK_SECOND / 2);
 
   uip_init();
   

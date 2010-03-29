@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: polite-announcement.c,v 1.5 2009/05/08 08:52:55 adamdunkels Exp $
+ * $Id: polite-announcement.c,v 1.10 2010/01/26 10:18:55 adamdunkels Exp $
  */
 
 /**
@@ -61,6 +61,12 @@ struct announcement_data {
   uint16_t id;
   uint16_t value;
 };
+
+#ifdef POLITE_ANNOUNCEMENT_CONF_MAX_DUPS
+#define NUM_DUPS POLITE_ANNOUNCEMENT_CONF_MAX_DUPS
+#else /* POLITE_ANNOUNCEMENT_CONF_MAX_DUPS */
+#define NUM_DUPS 5
+#endif /* POLITE_ANNOUNCEMENT_CONF_MAX_DUPS */
 
 #define ANNOUNCEMENT_MSG_HEADERLEN 2
 struct announcement_msg {
@@ -115,19 +121,28 @@ send_adv(clock_time_t interval)
 }
 /*---------------------------------------------------------------------------*/
 static void
-adv_packet_received(struct ipolite_conn *ipolite, rimeaddr_t *from)
+adv_packet_received(struct ipolite_conn *ipolite, const rimeaddr_t *from)
 {
-  struct announcement_msg *adata = packetbuf_dataptr();
+  struct announcement_msg adata;
   int i;
 
+  /* Copy number of announcements */
+  memcpy(&adata, packetbuf_dataptr(), sizeof(struct announcement_msg));
   PRINTF("%d.%d: adv_packet_received from %d.%d with %d announcements\n",
 	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-	 from->u8[0], from->u8[1], adata->num);
+	 from->u8[0], from->u8[1], adata.num);
 
-  for(i = 0; i < adata->num; ++i) {
+  for(i = 0; i < adata.num; ++i) {
+    struct announcement_data data;
+
+    /* Copy announcements */
+    memcpy(&data.id, &((struct announcement_msg *)packetbuf_dataptr())->data[i].id,
+          sizeof(uint16_t));
+    memcpy(&data.value, &((struct announcement_msg *)packetbuf_dataptr())->data[i].value,
+          sizeof(uint16_t));
     announcement_heard(from,
-		       adata->data[i].id,
-		       adata->data[i].value);
+		       data.id,
+		       data.value);
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -157,7 +172,7 @@ polite_announcement_init(uint16_t channel,
 			clock_time_t min,
 			clock_time_t max)
 {
-  ipolite_open(&c.c, channel, &ipolite_callbacks);
+  ipolite_open(&c.c, channel, NUM_DUPS, &ipolite_callbacks);
 
   c.min_interval = min;
   c.max_interval = max;

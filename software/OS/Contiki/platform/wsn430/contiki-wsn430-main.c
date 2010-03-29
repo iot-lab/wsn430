@@ -49,6 +49,22 @@
 #include "dev/cc1100-radio.h"
 
 #include "lib/random.h"
+#include "net/mac/csma.h"
+#include "net/mac/frame802154.h"
+#include "net/mac/framer-802154.h"
+#include "net/mac/framer-nullmac.h"
+#include "net/mac/framer.h"
+
+#if WITH_UIP6
+#include "net/sicslowpan.h"
+#include "net/uip-netif.h"
+#include "net/mac/sicslowmac.h"
+#if UIP_CONF_ROUTER
+#include "net/routing/rimeroute.h"
+#endif /* UIP_CONF_ROUTER*/
+#endif /* WITH_UIP6 */
+
+#include "net/rime.h"
 
 #include "cfs-coffee-arch.h"
 #include "cfs/cfs-coffee.h"
@@ -59,6 +75,10 @@
 #include "uart0.h"
 #include "ds2411.h"
 #include "ds1722.h"
+
+#ifndef WITH_UIP
+#define WITH_UIP 0
+#endif
 
 /*---------------------------------------------------------------------------*/
 static void

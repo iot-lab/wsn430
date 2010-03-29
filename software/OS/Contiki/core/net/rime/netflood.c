@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: netflood.c,v 1.3 2009/03/12 21:58:21 adamdunkels Exp $
+ * $Id: netflood.c,v 1.6 2010/01/25 13:54:06 adamdunkels Exp $
  */
 
 /**
@@ -55,7 +55,7 @@ struct netflood_hdr {
   uint16_t hops;
 };
 
-#define DEBUG 1
+#define DEBUG 0
 #if DEBUG
 #include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)
@@ -73,45 +73,47 @@ send(struct netflood_conn *c)
 }
 /*---------------------------------------------------------------------------*/
 static void
-recv_from_ipolite(struct ipolite_conn *ipolite, rimeaddr_t *from)
+recv_from_ipolite(struct ipolite_conn *ipolite, const rimeaddr_t *from)
 {
   struct netflood_conn *c = (struct netflood_conn *)ipolite;
-  struct netflood_hdr *hdr = packetbuf_dataptr();
+  struct netflood_hdr hdr;
   uint8_t hops;
   struct queuebuf *queuebuf;
 
-  hops = hdr->hops;
+  memcpy(&hdr, packetbuf_dataptr(), sizeof(struct netflood_hdr));
+  hops = hdr.hops;
 
   /* Remember packet if we need to forward it. */
   queuebuf = queuebuf_new_from_packetbuf();
 
   packetbuf_hdrreduce(sizeof(struct netflood_hdr));
   if(c->u->recv != NULL) {
-    if(!(rimeaddr_cmp(&hdr->originator, &c->last_originator) &&
-	 hdr->originator_seqno <= c->last_originator_seqno)) {
+    if(!(rimeaddr_cmp(&hdr.originator, &c->last_originator) &&
+	 hdr.originator_seqno <= c->last_originator_seqno)) {
 
-      if(c->u->recv(c, from, &hdr->originator, hdr->originator_seqno,
+      if(c->u->recv(c, from, &hdr.originator, hdr.originator_seqno,
 		    hops)) {
 	
 	if(queuebuf != NULL) {
 	  queuebuf_to_packetbuf(queuebuf);
 	  queuebuf_free(queuebuf);
 	  queuebuf = NULL;
-	  hdr = packetbuf_dataptr();
+	  memcpy(&hdr, packetbuf_dataptr(), sizeof(struct netflood_hdr));
 	  
 	  /* Rebroadcast received packet. */
 	  if(hops < HOPS_MAX) {
 	    PRINTF("%d.%d: netflood rebroadcasting %d.%d/%d (%d.%d/%d) hops %d\n",
 		   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-		   hdr->originator.u8[0], hdr->originator.u8[1],
-		   hdr->originator_seqno,
+		   hdr.originator.u8[0], hdr.originator.u8[1],
+		   hdr.originator_seqno,
 		   c->last_originator.u8[0], c->last_originator.u8[1],
 		   c->last_originator_seqno,
 		  hops);
-	    hdr->hops++;
+	    hdr.hops++;
+	    memcpy(packetbuf_dataptr(), &hdr, sizeof(struct netflood_hdr));
 	    send(c);
-	    rimeaddr_copy(&c->last_originator, &hdr->originator);
-	    c->last_originator_seqno = hdr->originator_seqno;
+	    rimeaddr_copy(&c->last_originator, &hdr.originator);
+	    c->last_originator_seqno = hdr.originator_seqno;
 	  }
 	}
       }
@@ -146,7 +148,7 @@ void
 netflood_open(struct netflood_conn *c, clock_time_t queue_time,
 	uint16_t channel, const struct netflood_callbacks *u)
 {
-  ipolite_open(&c->c, channel, &netflood);
+  ipolite_open(&c->c, channel, 1, &netflood);
   c->u = u;
   c->queue_time = queue_time;
 }

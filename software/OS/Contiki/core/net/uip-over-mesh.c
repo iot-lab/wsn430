@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uip-over-mesh.c,v 1.14 2009/05/10 21:08:01 adamdunkels Exp $
+ * $Id: uip-over-mesh.c,v 1.18 2010/02/04 18:57:33 adamdunkels Exp $
  */
 
 /**
@@ -47,6 +47,8 @@
 #include "net/rime/route.h"
 #include "net/rime/trickle.h"
 
+#define ROUTE_TRICKLE_INTERVAL CLOCK_SECOND * 32
+#define ROUTE_DISCOVERY_INTERVAL CLOCK_SECOND * 4
 #define ROUTE_TIMEOUT CLOCK_SECOND * 4
 
 static struct queuebuf *queued_packet;
@@ -78,7 +80,7 @@ static uip_ipaddr_t netaddr, netmask;
 
 /*---------------------------------------------------------------------------*/
 static void
-recv_data(struct unicast_conn *c, rimeaddr_t *from)
+recv_data(struct unicast_conn *c, const rimeaddr_t *from)
 {
   struct route_entry *e;
   rimeaddr_t source;
@@ -112,7 +114,7 @@ send_data(rimeaddr_t *next)
 }
 /*---------------------------------------------------------------------------*/
 static void
-new_route(struct route_discovery_conn *c, rimeaddr_t *to)
+new_route(struct route_discovery_conn *c, const rimeaddr_t *to)
 {
   struct route_entry *rt;
   
@@ -194,12 +196,13 @@ uip_over_mesh_init(u16_t channels)
 	 uip_hostaddr.u8[2], uip_hostaddr.u8[3]);
 
   unicast_open(&dataconn, channels, &data_callbacks);
-  route_discovery_open(&route_discovery, CLOCK_SECOND / 4,
+  route_discovery_open(&route_discovery, ROUTE_DISCOVERY_INTERVAL,
 		       channels + 1, &rdc);
-  trickle_open(&gateway_announce_conn, CLOCK_SECOND * 4, channels + 3,
+  trickle_open(&gateway_announce_conn, ROUTE_TRICKLE_INTERVAL, channels + 3,
 	       &trickle_call);
 
-  /* Set lifetime to 10 seconds for non-refreshed routes. */
+  route_init();
+  /* Set lifetime to 30 seconds for non-refreshed routes. */
   route_set_lifetime(30);
 }
 /*---------------------------------------------------------------------------*/
@@ -253,6 +256,8 @@ uip_over_mesh_send(void)
      waiting for an ACK. */
   if(BUF->proto == UIP_PROTO_TCP) {
     packetbuf_set_attr(PACKETBUF_ATTR_ERELIABLE, 1);
+    packetbuf_set_attr(PACKETBUF_ATTR_RELIABLE, 1);
+    /*    packetbuf_set_attr(PACKETBUF_ATTR_PACKET_TYPE, PACKETBUF_ATTR_PACKET_TYPE_STREAM);*/
   }
 
   rt = route_lookup(&receiver);
