@@ -130,9 +130,6 @@ clock_init(void)
 {
   dint();
 
-  /* Select SMCLK (2.4576MHz), clear TAR */
-  /* TACTL = TASSEL1 | TACLR | ID_3; */
-  
   /* Select ACLK 32768Hz clock, divide by 4 */
   TACTL = TASSEL0 | TACLR | ID_2;
 

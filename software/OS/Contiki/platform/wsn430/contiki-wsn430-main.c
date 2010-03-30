@@ -102,9 +102,9 @@ main(int argc, char **argv)
     msp430_cpu_init();
     clock_init();
     leds_init();
-    uart0_init(UART0_CONFIG_1MHZ_115200);
+    uart0_init(UART0_CONFIG_8MHZ_115200);
     wsn430_slip_init();
-    
+    putchar('a');
     /*
      * Initialize Unique ID.
      */

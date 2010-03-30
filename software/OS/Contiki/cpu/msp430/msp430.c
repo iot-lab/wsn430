@@ -44,7 +44,7 @@ msp430_init_dco(void)
 {
     DCOCTL  = 0;
     BCSCTL1 = 0;
-    BCSCTL2 = SELM_2 | (SELS | DIVS_3) ;
+    BCSCTL2 = SELM_2 | SELS ;
 
     int i;
     do {

@@ -17,15 +17,14 @@
 #define XMAC_CONF_COMPOWER          1
 #define CXMAC_CONF_COMPOWER         1
 
-
 #if WITH_UIP6
-#define MAC_CONF_DRIVER             cxmac_driver
+#define MAC_CONF_DRIVER             nullmac_driver
 #define MAC_CONF_CHANNEL_CHECK_RATE 8
 #define RIME_CONF_NO_POLITE_ANNOUCEMENTS 0
 #define CXMAC_CONF_ANNOUNCEMENTS    0
 #define XMAC_CONF_ANNOUNCEMENTS     0
 #else /* WITH_UIP6 */
-#define MAC_CONF_DRIVER             xmac_driver
+#define MAC_CONF_DRIVER             nullmac_driver
 #define MAC_CONF_CHANNEL_CHECK_RATE 4
 #define TIMESYNCH_CONF_ENABLED 1
 #define CC2420_CONF_TIMESTAMPS 1
@@ -108,7 +107,7 @@
 #define SICSLOWPAN_CONF_COMPRESSION_IPV6        0
 #define SICSLOWPAN_CONF_COMPRESSION_HC1         1
 #define SICSLOWPAN_CONF_COMPRESSION_HC01        2
-#define SICSLOWPAN_CONF_COMPRESSION             SICSLOWPAN_CONF_COMPRESSION_HC01
+#define SICSLOWPAN_CONF_COMPRESSION             SICSLOWPAN_CONF_COMPRESSION_IPV6
 #ifndef SICSLOWPAN_CONF_FRAG
 #define SICSLOWPAN_CONF_FRAG                    1
 #define SICSLOWPAN_CONF_MAXAGE                  8
@@ -135,7 +134,7 @@
 #define UIP_CONF_UDP             1
 #define UIP_CONF_UDP_CHECKSUMS   1
 #define UIP_CONF_PINGADDRCONF    0
-#define UIP_CONF_LOGGING         0
+#define UIP_CONF_LOGGING         1
 
 #define UIP_CONF_TCP_SPLIT       0
 
