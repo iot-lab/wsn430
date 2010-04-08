@@ -660,7 +660,7 @@ tcpip_ipv6_output(void)
 #if UIP_CONF_IPV6_QUEUE_PKT
       /* Send the queued packets from here, may not be 100% perfect though.
        * This happens in a few cases, for example when instead of receiving a
-       * NA after sendiong a NS, you receive a NS with SLLAO: the entry moves
+       * NA after sending a NS, you receive a NS with SLLAO: the entry moves
        *to STALE, and you must both send a NA and the queued packet
        */
       if(nbc->queue_buf_len != 0) {

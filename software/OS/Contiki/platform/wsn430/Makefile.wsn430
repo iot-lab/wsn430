@@ -2,7 +2,7 @@
 
 
 ARCH = msp430.c uart0.c spi1.c ds2411.c ds1722.c m25p80.c xmem.c leds_arch.c leds.c \
-       cc1100-radio.c cc1100.c slip_arch.c cfs-coffee.c \
+       cc1100-radio.c cc1100.c slip_arch.c cfs-coffee.c uip-ipchksum.c \
        contiki-wsn430-init-net.c
 
 #ext-sensor.c irq.c \

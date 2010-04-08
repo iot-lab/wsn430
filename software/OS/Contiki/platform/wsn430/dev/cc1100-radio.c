@@ -97,7 +97,6 @@ static uint8_t receive_on = 0;
 /*---------------------------------------------------------------------------*/
 static void on(void) {
 	ENERGEST_ON(ENERGEST_TYPE_LISTEN);
-	PRINTF("on\n");
 	receive_on = 1;
 
 	cc1100_gdo2_int_disable();
@@ -123,7 +122,6 @@ static void on(void) {
 }
 
 static void off(void) {
-	PRINTF("off\n");
 	receive_on = 0;
 
 	cc1100_cmd_idle();
@@ -186,15 +184,6 @@ int cc1100_radio_send(const void *payload, unsigned short payload_len) {
 	}
 
 	PRINTF("cc1100: sending %u bytes\n", payload_len);
-
-	int i;
-	for (i=0;i<payload_len;i++) {
-		PRINTF("%.2x ", ((uint8_t*)payload)[i]);
-		if ((i+1) % 16 == 0) {
-			PRINTF("\n");
-		}
-	}
-	PRINTF("\n\n\n");
 
 	/* Go to IDLE state and flush everything */
 	cc1100_cmd_idle();
@@ -283,6 +272,7 @@ int cc1100_radio_send(const void *payload, unsigned short payload_len) {
 }
 /*---------------------------------------------------------------------------*/
 int cc1100_radio_off(void) {
+	PRINTF("cc1100_radio_off\n");
 	/* Don't do anything if we are already turned off. */
 	if (receive_on == 0) {
 		return 1;
@@ -293,6 +283,7 @@ int cc1100_radio_off(void) {
 }
 /*---------------------------------------------------------------------------*/
 int cc1100_radio_on(void) {
+	PRINTF("cc1100_radio_on\n");
 	/* Don't do anything if we are already turned on. */
 	if (receive_on) {
 		return 1;
@@ -431,14 +422,5 @@ static int rx(void) {
 	}
 
 	PRINTF("cc1100: received %d bytes\n", rx_buffer_len);
-
-	int i;
-	for (i=0;i<rx_buffer_len;i++) {
-		PRINTF("%.2x\ ", ((uint8_t*)rx_buffer)[i]);
-		if ((i+1) % 16 == 0) {
-			PRINTF("\n");
-		}
-	}
-	PRINTF("\n\n\n");
 	return 1;
 }

@@ -9,7 +9,7 @@
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
 
-
+#define WITH_NULLMAC 1
 
 /* Specifies the default MAC driver */
 #define MAC_CONF_CSMA               1
@@ -18,17 +18,15 @@
 #define CXMAC_CONF_COMPOWER         1
 
 #if WITH_UIP6
-#define MAC_CONF_DRIVER             nullmac_driver
+#define MAC_CONF_DRIVER             cxmac_driver
 #define MAC_CONF_CHANNEL_CHECK_RATE 8
 #define RIME_CONF_NO_POLITE_ANNOUCEMENTS 0
 #define CXMAC_CONF_ANNOUNCEMENTS    0
 #define XMAC_CONF_ANNOUNCEMENTS     0
 #else /* WITH_UIP6 */
-#define MAC_CONF_DRIVER             nullmac_driver
+#define MAC_CONF_DRIVER             xmac_driver
 #define MAC_CONF_CHANNEL_CHECK_RATE 4
-#define TIMESYNCH_CONF_ENABLED 1
-#define CC2420_CONF_TIMESTAMPS 1
-#define CC2420_CONF_CHECKSUM   0
+#define TIMESYNCH_CONF_ENABLED 0
 #define RIME_CONF_NO_POLITE_ANNOUCEMENTS 1
 #define XMAC_CONF_ANNOUNCEMENTS     1
 #define CXMAC_CONF_ANNOUNCEMENTS    1
@@ -107,7 +105,7 @@
 #define SICSLOWPAN_CONF_COMPRESSION_IPV6        0
 #define SICSLOWPAN_CONF_COMPRESSION_HC1         1
 #define SICSLOWPAN_CONF_COMPRESSION_HC01        2
-#define SICSLOWPAN_CONF_COMPRESSION             SICSLOWPAN_CONF_COMPRESSION_IPV6
+#define SICSLOWPAN_CONF_COMPRESSION             SICSLOWPAN_CONF_COMPRESSION_HC01
 #ifndef SICSLOWPAN_CONF_FRAG
 #define SICSLOWPAN_CONF_FRAG                    1
 #define SICSLOWPAN_CONF_MAXAGE                  8

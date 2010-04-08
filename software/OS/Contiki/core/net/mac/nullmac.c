@@ -40,6 +40,7 @@
 
 #include "net/mac/nullmac.h"
 #include "net/rime/packetbuf.h"
+#include "net/mac/framer.h"
 
 static const struct radio_driver *radio;
 static void (* receiver_callback)(const struct mac_driver *);
@@ -47,6 +48,7 @@ static void (* receiver_callback)(const struct mac_driver *);
 static int
 send_packet(void)
 {
+  framer_get()->create();
   if(radio->send(packetbuf_hdrptr(), packetbuf_totlen()) == RADIO_TX_OK) {
     return MAC_TX_OK;
   }
@@ -68,7 +70,8 @@ read_packet(void)
   packetbuf_clear();
   len = radio->read(packetbuf_dataptr(), PACKETBUF_SIZE);
   packetbuf_set_datalen(len);
-  return len;
+  framer_get()->parse();
+  return packetbuf_datalen();
 }
 /*---------------------------------------------------------------------------*/
 static void
