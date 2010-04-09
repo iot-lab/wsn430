@@ -50,40 +50,9 @@ void cc1100_radio_init(void);
 
 #define CC1100_MAX_PACKET_LEN      127
 
-void cc1100_radio_set_channel(int channel);
-int cc1100_radio_get_channel(void);
-
-void cc1100_radio_set_pan_addr(unsigned pan,
-				unsigned addr,
-				const uint8_t *ieee_addr);
-
 extern signed char cc1100_radio_last_rssi;
 extern uint8_t cc1100_radio_last_correlation;
 
-int cc1100_radio_rssi(void);
-
 extern const struct radio_driver cc1100_radio_driver;
-
-/**
- * \param power Between 1 and 31.
- */
-void cc1100_radio_set_txpower(uint8_t power);
-int cc1100_radio_get_txpower(void);
-#define CC1100_TXPOWER_MAX  31
-#define CC1100_TXPOWER_MIN   0
-
-/**
- * Interrupt function, called from the simple-cc1100-arch driver.
- *
- */
-int cc1100_radio_interrupt(void);
-
-/* XXX hack: these will be made as Chameleon packet attributes */
-extern rtimer_clock_t cc1100_radio_time_of_arrival,
-  cc1100_radio_time_of_departure;
-extern int cc1100_radio_authority_level_of_sender;
-
-int cc1100_radio_on(void);
-int cc1100_radio_off(void);
 
 #endif /* __CC1100_H__ */

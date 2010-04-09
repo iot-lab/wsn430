@@ -32,19 +32,21 @@ PROCESS_THREAD(example_broadcast_process, ev, data)
 
   broadcast_open(&broadcast, 128, &broadcast_call);
 
-  while(1) {
-    static struct etimer et;
+//  while(1) {
+    if (rimeaddr_node_addr.u8[0] == 249 && rimeaddr_node_addr.u8[1] == 178) {
+		static struct etimer et;
 
-    etimer_set(&et, 2*CLOCK_SECOND);
+		etimer_set(&et, 10*CLOCK_SECOND);
 
-    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
-    
-    char msg[] = "Hello Broadcast";
-    
-    packetbuf_copyfrom(msg, sizeof(msg));
-    broadcast_send(&broadcast);
-    printf("broadcast message sent\n");
-  }
+		PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
+
+		char msg[] = "Hello Broadcast";
+
+		packetbuf_copyfrom(msg, sizeof(msg));
+		broadcast_send(&broadcast);
+		printf("broadcast message sent\n");
+    }
+//  }
 
   PROCESS_END();
 }

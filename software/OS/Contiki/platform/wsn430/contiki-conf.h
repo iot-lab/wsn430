@@ -9,13 +9,14 @@
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
 
-#define WITH_NULLMAC 1
+
 
 /* Specifies the default MAC driver */
 #define MAC_CONF_CSMA               1
 
 #define XMAC_CONF_COMPOWER          1
 #define CXMAC_CONF_COMPOWER         1
+
 
 #if WITH_UIP6
 #define MAC_CONF_DRIVER             cxmac_driver
@@ -26,7 +27,7 @@
 #else /* WITH_UIP6 */
 #define MAC_CONF_DRIVER             xmac_driver
 #define MAC_CONF_CHANNEL_CHECK_RATE 4
-#define TIMESYNCH_CONF_ENABLED 0
+#define TIMESYNCH_CONF_ENABLED 1
 #define RIME_CONF_NO_POLITE_ANNOUCEMENTS 1
 #define XMAC_CONF_ANNOUNCEMENTS     1
 #define CXMAC_CONF_ANNOUNCEMENTS    1
@@ -132,7 +133,7 @@
 #define UIP_CONF_UDP             1
 #define UIP_CONF_UDP_CHECKSUMS   1
 #define UIP_CONF_PINGADDRCONF    0
-#define UIP_CONF_LOGGING         1
+#define UIP_CONF_LOGGING         0
 
 #define UIP_CONF_TCP_SPLIT       0
 
