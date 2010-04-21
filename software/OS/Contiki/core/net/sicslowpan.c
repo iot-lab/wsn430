@@ -712,7 +712,10 @@ uncompress_hdr_hc01(u16_t ip_len) {
         /* multicast address check the 9-bit group-id is known */
         if(sicslowpan_is_mcast_addr_decompressable(hc01_ptr)) {
           SICSLOWPAN_IP_BUF->destipaddr.u8[0] = 0xFF;
-          SICSLOWPAN_IP_BUF->destipaddr.u8[1] = (*hc01_ptr >> 1) & 0x0F;
+          volatile uint8_t tmp; // HACK required with gcc
+          tmp = ((*hc01_ptr) >> 1);
+          tmp &= 0x0F;
+          SICSLOWPAN_IP_BUF->destipaddr.u8[1] = tmp;
           memset(&SICSLOWPAN_IP_BUF->destipaddr.u8[2], 0, 13);
           SICSLOWPAN_IP_BUF->destipaddr.u8[15] = *(hc01_ptr + 1);
           hc01_ptr += 2;

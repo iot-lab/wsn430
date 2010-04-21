@@ -27,10 +27,10 @@ ifndef MOTE
 MOTE=1
 endif
 
-connect: ../../tapslip6
-	sudo ../../tapslip6 -t tap0 -s $(USBDEVPREFIX)$(word $(MOTE), $(CMOTES)) 127.0.0.1 255.0.0.0
+connect: ../tapslip6
+	sudo ../tapslip6 -t tap0 -s $(USBDEVPREFIX)$(word $(MOTE), $(CMOTES)) 127.0.0.1 255.0.0.0
 
 bridge:
 	@sudo service radvd restart || echo radvd could not be restarted
-	sudo route add -6 aaaa::/64 tap0
+	sudo route add -A inet6 aaaa::/64 tap0
 	sudo ip -6 address add aaaa::1/64 dev tap0
