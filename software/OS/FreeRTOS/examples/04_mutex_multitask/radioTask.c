@@ -145,7 +145,7 @@ static void vRadioTask(void* pvParameters)
  */
 static uint16_t vEndOfTx_cb(void)
 {
-    uint16_t xHigherPriorityTaskWoken; 
+    signed portBASE_TYPE xHigherPriorityTaskWoken; 
     
     /* Give the semaphore, indicating the task the packer is sent */
     xSemaphoreGiveFromISR(xTxSem, &xHigherPriorityTaskWoken);
