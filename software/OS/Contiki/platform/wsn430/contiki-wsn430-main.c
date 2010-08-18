@@ -67,7 +67,6 @@
 #include "net/rime.h"
 
 #include "cfs-coffee-arch.h"
-#include "cfs/cfs-coffee.h"
 #include "sys/autostart.h"
 #include "sys/profile.h"
 

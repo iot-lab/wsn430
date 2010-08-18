@@ -55,7 +55,6 @@
 #include "net/rime.h"
 #include "net/rime/polite.h"
 #include "net/rime/rudolph2.h"
-#include "cfs/cfs.h"
 
 #define SEND_INTERVAL CLOCK_SECOND / 2
 #define STEADY_INTERVAL CLOCK_SECOND * 16

@@ -48,7 +48,7 @@ CFLAGS += -DCONTIKI_TARGET_$(TARGET_UPPERCASE)
 include $(CONTIKI)/core/net/routing/Makefile.routing
 include $(CONTIKI)/core/net/rime/Makefile.rime
 include $(CONTIKI)/core/net/mac/Makefile.mac
-SYSTEM  = process.c procinit.c autostart.c elfloader.c profile.c \
+SYSTEM  = process.c procinit.c autostart.c profile.c \
           timetable.c timetable-aggregate.c compower.c serial-line.c
 THREADS = mt.c
 LIBS    = memb.c mmem.c timer.c list.c etimer.c energest.c rtimer.c stimer.c \
@@ -65,9 +65,6 @@ else # UIP_CONF_IPV6
           uip-over-mesh.c dhcpc.c #rawpacket-udp.c
   NET   = $(UIP) uaodv.c uaodv-rt.c
 endif # UIP_CONF_IPV6
-
-CTK     = ctk.c
-CTKVNC  = $(CTK) ctk-vncserver.c libconio.c vnc-server.c vnc-out.c ctk-vncfont.c
 
 ifndef CONTIKI_NO_NET
   CONTIKIFILES = $(SYSTEM) $(LIBS) $(NET) $(THREADS) $(DHCP)

@@ -146,8 +146,8 @@ void cc1100_radio_init(void) {
 	cc1100_cfg_sync_mode(CC1100_SYNCMODE_30_32);
 	cc1100_cfg_manchester_en(CC1100_MANCHESTER_DISABLE);
 
-	cc1100_cfg_txoff_mode(CC1100_TXOFF_MODE_RX);
-	cc1100_cfg_rxoff_mode(CC1100_RXOFF_MODE_STAY_RX);
+	cc1100_cfg_txoff_mode(CC1100_TXOFF_MODE_IDLE);
+	cc1100_cfg_rxoff_mode(CC1100_RXOFF_MODE_IDLE);
 
 	// set channel bandwidth (560 kHz)
 	cc1100_cfg_chanbw_e(0);
@@ -203,6 +203,13 @@ static int cc1100_radio_send(const void *payload, unsigned short payload_len) {
 		return RADIO_TX_ERR;
 	}
 
+	// Check the radio is not receiving a packet
+	if (((cc1100_status() & CC1100_STATUS_MASK) == CC1100_STATUS_RX)
+			&& (cc1100_gdo0_read() != 0)) {
+		// We're in RX with sync word set, hence receiving a packet, abort
+		return RADIO_TX_ERR;
+	}
+
 	PRINTF("cc1100: sending %u bytes\n", payload_len);
 
 	// Disable Interrupts
@@ -210,15 +217,11 @@ static int cc1100_radio_send(const void *payload, unsigned short payload_len) {
 	cc1100_gdo2_int_disable();
 
 	if (cc1100_status_txbytes() != 0) {
+		// Should not happen
 		cc1100_cmd_idle();
 		cc1100_cmd_flush_tx();
 		cc1100_cmd_flush_rx();
 	}
-
-	/* Configure interrupts */
-	cc1100_cfg_gdo0(CC1100_GDOx_SYNC_WORD);
-	cc1100_cfg_gdo2(CC1100_GDOx_TX_FIFO);
-	cc1100_cfg_fifo_thr(12); // 13 bytes in TX FIFO
 
 	/* If CCA required, do it */
 #if WITH_SEND_CCA
@@ -229,11 +232,14 @@ static int cc1100_radio_send(const void *payload, unsigned short payload_len) {
 	cc1100_cmd_tx();
 
 	// Check status
-	if ( (cc1100_status() & 0x70) == 0x10) {
+	if ( (cc1100_status() & CC1100_STATUS_MASK) == CC1100_STATUS_RX) {
+		// Status is still RX, therefore we could not start TX
 		if (receive_on) {
+			// If we were in RX before send() call, make sure the radio is in RX
 			set_rx_irq();
 			check_on();
 		} else {
+			// If we were off, stop the radio
 			force_off();
 		}
 		/* If we are using WITH_SEND_CCA, we get here if the packet wasn't
@@ -248,6 +254,11 @@ static int cc1100_radio_send(const void *payload, unsigned short payload_len) {
 	cc1100_cmd_idle();
 	cc1100_cmd_tx();
 #endif /* WITH_SEND_CCA */
+
+	/* Configure GDOx */
+	cc1100_cfg_gdo0(CC1100_GDOx_SYNC_WORD);
+	cc1100_cfg_gdo2(CC1100_GDOx_TX_FIFO);
+	cc1100_cfg_fifo_thr(12); // 13 bytes in TX FIFO
 
 	/* Write packet to TX FIFO. */
 	ptr = 0;
@@ -272,18 +283,17 @@ static int cc1100_radio_send(const void *payload, unsigned short payload_len) {
 	while (cc1100_gdo0_read() == 0)
 		;
 
-	/* Now is time to transmit everything */
+	// Now is time to transmit everything
 	while (ptr != payload_len) {
 
-		/* wait until fifo threshold */
+		// wait until fifo threshold
 		while (cc1100_gdo2_read())
 			;
 
-		/* refill fifo */
+		// refill fifo
 		len = ((payload_len - ptr) > 50) ? 50 : (payload_len - ptr);
 		cc1100_fifo_put(&((uint8_t*) payload)[ptr], len);
 		ptr += len;
-		//~ PRINTF("cc1100: put %d bytes\n", len);
 	}
 
 	/* wait until frame is sent */
@@ -366,6 +376,9 @@ static void force_on(void) {
 	cc1100_cmd_flush_rx();
 	cc1100_cmd_flush_tx();
 
+	// Calibrate
+	cc1100_cmd_calibrate();
+
 	// Start RX
 	cc1100_cmd_rx();
 }
@@ -386,7 +399,7 @@ static void force_off(void) {
 }
 
 static void check_on(void) {
-	if ( ((cc1100_status() & 0x70) != 0x10) || (cc1100_status_rxbytes() != 0)) {
+	if (((cc1100_status() & CC1100_STATUS_MASK) != CC1100_STATUS_RX)) {
 		// Status is not RX
 		force_on();
 	}
