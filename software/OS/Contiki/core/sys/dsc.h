@@ -62,7 +62,9 @@
 #ifndef __DSC_H__
 #define __DSC_H__
 
-#include "ctk/ctk.h"
+//#include "ctk/ctk.h"
+#include "contiki-conf.h"
+#include "contiki.h"
 
 /**
  * The DSC program description structure.

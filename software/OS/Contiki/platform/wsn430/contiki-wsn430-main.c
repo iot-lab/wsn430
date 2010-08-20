@@ -243,9 +243,9 @@ main(int argc, char **argv)
   /* Setup X-MAC for 802.15.4 */
   queuebuf_init();
 #if MAC_CSMA
-  sicslowpan_init(csma_init(MAC_DRIVER.init(&cc2420_driver)));
+  sicslowpan_init(csma_init(MAC_DRIVER.init(&cc1100_radio_driver)));
 #else /* MAC_CSMA */
-  sicslowpan_init(MAC_DRIVER.init(&cc2420_driver));
+  sicslowpan_init(MAC_DRIVER.init(&cc1100_radio_driver));
 #endif /* MAC_CSMA */ 
   printf(" %s, channel check rate %d Hz, radio channel %u\n",
          sicslowpan_mac->name,
