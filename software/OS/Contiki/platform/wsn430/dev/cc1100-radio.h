@@ -48,11 +48,6 @@
 
 void cc1100_radio_init(void);
 
-#define CC1100_MAX_PACKET_LEN      127
-
-extern signed char cc1100_radio_last_rssi;
-extern uint8_t cc1100_radio_last_correlation;
-
 extern const struct radio_driver cc1100_radio_driver;
 
 #endif /* __CC1100_H__ */

@@ -41,12 +41,13 @@
 #include <io.h>
 
 #include "contiki.h"
-#include "contiki-wsn430.h"
 
 #include "dev/leds.h"
 #include "dev/watchdog.h"
+#include "dev/slip.h"
 #include "dev/xmem.h"
 #include "dev/cc1100-radio.h"
+#include "dev/serial-line.h"
 
 #include "lib/random.h"
 #include "net/mac/csma.h"
@@ -66,7 +67,6 @@
 
 #include "net/rime.h"
 
-#include "cfs-coffee-arch.h"
 #include "sys/autostart.h"
 #include "sys/profile.h"
 
@@ -79,6 +79,78 @@
 #define WITH_UIP 0
 #endif
 
+#if WITH_UIP
+#include "net/uip.h"
+#include "net/uip-fw.h"
+#include "net/uip-fw-drv.h"
+#include "net/uip-over-mesh.h"
+static struct uip_fw_netif slipif =
+  {UIP_FW_NETIF(0,0,0,0, 0,0,0,0, slip_send)};
+static struct uip_fw_netif meshif =
+  {UIP_FW_NETIF(172,16,0,0, 255,255,0,0, uip_over_mesh_send)};
+
+#endif /* WITH_UIP */
+
+#define UIP_OVER_MESH_CHANNEL 8
+#if WITH_UIP
+static uint8_t is_gateway;
+#endif /* WITH_UIP */
+
+#ifdef EXPERIMENT_SETUP
+#include "experiment-setup.h"
+#endif
+
+#if WITH_NULLMAC
+#define MAC_DRIVER nullmac_driver
+#endif /* WITH_NULLMAC */
+
+#ifndef MAC_DRIVER
+#ifdef MAC_CONF_DRIVER
+#define MAC_DRIVER MAC_CONF_DRIVER
+#else
+#define MAC_DRIVER xmac_driver
+#endif /* MAC_CONF_DRIVER */
+#endif /* MAC_DRIVER */
+
+#ifndef MAC_CSMA
+#ifdef MAC_CONF_CSMA
+#define MAC_CSMA MAC_CONF_CSMA
+#else
+#define MAC_CSMA 1
+#endif /* MAC_CONF_CSMA */
+#endif /* MAC_CSMA */
+
+
+extern const struct mac_driver MAC_DRIVER;
+
+/*---------------------------------------------------------------------------*/
+void uip_log(char *msg) { puts(msg); }
+/*---------------------------------------------------------------------------*/
+#ifndef RF_CHANNEL
+#define RF_CHANNEL              26
+#endif
+/*---------------------------------------------------------------------------*/
+static void
+set_rime_addr(void)
+{
+  rimeaddr_t addr;
+  int i;
+
+  memset(&addr, 0, sizeof(rimeaddr_t));
+#if UIP_CONF_IPV6
+  memcpy(addr.u8, ds2411_id.raw, sizeof(addr.u8));
+#else
+  for(i = 0; i < sizeof(rimeaddr_t); ++i) {
+    addr.u8[i] = ds2411_id.raw[6 - i];
+  }
+#endif
+  rimeaddr_set_node_addr(&addr);
+  printf("Rime started with address ");
+  for(i = 0; i < sizeof(addr.u8) - 1; i++) {
+    printf("%d.", addr.u8[i]);
+  }
+  printf("%d\n", addr.u8[i]);
+}
 /*---------------------------------------------------------------------------*/
 static void
 print_processes(struct process * const processes[])
@@ -92,149 +164,252 @@ print_processes(struct process * const processes[])
   putchar('\n');
 }
 /*--------------------------------------------------------------------------*/
+#if WITH_UIP
+static void
+set_gateway(void)
+{
+  if(!is_gateway) {
+    leds_on(LEDS_RED);
+    printf("%d.%d: making myself the IP network gateway.\n\n",
+	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
+    printf("IPv4 address of the gateway: %d.%d.%d.%d\n\n",
+	   uip_ipaddr_to_quad(&uip_hostaddr));
+    uip_over_mesh_set_gateway(&rimeaddr_node_addr);
+    uip_over_mesh_make_announced_gateway();
+    is_gateway = 1;
+  }
+}
+#endif /* WITH_UIP */
+/*---------------------------------------------------------------------------*/
 int
 main(int argc, char **argv)
 {
-    /*
-    * Initalize hardware.
-    */
-    msp430_cpu_init();
-    clock_init();
-    leds_init();
-    uart0_init(UART0_CONFIG_8MHZ_115200);
-    wsn430_slip_init();
-    putchar('a');
-    /*
-     * Initialize Unique ID.
-     */
-    leds_on(LEDS_GREEN);
-    ds2411_init();
-    
-    /* XXX hack: Fix it so that the 802.15.4 MAC address is compatible
+  /*
+   * Initalize hardware.
+   */
+  msp430_cpu_init();
+  clock_init();
+  leds_init();
+  leds_on(LEDS_RED);
+  uart0_init(UART0_CONFIG_8MHZ_115200); /* Must come before first printf */
+#if WITH_UIP
+  slip_arch_init(0);
+#endif /* WITH_UIP */
+
+  leds_on(LEDS_GREEN);
+  ds2411_init();
+
+  /* XXX hack: Fix it so that the 802.15.4 MAC address is compatible
      with an Ethernet MAC address - byte 0 (byte 2 in the DS ID)
      cannot be odd. */
-    ds2411_id.raw[2] &= 0xfe;
-    
+  ds2411_id.raw[2] &= 0xfe;
+  
+  leds_on(LEDS_BLUE);
+  xmem_init();
+
+  leds_off(LEDS_RED);
+  rtimer_init();
+  /*
+   * Hardware initialization done!
+   */
+
+  random_init(ds2411_id.raw[6]);
+
+  leds_off(LEDS_BLUE);
+  /*
+   * Initialize Contiki and our processes.
+   */
+  process_init();
+  process_start(&etimer_process, NULL);
+
+  ctimer_init();
+
+  cc1100_radio_init();
+
+  printf(CONTIKI_VERSION_STRING " started. ");
+  set_rime_addr();
+  printf("MAC %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x",
+	 ds2411_id.raw[0], ds2411_id.raw[1], ds2411_id.raw[2], ds2411_id.raw[3],
+	 ds2411_id.raw[4], ds2411_id.raw[5], ds2411_id.raw[6], ds2411_id.raw[7]);
+
+  framer_set(&framer_802154);
+  
+#if WITH_UIP6
+  memcpy(&uip_lladdr.addr, ds2411_id.raw, sizeof(uip_lladdr.addr));
+  /* Setup nullmac-like MAC for 802.15.4 */
+/*   sicslowpan_init(sicslowmac_init(&cc2420_driver)); */
+/*   printf(" %s channel %u\n", sicslowmac_driver.name, RF_CHANNEL); */
+
+  /* Setup X-MAC for 802.15.4 */
+  queuebuf_init();
+#if MAC_CSMA
+  sicslowpan_init(csma_init(MAC_DRIVER.init(&cc2420_driver)));
+#else /* MAC_CSMA */
+  sicslowpan_init(MAC_DRIVER.init(&cc2420_driver));
+#endif /* MAC_CSMA */ 
+  printf(" %s, channel check rate %d Hz, radio channel %u\n",
+         sicslowpan_mac->name,
+         CLOCK_SECOND / (sicslowpan_mac->channel_check_interval() == 0? 1:
+                         sicslowpan_mac->channel_check_interval()),
+         RF_CHANNEL);
+
+  process_start(&tcpip_process, NULL);
+
+  printf("Tentative link-local IPv6 address ");
+  {
+    int i;
+    for(i = 0; i < 7; ++i) {
+      printf("%02x%02x:",
+	     uip_netif_physical_if.addresses[0].ipaddr.u8[i * 2],
+	     uip_netif_physical_if.addresses[0].ipaddr.u8[i * 2 + 1]);
+    }
+    printf("%02x%02x\n",
+	   uip_netif_physical_if.addresses[0].ipaddr.u8[14],
+	   uip_netif_physical_if.addresses[0].ipaddr.u8[15]);
+  }
+  
+  if(0) {
+    uip_ipaddr_t ipaddr;
+    int i;
+    uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
+    uip_netif_addr_autoconf_set(&ipaddr, &uip_lladdr);
+    uip_netif_addr_add(&ipaddr, 16, 0, TENTATIVE);
+    printf("Tentative IPv6 address ");
+    for(i = 0; i < 7; ++i) {
+      printf("%02x%02x:",
+             ipaddr.u8[i * 2], ipaddr.u8[i * 2 + 1]);
+    }
+    printf("%02x%02x\n",
+           ipaddr.u8[7 * 2], ipaddr.u8[7 * 2 + 1]);
+  }
+
+  
+#if UIP_CONF_ROUTER
+  uip_router_register(&rimeroute);
+#endif /* UIP_CONF_ROUTER */
+#else /* WITH_UIP6 */
+#if MAC_CSMA
+  rime_init(csma_init(MAC_DRIVER.init(&cc1100_radio_driver)));
+#else /* MAC_CSMA */
+  rime_init(MAC_DRIVER.init(&cc1100_radio_driver));
+#endif /* MAC_CSMA */
+  printf(" %s, channel check rate %d Hz, radio channel %u\n",
+         rime_mac->name,
+         CLOCK_SECOND / (rime_mac->channel_check_interval() == 0? 1:
+                         rime_mac->channel_check_interval()),
+         RF_CHANNEL);
+#endif /* WITH_UIP6 */
+
+#if !WITH_UIP && !WITH_UIP6
+  uart0_register_callback(serial_line_input_byte);
+  //uart1_set_input(serial_line_input_byte);
+  serial_line_init();
+#endif
+
+#if PROFILE_CONF_ON
+  profile_init();
+#endif /* PROFILE_CONF_ON */
+
+  leds_off(LEDS_GREEN);
+
+#if TIMESYNCH_CONF_ENABLED
+  timesynch_init();
+  timesynch_set_authority_level(rimeaddr_node_addr.u8[0]);
+#endif /* TIMESYNCH_CONF_ENABLED */
+
+#if WITH_UIP
+  process_start(&tcpip_process, NULL);
+  process_start(&uip_fw_process, NULL);	/* Start IP output */
+  process_start(&slip_process, NULL);
+
+  slip_set_input_callback(set_gateway);
+
+  {
+    uip_ipaddr_t hostaddr, netmask;
+
+    uip_init();
+
+    uip_ipaddr(&hostaddr, 172,16,
+	       rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1]);
+    uip_ipaddr(&netmask, 255,255,0,0);
+    uip_ipaddr_copy(&meshif.ipaddr, &hostaddr);
+
+    uip_sethostaddr(&hostaddr);
+    uip_setnetmask(&netmask);
+    uip_over_mesh_set_net(&hostaddr, &netmask);
+    /*    uip_fw_register(&slipif);*/
+    uip_over_mesh_set_gateway_netif(&slipif);
+    uip_fw_default(&meshif);
+    uip_over_mesh_init(UIP_OVER_MESH_CHANNEL);
+    printf("uIP started with IP address %d.%d.%d.%d\n",
+	   uip_ipaddr_to_quad(&hostaddr));
+  }
+#endif /* WITH_UIP */
+
+  energest_init();
+  ENERGEST_ON(ENERGEST_TYPE_CPU);
+
+  print_processes(autostart_processes);
+  autostart_start(autostart_processes);
+
+  /*
+   * This is the scheduler loop.
+   */
+  watchdog_start();
+  /*  watchdog_stop();*/
+  while(1) {
+    int r;
+#if PROFILE_CONF_ON
+    profile_episode_start();
+#endif /* PROFILE_CONF_ON */
+    do {
+      /* Reset watchdog. */
+      watchdog_periodic();
+      r = process_run();
+    } while(r > 0);
+#if PROFILE_CONF_ON
+    profile_episode_end();
+#endif /* PROFILE_CONF_ON */
+
     /*
-     * Initialize External Flash.
+     * Idle processing.
      */
-    leds_on(LEDS_BLUE);
-    xmem_init();
-    
-    /*
-     * Initialize realtime timer.
-     */
-    leds_off(LEDS_RED);
-    rtimer_init();
-    /*
-     * Hardware initialization done!
-     */
+    int s = splhigh();		/* Disable interrupts. */
+    /* uart1_active is for avoiding LPM3 when still sending or receiving */
+    if(process_nevents() != 0) {
+      splx(s);			/* Re-enable interrupts. */
+    } else {
+      static unsigned long irq_energest = 0;
 
-    random_init(ds2411_id.raw[6]);
-    leds_off(LEDS_BLUE);
-    
-    /*
-    * Initialize Contiki and our processes.
-    */
-    process_init();
-    
-    /* Start the event timer process */
-    process_start(&etimer_process, NULL);
-    ctimer_init();
-    
-    printf(CONTIKI_VERSION_STRING " started. ");
-    wsn430_set_rime_addr();
-    printf("MAC %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x\n",
-        ds2411_id.raw[0], ds2411_id.raw[1], ds2411_id.raw[2], ds2411_id.raw[3],
-        ds2411_id.raw[4], ds2411_id.raw[5], ds2411_id.raw[6], ds2411_id.raw[7]);
-    
-    /* Initialize the network */
-    cc1100_radio_init();
-    wsn430_network_init();
-    
-  #if PROFILE_CONF_ON
-    profile_init();
-  #endif /* PROFILE_CONF_ON */
-
-    leds_off(LEDS_GREEN);
-
-  #if TIMESYNCH_CONF_ENABLED
-    timesynch_init();
-    timesynch_set_authority_level(rimeaddr_node_addr.u8[0]);
-  #endif /* TIMESYNCH_CONF_ENABLED */
-
-    /*
-     * Start energy management
-     */
-    energest_init();
-    ENERGEST_ON(ENERGEST_TYPE_CPU);
-    
-    /* Start the application processes registered in the autostart */
-    print_processes(autostart_processes);
-    autostart_start(autostart_processes);
-
-    /*
-    * This is the scheduler loop.
-    */
-    watchdog_start();
-    
-    while(1) {
-        int r;
-      #if PROFILE_CONF_ON
-        profile_episode_start();
-      #endif /* PROFILE_CONF_ON */
-        do {
-            /* Reset watchdog. */
-            watchdog_periodic();
-            r = process_run();
-        } while(r > 0);
-      #if PROFILE_CONF_ON
-        profile_episode_end();
-      #endif /* PROFILE_CONF_ON */
-        
-        /*
-        * Idle processing.
-        */
-        int s = splhigh();		/* Disable interrupts. */
-        if(process_nevents() != 0)
-        {
-            splx(s);		/* Re-enable interrupts. */
-        }
-        else
-        {
-            static unsigned long irq_energest = 0;
-            ENERGEST_OFF(ENERGEST_TYPE_CPU);
-            ENERGEST_ON(ENERGEST_TYPE_LPM);
-            /* We only want to measure the processing done in IRQs when we
-             * are asleep, so we discard the processing time done when we
-             * were awake. */
-            energest_type_set(ENERGEST_TYPE_IRQ, irq_energest);
-      
-            /* Re-enable interrupts and go to sleep atomically. */
-            
-            watchdog_stop();
-            eint();
-            _BIS_SR(LPM1_bits);
-            //~ _BIS_SR(GIE | SCG0 | SCG1 | CPUOFF); /* LPM3 sleep. This
+      /* Re-enable interrupts and go to sleep atomically. */
+      ENERGEST_OFF(ENERGEST_TYPE_CPU);
+      ENERGEST_ON(ENERGEST_TYPE_LPM);
+      /* We only want to measure the processing done in IRQs when we
+	 are asleep, so we discard the processing time done when we
+	 were awake. */
+      energest_type_set(ENERGEST_TYPE_IRQ, irq_energest);
+      watchdog_stop();
+      eint();
+      _BIS_SR(LPM1_bits);
+      //~ _BIS_SR(GIE | SCG0 | SCG1 | CPUOFF); /* LPM3 sleep. This
                       //~ statement will block
                       //~ until the CPU is
                       //~ woken up by an
                       //~ interrupt that sets
                       //~ the wake up flag. */
-                            
-            /* We get the current processing time for interrupts that was
-             * done during the LPM and store it for next time around.  */
-            dint();
-            irq_energest = energest_type_time(ENERGEST_TYPE_IRQ);
-            eint();
-            watchdog_start();
-            ENERGEST_OFF(ENERGEST_TYPE_LPM);
-            ENERGEST_ON(ENERGEST_TYPE_CPU);
-            
-        }
-    }
 
-    return 0;
+      /* We get the current processing time for interrupts that was
+	 done during the LPM and store it for next time around.  */
+      dint();
+      irq_energest = energest_type_time(ENERGEST_TYPE_IRQ);
+      eint();
+      watchdog_start();
+      ENERGEST_OFF(ENERGEST_TYPE_LPM);
+      ENERGEST_ON(ENERGEST_TYPE_CPU);
+    }
+  }
+
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 #if LOG_CONF_ENABLED

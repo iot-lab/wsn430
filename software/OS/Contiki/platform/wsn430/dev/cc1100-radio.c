@@ -74,15 +74,13 @@ PROCESS(cc1100_radio_process, "CC1100 driver")
 ;
 /*---------------------------------------------------------------------------*/
 // Interface Methods
-static int cc1100_radio_on(void);
-static int cc1100_radio_off(void);
-static int cc1100_radio_read(void *buf, unsigned short bufsize);
-static int cc1100_radio_send(const void *data, unsigned short len);
-static void cc1100_radio_set_receiver(
-		void(* recv)(const struct radio_driver *d));
-const struct radio_driver cc1100_radio_driver = { cc1100_radio_send,
-		cc1100_radio_read, cc1100_radio_set_receiver, cc1100_radio_on,
-		cc1100_radio_off, };
+static int cc1100_on(void);
+static int cc1100_off(void);
+static int cc1100_read(void *buf, unsigned short bufsize);
+static int cc1100_send(const void *data, unsigned short len);
+static void cc1100_set_receiver(void(* recv)(const struct radio_driver *d));
+const struct radio_driver cc1100_radio_driver = { cc1100_send, cc1100_read,
+		cc1100_set_receiver, cc1100_on, cc1100_off, };
 
 // Helpful Functions
 /**
@@ -97,23 +95,16 @@ static uint16_t irq_rx(void);
  * \return 1 if packet received and available in rx_buffer;
  *     0 otherwise
  */
-static int rx(void);
+static int16_t rx(void);
 
 /**
- * Force the radio to enter RX. flush FIFOs.
+ * Actually start RX
  */
-static void force_on(void);
+static void on(void);
 /**
  * Force the radio to IDLE, flush FIFOs.
  */
-static void force_off(void);
-
-/**
- * Check the radio is in RX. If not, it calls force_on.
- */
-static void check_on(void);
-
-static void set_rx_irq(void);
+static void off(void);
 
 // Local Buffer
 #define BUFFER_SIZE 127
@@ -127,7 +118,7 @@ static volatile int16_t rx_flag = 0;
 static void (* receiver_callback)(const struct radio_driver *);
 
 /*---------------------------------------------------------------------------*/
-static void cc1100_radio_set_receiver(void(* recv)(const struct radio_driver *)) {
+static void cc1100_set_receiver(void(* recv)(const struct radio_driver *)) {
 	receiver_callback = recv;
 }
 /*---------------------------------------------------------------------------*/
@@ -157,7 +148,7 @@ void cc1100_radio_init(void) {
 	cc1100_cfg_drate_e(0x0D);
 	cc1100_cfg_drate_m(0x2F);
 
-	cc1100_cfg_chan(4);
+	cc1100_cfg_chan(6);
 
 	// Set the TX Power
 	uint8_t table[1];
@@ -168,38 +159,42 @@ void cc1100_radio_init(void) {
 	// Calibrate once at start
 	cc1100_cmd_calibrate();
 
+	// Clear flags
+	receive_on = 0;
+	rx_flag = 0;
+
 	// Start the process
 	process_start(&cc1100_radio_process, NULL);
 }
 /*---------------------------------------------------------------------------*/
-static int cc1100_radio_off(void) {
-	PRINTF("cc1100_radio_off\n");
-	/* Don't do anything if we are already turned off. */
+static int cc1100_off(void) {
+	PRINTF("cc1100_off\n");
+	/* Don't do anything if we are already off. */
 	if (receive_on == 0) {
 		return 1;
 	}
 
-	force_off();
+	off();
 	return 1;
 }
 /*---------------------------------------------------------------------------*/
-static int cc1100_radio_on(void) {
-	PRINTF("cc1100_radio_on\n");
-	/* Don't do anything if we are already turned on. */
+static int cc1100_on(void) {
+	PRINTF("cc1100_on\n");
+	/* Don't do anything if we are already on. */
 	if (receive_on) {
 		return 1;
 	}
 
-	force_on();
-	set_rx_irq();
+	on();
 	return 1;
 }
 /*---------------------------------------------------------------------------*/
-static int cc1100_radio_send(const void *payload, unsigned short payload_len) {
+static int cc1100_send(const void *payload, unsigned short payload_len) {
 	uint16_t len, ptr;
 
 	// check the length
 	if (payload_len > BUFFER_SIZE) {
+		PRINTF("cc1100_send: packet too big [%u]\n", payload_len);
 		return RADIO_TX_ERR;
 	}
 
@@ -207,10 +202,11 @@ static int cc1100_radio_send(const void *payload, unsigned short payload_len) {
 	if (((cc1100_status() & CC1100_STATUS_MASK) == CC1100_STATUS_RX)
 			&& (cc1100_gdo0_read() != 0)) {
 		// We're in RX with sync word set, hence receiving a packet, abort
+		PRINTF("cc1100_send: radio busy, RX\n");
 		return RADIO_TX_ERR;
 	}
 
-	PRINTF("cc1100: sending %u bytes\n", payload_len);
+	PRINTF("cc1100_send: sending %u bytes\n", payload_len);
 
 	// Disable Interrupts
 	cc1100_gdo0_int_disable();
@@ -240,7 +236,7 @@ static int cc1100_radio_send(const void *payload, unsigned short payload_len) {
 			check_on();
 		} else {
 			// If we were off, stop the radio
-			force_off();
+			off();
 		}
 		/* If we are using WITH_SEND_CCA, we get here if the packet wasn't
 		 transmitted because of other channel activity. */
@@ -306,26 +302,29 @@ static int cc1100_radio_send(const void *payload, unsigned short payload_len) {
 
 	if (receive_on) {
 		ENERGEST_ON(ENERGEST_TYPE_LISTEN);
-		check_on();
+		on();
 	} else {
-		force_off();
+		off();
 	}
-	set_rx_irq();
 
 	return RADIO_TX_OK;
 }
 /*---------------------------------------------------------------------------*/
-static int cc1100_radio_read(void *buf, unsigned short bufsize) {
+static int cc1100_read(void *buf, unsigned short bufsize) {
 	int retlen;
 
 	// check if there is a packet in the local buffer
-	if (rx_buffer_len == 0 && rx_flag) {
-		rx();
-		// If still nothing, return
+	if (rx_buffer_len == 0) {
+		if (rx_flag) {
+			rx();
+		}
+
+		// If n opacket received, return
 		if (rx_buffer_len == 0)
 			return 0;
 	}
 
+	// Copy received packet to buf
 	memcpy(buf, rx_buffer, rx_buffer_len);
 
 	packetbuf_set_attr(PACKETBUF_ATTR_RSSI, rx_buffer[rx_buffer_len]);
@@ -334,7 +333,7 @@ static int cc1100_radio_read(void *buf, unsigned short bufsize) {
 
 	RIMESTATS_ADD(llrx);
 
-	PRINTF("cc11000_radio_read len=%u\n", rx_buffer_len);
+	PRINTF("cc1100_read len=%u\n", rx_buffer_len);
 	retlen = rx_buffer_len;
 
 	// Reset the buffer length
@@ -350,7 +349,7 @@ PROCESS_THREAD(cc1100_radio_process, ev, data) {
 			PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
 			// The only event we can receive is when packet RX has started
 
-			if (rx() && (receiver_callback != NULL) ) {
+			if (rx() && receiver_callback) {
 				receiver_callback(&cc1100_radio_driver);
 			}
 		}
@@ -367,9 +366,13 @@ static uint16_t irq_rx(void) {
 
 /* Other Static Functions */
 /*---------------------------------------------------------------------------*/
-static void force_on(void) {
+static void on(void) {
 	ENERGEST_ON(ENERGEST_TYPE_LISTEN);
 	receive_on = 1;
+
+	// Disable interrupts
+	cc1100_gdo2_int_disable();
+	cc1100_gdo0_int_disable();
 
 	// Go to idle and flush FIFOs
 	cc1100_cmd_idle();
@@ -377,13 +380,22 @@ static void force_on(void) {
 	cc1100_cmd_flush_tx();
 
 	// Calibrate
-	cc1100_cmd_calibrate();
+//	cc1100_cmd_calibrate();
+
+	// Configure GDO IRQ
+	cc1100_cfg_fifo_thr(0); // 4 bytes in RX FIFO
+	cc1100_cfg_gdo0(CC1100_GDOx_SYNC_WORD);
+	cc1100_cfg_gdo2(CC1100_GDOx_RX_FIFO_EOP);
+	cc1100_gdo2_int_set_rising_edge();
+	cc1100_gdo2_register_callback(irq_rx);
+	cc1100_gdo2_int_clear();
+	cc1100_gdo2_int_enable();
 
 	// Start RX
 	cc1100_cmd_rx();
 }
 
-static void force_off(void) {
+static void off(void) {
 	receive_on = 0;
 
 	// Disable interrupts
@@ -398,29 +410,6 @@ static void force_off(void) {
 	ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
 }
 
-static void check_on(void) {
-	if (((cc1100_status() & CC1100_STATUS_MASK) != CC1100_STATUS_RX)) {
-		// Status is not RX
-		force_on();
-	}
-}
-
-static void set_rx_irq(void) {
-
-	// Disable interrupts
-	cc1100_gdo2_int_disable();
-	cc1100_gdo0_int_disable();
-
-	// Configure GDO IRQ
-	cc1100_cfg_fifo_thr(0); // 4 bytes in RX FIFO
-	cc1100_cfg_gdo0(CC1100_GDOx_SYNC_WORD);
-	cc1100_cfg_gdo2(CC1100_GDOx_RX_FIFO);
-	cc1100_gdo2_int_set_rising_edge();
-	cc1100_gdo2_register_callback(irq_rx);
-	cc1100_gdo2_int_clear();
-	cc1100_gdo2_int_enable();
-}
-
 static int rx(void) {
 	uint8_t fifo_len;
 
@@ -430,8 +419,12 @@ static int rx(void) {
 	// Clear RX flag, because it's going to be handled
 	rx_flag = 0;
 
-	if (cc1100_status_rxbytes() == 0) {
-		PRINTF("rx_begin: nothing in fifo !!\n");
+	uint8_t rxb;
+	rxb = cc1100_status_rxbytes();
+
+	if (rxb == 0) {
+		on();
+		PRINTF("rx: nothing in fifo !!\n");
 		return 0;
 	}
 
@@ -440,9 +433,9 @@ static int rx(void) {
 
 	// check the length byte
 	if (rx_buffer_len > BUFFER_SIZE || rx_buffer_len == 0) {
-		PRINTF("rx_begin: error length (%d)\n", rx_buffer_len);
+		PRINTF("rx: error length (%d)\n", rx_buffer_len);
 		rx_buffer_len = 0;
-		force_on();
+		on();
 		return 0;
 	}
 
@@ -455,20 +448,20 @@ static int rx(void) {
 		fifo_len = cc1100_status_rxbytes();
 
 		if (fifo_len & 0x80) {
-			force_on();
+			on();
 			PRINTF("rx: error rxfifo overflow (%d)\n", fifo_len);
 			return 0;
 		}
 
 		if (fifo_len == 0) {
-			force_on();
+			on();
 			PRINTF("rx: warning, fifo_len=0\n");
 			return 0;
 		}
 
 		// Check for local overflow
 		if (rx_buffer_ptr + fifo_len > BUFFER_SIZE + FOOTER_LEN) {
-			force_on();
+			on();
 			PRINTF("rx: error local overflow\n");
 			return 0;
 		}
@@ -488,14 +481,14 @@ static int rx(void) {
 	fifo_len = cc1100_status_rxbytes();
 
 	if (fifo_len & 0x80) {
-		check_on();
+		on();
 		PRINTF("rx: error rxfifo overflow (%d)\n", fifo_len);
 		return 0;
 	}
 
 	// Check for local overflow
 	if (rx_buffer_ptr + fifo_len > BUFFER_SIZE + FOOTER_LEN) {
-		check_on();
+		on();
 		PRINTF("rx: error local overflow\n");
 		return 0;
 	}
@@ -505,18 +498,19 @@ static int rx(void) {
 
 	// check if we have the entire packet
 	if ((rx_buffer_len + FOOTER_LEN) != rx_buffer_ptr) {
-		check_on();
-		PRINTF("rx_end: lengths don't match [%u!=%u]\n", rx_buffer_len, rx_buffer_ptr);
+		on();
+		PRINTF("rx: lengths don't match [%u!=%u]\n", rx_buffer_len, rx_buffer_ptr);
 		return 0;
 	}
 
 	if (!(rx_buffer[rx_buffer_len + 1] & 0x80)) {
-		check_on();
-		PRINTF("rx_end: error CRC\n");
+		on();
+		PRINTF("rx: error CRC\n");
 		RIMESTATS_ADD(badcrc);
 		return 0;
 	}
 
-	PRINTF("cc1100: received %d bytes\n", rx_buffer_len);
+	on();
+	PRINTF("rx: received %d bytes\n", rx_buffer_len);
 	return 1;
 }

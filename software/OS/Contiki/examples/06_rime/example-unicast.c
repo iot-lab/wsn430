@@ -53,8 +53,8 @@ PROCESS(example_unicast_process, "Example unicast")
 AUTOSTART_PROCESSES(&example_unicast_process);
 /*---------------------------------------------------------------------------*/
 static void recv_uc(struct unicast_conn *c, const rimeaddr_t *from) {
-	printf("unicast message received from %d.%d: %s", from->u8[0],
-			from->u8[1], (char*) packetbuf_dataptr());
+	printf("unicast message received from %d.%d: %s", from->u8[0], from->u8[1],
+			(char*) packetbuf_dataptr());
 	printf("\n");
 }
 static const struct unicast_callbacks unicast_callbacks = { recv_uc };
@@ -70,25 +70,28 @@ PROCESS_THREAD(example_unicast_process, ev, data) {
 		printf("rimeaddr_node_addr = [%u, %u]\n", rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
 
 		static int i = 0;
+		static struct etimer et;
+
+		etimer_set(&et, 1*CLOCK_SECOND);
 
 		while(1) {
-			static struct etimer et;
 			rimeaddr_t addr;
-
-			etimer_set(&et, 3*CLOCK_SECOND);
 
 			PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
 
-			char msg[15];
-			sprintf(msg, "hello #%u", i);
+			char msg[15]; int len;
+			len = sprintf(msg, "hello #%u", i) + 1 ;
 			i++;
 
-			packetbuf_copyfrom(msg, strlen(msg));
-			addr.u8[0] = 152;
-			addr.u8[1] = 197;
-			if (rimeaddr_node_addr.u8[0] == 249 && rimeaddr_node_addr.u8[1] == 178) {
+			packetbuf_copyfrom(msg, len);
+			addr.u8[0] = 37;
+			addr.u8[1] = 195;
+			if (rimeaddr_node_addr.u8[0] != 37 || rimeaddr_node_addr.u8[1] != 195) {
 				unicast_send(&uc, &addr);
+				printf("unicast message sent [%i bytes]\n", len);
 			}
+
+			etimer_reset(&et);
 
 		}
 

@@ -25,7 +25,7 @@ static struct psock ps;
  * We must have somewhere to put incoming data, and we use a 50 byte
  * buffer for this purpose.
  */
-static char buffer[50];
+static uint8_t buffer[50];
 
 /*---------------------------------------------------------------------------*/
 /*

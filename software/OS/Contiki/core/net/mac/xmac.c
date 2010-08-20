@@ -70,7 +70,7 @@
 #define WITH_STREAMING               1
 #endif
 #ifndef WITH_STROBE_BROADCAST
-#define WITH_STROBE_BROADCAST        0
+#define WITH_STROBE_BROADCAST        1
 #endif
 
 struct announcement_data {
@@ -119,7 +119,7 @@ struct xmac_hdr {
 
 #define DEFAULT_PERIOD (DEFAULT_OFF_TIME + DEFAULT_ON_TIME)
 
-/// SENSTOOLS HACK: no need to wait
+// SENSTOOLS HACK: no need to wait
 #define WAIT_TIME_BEFORE_STROBE_ACK RTIMER_ARCH_SECOND / 10000
 
 /* On some platforms, we may end up with a DEFAULT_PERIOD that is 0
@@ -423,7 +423,7 @@ send_packet(void)
   rtimer_clock_t t;
   rtimer_clock_t encounter_time = 0;
   int strobes;
-  struct xmac_hdr *hdr;
+  volatile struct xmac_hdr *hdr;
   int got_strobe_ack = 0;
   uint8_t strobe[MAX_STROBE_SIZE];
   int strobe_len, len;
@@ -572,6 +572,7 @@ send_packet(void)
 	  packetbuf_set_datalen(len);
 	  if(framer_get()->parse()) {
 	    hdr = packetbuf_dataptr();
+
 	    if(hdr->dispatch == DISPATCH && hdr->type == TYPE_STROBE_ACK) {
 	      if(rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
 			      &rimeaddr_node_addr)) {
@@ -725,7 +726,6 @@ read_packet(void)
   }
 
   packetbuf_set_datalen(len);
-
   if(framer_get()->parse()) {
     hdr = packetbuf_dataptr();
 
