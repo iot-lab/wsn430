@@ -35,9 +35,9 @@ if [ $1 -le 0 ]; then
 	exit 1
 fi
 
-node=$((30000+$1))
+node=$1
 
-CMD="./tapslip6-udp -i $node -o $node -d experiment 127.0.0.1 255.0.0.0"
+CMD="./senslip6 -n $node"
 echo $CMD; $CMD &>tap.log &
 PID=$!
 sleep 1
@@ -45,12 +45,7 @@ sleep 1
 CMD="/etc/init.d/radvd restart"
 echo $CMD; $CMD
 
-CMD="route add -A inet6 aaaa::/64 tap0"
-echo $CMD; $CMD
-
-CMD="ip -6 address add aaaa::1/64 dev tap0"
+CMD="ifconfig tap0 add aaaa::1/64"
 echo $CMD; $CMD
 
 tail -n 200 -f tap.log
-
-

@@ -1,4 +1,4 @@
-all: tunslip tunslip-sim tunslip-senslab tapslip6 tapslip6-udp
+all: tunslip tapslip6 senslip senslip6
 
 clean:
-	rm tunslip tunslip-sim tunslip-senslab tapslip6 tapslip6-udp
+	rm tunslip tapslip6 senslip senslip6
