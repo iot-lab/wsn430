@@ -9,7 +9,16 @@
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
 
-// #define WITH_NULLMAC 1
+#define WITH_CC2420
+
+
+#ifdef WITH_CC1100
+#define WSN430_RADIO_DRIVER cc1100_radio_driver
+#else
+#define WSN430_RADIO_DRIVER cc2420_radio_driver
+#endif
+
+#define WITH_NULLMAC 0
 
 /* Specifies the default MAC driver */
 #define MAC_CONF_CSMA               1
@@ -27,7 +36,7 @@
 #else /* WITH_UIP6 */
 #define MAC_CONF_DRIVER             xmac_driver
 #define MAC_CONF_CHANNEL_CHECK_RATE 4
-#define TIMESYNCH_CONF_ENABLED 1
+#define TIMESYNCH_CONF_ENABLED 0
 #define RIME_CONF_NO_POLITE_ANNOUCEMENTS 1
 #define XMAC_CONF_ANNOUNCEMENTS     1
 #define CXMAC_CONF_ANNOUNCEMENTS    1

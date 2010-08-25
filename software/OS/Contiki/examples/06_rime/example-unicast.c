@@ -79,14 +79,14 @@ PROCESS_THREAD(example_unicast_process, ev, data) {
 
 			PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
 
-			char msg[15]; int len;
-			len = sprintf(msg, "hello #%u", i) + 1 ;
+			char msg[64]; int len;
+			len = sprintf(msg, "hello world #%u", i) + 1 ;
 			i++;
 
 			packetbuf_copyfrom(msg, len);
-			addr.u8[0] = 37;
-			addr.u8[1] = 195;
-			if (rimeaddr_node_addr.u8[0] != 37 || rimeaddr_node_addr.u8[1] != 195) {
+			addr.u8[0] = 182;
+			addr.u8[1] = 206;
+			if (rimeaddr_node_addr.u8[0] == 107 && rimeaddr_node_addr.u8[1] == 179) {
 				unicast_send(&uc, &addr);
 				printf("unicast message sent [%i bytes]\n", len);
 			}

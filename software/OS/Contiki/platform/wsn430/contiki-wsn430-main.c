@@ -46,7 +46,11 @@
 #include "dev/watchdog.h"
 #include "dev/slip.h"
 #include "dev/xmem.h"
+#ifdef WITH_CC1100
 #include "dev/cc1100-radio.h"
+#else
+#include "dev/cc2420-radio.h"
+#endif
 #include "dev/serial-line.h"
 
 #include "lib/random.h"
@@ -224,7 +228,11 @@ main(int argc, char **argv)
 
   ctimer_init();
 
+#ifdef WITH_CC1100
   cc1100_radio_init();
+#else
+  cc2420_radio_init();
+#endif
 
   printf(CONTIKI_VERSION_STRING " started. ");
   set_rime_addr();
@@ -243,9 +251,9 @@ main(int argc, char **argv)
   /* Setup X-MAC for 802.15.4 */
   queuebuf_init();
 #if MAC_CSMA
-  sicslowpan_init(csma_init(MAC_DRIVER.init(&cc1100_radio_driver)));
+  sicslowpan_init(csma_init(MAC_DRIVER.init(&WSN430_RADIO_DRIVER)));
 #else /* MAC_CSMA */
-  sicslowpan_init(MAC_DRIVER.init(&cc1100_radio_driver));
+  sicslowpan_init(MAC_DRIVER.init(&WSN430_RADIO_DRIVER));
 #endif /* MAC_CSMA */ 
   printf(" %s, channel check rate %d Hz, radio channel %u\n",
          sicslowpan_mac->name,
@@ -289,9 +297,9 @@ main(int argc, char **argv)
 #endif /* UIP_CONF_ROUTER */
 #else /* WITH_UIP6 */
 #if MAC_CSMA
-  rime_init(csma_init(MAC_DRIVER.init(&cc1100_radio_driver)));
+  rime_init(csma_init(MAC_DRIVER.init(&WSN430_RADIO_DRIVER)));
 #else /* MAC_CSMA */
-  rime_init(MAC_DRIVER.init(&cc1100_radio_driver));
+  rime_init(MAC_DRIVER.init(&WSN430_RADIO_DRIVER));
 #endif /* MAC_CSMA */
   printf(" %s, channel check rate %d Hz, radio channel %u\n",
          rime_mac->name,
@@ -301,7 +309,7 @@ main(int argc, char **argv)
 #endif /* WITH_UIP6 */
 
 #if !WITH_UIP && !WITH_UIP6
-  uart0_register_callback(serial_line_input_byte);
+  uart0_register_callback((uart0_cb_t)serial_line_input_byte);
   //uart1_set_input(serial_line_input_byte);
   serial_line_init();
 #endif

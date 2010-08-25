@@ -28,64 +28,26 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-abc.c,v 1.5 2009/03/12 21:58:21 adamdunkels Exp $
+ * $Id: cc1100.h,v 1.7 2008/07/02 09:05:40 adamdunkels Exp $
  */
 
 /**
  * \file
- *         Testing the abc layer in Rime
+ *         CC1100 driver header file
  * \author
- *         Adam Dunkels <adam@sics.se>
+ *         Clément Burin des Roziers <clement.burin-des-roziers@inrialpes.fr>
+ * 
+ * This driver has been mostly copied from the cc2420... files from Adam Dunkels
  */
 
+#ifndef __CC1100_H__
+#define __CC1100_H__
+
 #include "contiki.h"
-#include "net/rime.h"
+#include "dev/radio.h"
 
-#include "dev/leds.h"
+void cc2420_radio_init(void);
 
-#include <stdio.h>
-#include <string.h>
-/*---------------------------------------------------------------------------*/
-PROCESS(example_abc_process, "ABC example");
-AUTOSTART_PROCESSES(&example_abc_process);
-/*---------------------------------------------------------------------------*/
-static void
-abc_recv(struct abc_conn *c)
-{
-  ((char*)packetbuf_dataptr())[packetbuf_datalen()] = 0;
-  printf("abc message received (%d): '%s'\n",packetbuf_datalen(), (char *)packetbuf_dataptr());
-}
-static const struct abc_callbacks abc_call = {abc_recv};
-static struct abc_conn abc;
+extern const struct radio_driver cc2420_radio_driver;
 
-char text[] = "Hello World, sent by the ABC module, part of the Rime communication stack, I need a longer text so I'll just write something";
-/*---------------------------------------------------------------------------*/
-PROCESS_THREAD(example_abc_process, ev, data)
-{
-  static struct etimer et;
-
-  PROCESS_EXITHANDLER(abc_close(&abc);)
-
-  PROCESS_BEGIN();
-
-  abc_open(&abc, 128, &abc_call);
-
-  etimer_set(&et, 1.5 * CLOCK_SECOND);
-  static int len = 10;
-  while(1) {
-
-    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
-    
-    if (rimeaddr_node_addr.u8[0] == 107 &&
-        rimeaddr_node_addr.u8[1] == 179) {
-      packetbuf_copyfrom(text, len);
-      abc_send(&abc);
-      printf("abc message sent [%i bytes]\n", len);
-    }
-    etimer_reset(&et);
-    
-  }
-
-  PROCESS_END();
-}
-/*---------------------------------------------------------------------------*/
+#endif /* __CC1100_H__ */

@@ -152,7 +152,8 @@ void cc1100_radio_init(void) {
 
 	// Set the TX Power
 	uint8_t table[1];
-	table[0] = 0x67; // -5dBm
+//	table[0] = 0x67; // -5dBm
+	table[0] = 0xC2; // +10dBm
 	cc1100_cfg_patable(table, 1);
 	cc1100_cfg_pa_power(0);
 
@@ -231,9 +232,14 @@ static int cc1100_send(const void *payload, unsigned short payload_len) {
 	if ( (cc1100_status() & CC1100_STATUS_MASK) == CC1100_STATUS_RX) {
 		// Status is still RX, therefore we could not start TX
 		if (receive_on) {
-			// If we were in RX before send() call, make sure the radio is in RX
-			set_rx_irq();
-			check_on();
+			// Configure GDO IRQ
+			cc1100_cfg_fifo_thr(0); // 4 bytes in RX FIFO
+			cc1100_cfg_gdo0(CC1100_GDOx_SYNC_WORD);
+			cc1100_cfg_gdo2(CC1100_GDOx_RX_FIFO_EOP);
+			cc1100_gdo2_int_set_rising_edge();
+			cc1100_gdo2_register_callback(irq_rx);
+			cc1100_gdo2_int_clear();
+			cc1100_gdo2_int_enable();
 		} else {
 			// If we were off, stop the radio
 			off();
