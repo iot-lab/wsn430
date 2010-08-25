@@ -132,7 +132,7 @@ void cc1100_radio_init(void) {
 	cc1100_cfg_crc_en(CC1100_CRC_CALCULATION_ENABLE);
 	cc1100_cfg_freq_if(0x0C);
 
-	cc1100_cfg_fs_autocal(CC1100_AUTOCAL_NEVER);
+	cc1100_cfg_fs_autocal(CC1100_AUTOCAL_4TH_TX_RX_TO_IDLE);
 	cc1100_cfg_mod_format(CC1100_MODULATION_MSK);
 	cc1100_cfg_sync_mode(CC1100_SYNCMODE_30_32);
 	cc1100_cfg_manchester_en(CC1100_MANCHESTER_DISABLE);
@@ -152,7 +152,6 @@ void cc1100_radio_init(void) {
 
 	// Set the TX Power
 	uint8_t table[1];
-//	table[0] = 0x67; // -5dBm
 	table[0] = 0xC2; // +10dBm
 	cc1100_cfg_patable(table, 1);
 	cc1100_cfg_pa_power(0);
@@ -384,9 +383,6 @@ static void on(void) {
 	cc1100_cmd_idle();
 	cc1100_cmd_flush_rx();
 	cc1100_cmd_flush_tx();
-
-	// Calibrate
-//	cc1100_cmd_calibrate();
 
 	// Configure GDO IRQ
 	cc1100_cfg_fifo_thr(0); // 4 bytes in RX FIFO
