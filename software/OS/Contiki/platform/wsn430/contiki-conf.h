@@ -9,7 +9,7 @@
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
 
-#define WITH_CC2420
+#define WITH_CC1100
 
 
 #ifdef WITH_CC1100

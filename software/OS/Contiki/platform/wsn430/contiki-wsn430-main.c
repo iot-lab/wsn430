@@ -34,11 +34,11 @@
  * Ported by Clément Burin des Roziers <clement.burin-des-roziers@inrialpes.fr>
  */
 
+#include <io.h>
+
 #include <signal.h>
 #include <stdio.h>
 #include <string.h>
-
-#include <io.h>
 
 #include "contiki.h"
 

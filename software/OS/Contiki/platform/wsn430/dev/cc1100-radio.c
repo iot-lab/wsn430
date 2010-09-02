@@ -385,13 +385,13 @@ static void on(void) {
 	cc1100_cmd_flush_tx();
 
 	// Configure GDO IRQ
-	cc1100_cfg_fifo_thr(0); // 4 bytes in RX FIFO
+	cc1100_cfg_fifo_thr(7); // 32 bytes in RX FIFO
 	cc1100_cfg_gdo0(CC1100_GDOx_SYNC_WORD);
-	cc1100_cfg_gdo2(CC1100_GDOx_RX_FIFO_EOP);
-	cc1100_gdo2_int_set_rising_edge();
-	cc1100_gdo2_register_callback(irq_rx);
-	cc1100_gdo2_int_clear();
-	cc1100_gdo2_int_enable();
+	cc1100_gdo0_int_set_rising_edge();
+	cc1100_gdo0_register_callback(irq_rx);
+	cc1100_gdo0_int_clear();
+	cc1100_gdo0_int_enable();
+	cc1100_cfg_gdo2(CC1100_GDOx_RX_FIFO);
 
 	// Start RX
 	cc1100_cmd_rx();
@@ -424,7 +424,7 @@ static int rx(void) {
 	uint8_t rxb;
 	rxb = cc1100_status_rxbytes();
 
-	if (rxb == 0) {
+	if (rxb == 0 && cc1100_gdo0_read() == 0) {
 		on();
 		PRINTF("rx: nothing in fifo !!\n");
 		return 0;
@@ -440,9 +440,6 @@ static int rx(void) {
 		on();
 		return 0;
 	}
-
-	// Change the RX FIFO threshold (48B)
-	cc1100_cfg_fifo_thr(11);
 
 	// Loop until end of packet
 	while (cc1100_gdo0_read()) {
