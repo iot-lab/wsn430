@@ -58,6 +58,7 @@
 */
 
 /* Standard includes. */
+#include <io.h>
 #include <stdlib.h>
 #include <signal.h>
 
