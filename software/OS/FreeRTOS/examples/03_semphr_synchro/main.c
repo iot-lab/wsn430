@@ -42,7 +42,7 @@ int main( void )
     vSemaphoreCreateBinary( xSemaphore)
     
     /* Add the only task to the scheduler */
-    xTaskCreate(vLEDTask, "LED", configMINIMAL_STACK_SIZE, NULL, 1, NULL );
+    xTaskCreate(vLEDTask, (const signed char*) "LED", configMINIMAL_STACK_SIZE, NULL, 1, NULL );
     
     /* Start the scheduler. */
     vTaskStartScheduler();

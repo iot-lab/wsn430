@@ -38,8 +38,8 @@ int main( void )
     prvSetupHardware();
     
     /* Add the two tasks to the scheduler */
-    xTaskCreate(vLEDTask, "LED", configMINIMAL_STACK_SIZE, NULL, 1, NULL );
-    xTaskCreate(vTempTask, "Temperature", configMINIMAL_STACK_SIZE, NULL, 1, NULL );
+    xTaskCreate(vLEDTask,(const signed char*) "LED", configMINIMAL_STACK_SIZE, NULL, 1, NULL );
+    xTaskCreate(vTempTask, (const signed char*) "Temperature", configMINIMAL_STACK_SIZE, NULL, 1, NULL );
     
     
     /* Start the scheduler. */

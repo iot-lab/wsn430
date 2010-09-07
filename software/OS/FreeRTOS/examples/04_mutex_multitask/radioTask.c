@@ -32,7 +32,7 @@ void vCreateRadioTask(xQueueHandle xQueue, xSemaphoreHandle xMutex)
     xSemaphoreTake(xTxSem, 0);
     
     /* Add the radio task to the scheduler */
-    xTaskCreate(vRadioTask, "Radio", configMINIMAL_STACK_SIZE, NULL, 1, NULL );
+    xTaskCreate(vRadioTask, (const signed char*) "Radio", configMINIMAL_STACK_SIZE, NULL, 1, NULL );
     
 }
 

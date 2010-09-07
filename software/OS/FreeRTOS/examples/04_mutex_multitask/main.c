@@ -52,8 +52,8 @@ int main( void )
     xSPIMutex = xSemaphoreCreateMutex();
     
     /* Add the tasks to the scheduler */
-    xTaskCreate(vTempTask, "Temperature", configMINIMAL_STACK_SIZE, NULL, 1, NULL );
-    xTaskCreate(vFlashTask, "Flash",      configMINIMAL_STACK_SIZE, NULL, 1, NULL );
+    xTaskCreate(vTempTask, (const signed char*) "Temperature", configMINIMAL_STACK_SIZE, NULL, 1, NULL );
+    xTaskCreate(vFlashTask, (const signed char*) "Flash",      configMINIMAL_STACK_SIZE, NULL, 1, NULL );
     
     /* Create the Radio Task */
     vCreateRadioTask(xRadioQueue, xSPIMutex);

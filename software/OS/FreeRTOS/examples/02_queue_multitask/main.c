@@ -41,8 +41,8 @@ int main( void )
     xQueue = xQueueCreate( 5, sizeof(uint8_t) );
     
     /* Add the two tasks to the scheduler */
-    xTaskCreate(vPrintTask, "Print", configMINIMAL_STACK_SIZE, NULL, 1, NULL );
-    xTaskCreate(vTempTask, "Temperature", configMINIMAL_STACK_SIZE, NULL, 1, NULL );
+    xTaskCreate(vPrintTask, (const signed char*) "Print", configMINIMAL_STACK_SIZE, NULL, 1, NULL );
+    xTaskCreate(vTempTask, (const signed char*) "Temperature", configMINIMAL_STACK_SIZE, NULL, 1, NULL );
     
     
     /* Start the scheduler. */
