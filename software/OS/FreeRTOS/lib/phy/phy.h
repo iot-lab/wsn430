@@ -18,12 +18,18 @@
 typedef void (*phy_rx_callback_t)(uint8_t * data, uint16_t length, int8_t rssi,
 		uint16_t time);
 
+enum phy_tx_power {
+	PHY_TX_20dBm, PHY_TX_10dBm, PHY_TX_5dBm, PHY_TX_0dBm
+};
+
 /**
  * Initialize the PHY layer.
  * \param callback the function pointer to call for each received frame.
+ * \param channel the radio channel to use.
+ * \param power the TX power to use.
  */
 void phy_init(xSemaphoreHandle spi_m, phy_rx_callback_t callback,
-		uint8_t channel);
+		uint8_t channel, enum phy_tx_power power);
 /**
  * Enter RX at the PHY layer. The PHY RX callback will be called upon frame RX
  */

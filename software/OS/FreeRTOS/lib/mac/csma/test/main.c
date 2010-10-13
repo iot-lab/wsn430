@@ -39,8 +39,8 @@ int main(void) {
 	/* Create the SPI mutex */
 	xSPIMutex = xSemaphoreCreateMutex();
 
-	/* Initialize the MAC layer */
-	mac_init(xSPIMutex, packet_received);
+	/* Initialize the MAC layer, channel 0 */
+	mac_init(xSPIMutex, packet_received, 0);
 
 	/* Add the local task */
 	xTaskCreate( vSendingTask, (const signed char*) "sender", configMINIMAL_STACK_SIZE, NULL, 1, NULL );

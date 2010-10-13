@@ -84,9 +84,10 @@ static mac_rx_callback_t received_cb;
 static frame_t frame_to_send, frame_to_queue;
 uint16_t mac_addr;
 
-void mac_init(xSemaphoreHandle spi_mutex, mac_rx_callback_t rx_cb) {
+void mac_init(xSemaphoreHandle spi_mutex, mac_rx_callback_t rx_cb,
+		uint8_t channel) {
 	// Initialize the PHY layer
-	phy_init(spi_mutex, frame_received, MAC_CHANNEL);
+	phy_init(spi_mutex, frame_received, channel, MAC_TX_POWER);
 
 	// Create a frame Queue for the frames to send
 	tx_queue = xQueueCreate(MAC_TX_QUEUE_LENGTH, sizeof(frame_t));
@@ -151,9 +152,7 @@ static void mac_task(void* param) {
 			random_wait(loop);
 
 			// Try to send
-			static uint16_t tototime;
-			if (phy_send_cca(frame_to_send.data, frame_to_send.length,
-					&tototime)) {
+			if (phy_send_cca(frame_to_send.data, frame_to_send.length, 0)) {
 				// Frame sent OK
 				break;
 			}
@@ -179,8 +178,8 @@ static void frame_received(uint8_t * data, uint16_t length, int8_t rssi,
 		uint16_t time) {
 	frame_t* rx_frame;
 	uint16_t src, dst;
-	rx_frame = (frame_t*) data;
-	printf("rx\n");
+	rx_frame = (frame_t*) (void*) data;
+
 	/* Check if addresses are correct */
 	dst = (((uint16_t) rx_frame->dst_addr[0]) << 8) + rx_frame->dst_addr[1];
 	src = (((uint16_t) rx_frame->src_addr[0]) << 8) + rx_frame->src_addr[1];

@@ -46,14 +46,14 @@ static uint16_t rx_irq(void);
 /* Static variables */
 static xSemaphoreHandle rx_sem, spi_mutex;
 static phy_rx_callback_t rx_cb;
-static uint8_t radio_channel;
+static uint8_t radio_channel, radio_power;
 static enum phy_state state;
 static volatile uint16_t sync_word_time;
 static uint8_t rx_data[PHY_MAX_LENGTH + PHY_FOOTER_LENGTH];
 static uint16_t rx_data_length;
 
 void phy_init(xSemaphoreHandle spi_m, phy_rx_callback_t callback,
-		uint8_t channel) {
+		uint8_t channel, enum phy_tx_power power) {
 	// Store the SPI mutex
 	spi_mutex = spi_m;
 
@@ -62,6 +62,25 @@ void phy_init(xSemaphoreHandle spi_m, phy_rx_callback_t callback,
 
 	// Store the channel
 	radio_channel = channel;
+
+	// Store the TX power
+	switch (power) {
+	case PHY_TX_0dBm:
+		radio_power = 31;
+		break;
+	case PHY_TX_5dBm:
+		radio_power = 19;
+		break;
+	case PHY_TX_10dBm:
+		radio_power = 11;
+		break;
+	case PHY_TX_20dBm:
+		radio_power = 4;
+		break;
+	default:
+		radio_power = 31;
+		break;
+	}
 
 	// Initialize the semaphore
 	vSemaphoreCreateBinary(rx_sem);
@@ -206,9 +225,11 @@ static void cc2420_driver_init(void) {
 	cc2420_write_reg(CC2420_REG_IOCFG0, 0x007F);
 
 	// Set channel
-	//	cc2420_cfg_chan(radio_channel);
-	// TODO set channel
+	cc2420_set_frequency(2405 + 5 * radio_channel);
 
+	// Set TX power
+	cc2420_set_txpower(radio_power);
+	printf("setting txpow %u\n", radio_power);
 	// Set interrupts
 	cc2420_io_sfd_register_cb(sync_irq);
 	cc2420_io_sfd_int_set_rising();

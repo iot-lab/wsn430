@@ -36,9 +36,12 @@
 #ifndef _MAC_H
 #define _MAC_H
 
-#define MAC_BROADCAST_ADDR 0xFFFF
+#ifndef MAC_TX_POWER
+#define MAC_TX_POWER PHY_TX_10dBm
+#endif
 
-#define MAC_CHANNEL 4
+
+#define MAC_BROADCAST_ADDR 0xFFFF
 
 #define MAC_TX_QUEUE_LENGTH 6
 
@@ -56,8 +59,9 @@ extern uint16_t mac_addr;
  * Initialize and create the MAC task.
  * \param spi_m the radio spi mutex.
  * \param cb the rx callback function.
+ * \param channel the radio channel to use
  */
-void mac_init(xSemaphoreHandle spi_m, mac_rx_callback_t cb);
+void mac_init(xSemaphoreHandle spi_m, mac_rx_callback_t cb, uint8_t channel);
 
 /**
  * Send a packet to a node.
