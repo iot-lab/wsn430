@@ -84,5 +84,5 @@ static void new_node(uint16_t node) {
 
 static void new_data(uint16_t node, uint8_t* data, uint16_t length) {
 	mac_send(node, data, 1);
-	printf("from %4x [%u]: %u\n", node, length, data[0]);
+	putchar('R');
 }

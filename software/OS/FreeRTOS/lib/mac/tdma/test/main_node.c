@@ -22,7 +22,6 @@ static void prvSetupHardware(void);
 static void beacon(uint8_t id, uint16_t time);
 static void associated(void);
 static void lost(void);
-static void tx_ready(void);
 static void rx(uint8_t* data, uint16_t length);
 
 /* Global Variables */
@@ -42,7 +41,6 @@ int main(void) {
 	mac_create_task(xSPIMutex);
 
 	mac_set_event_handler(MAC_ASSOCIATED, associated);
-	mac_set_event_handler(MAC_TX_READY, tx_ready);
 	mac_set_data_received_handler(rx);
 	mac_set_event_handler(MAC_LOST, lost);
 	mac_set_beacon_handler(beacon);
@@ -79,8 +77,7 @@ static void prvSetupHardware(void) {
 static uint8_t b_data[5];
 static void beacon(uint8_t id, uint16_t time) {
 	b_data[0]++;
-	b_data[0] %= 200;
-	printf("b%u\t%u\n", id, time);
+	mac_send(b_data, 5);
 }
 
 static void associated(void) {
@@ -88,20 +85,11 @@ static void associated(void) {
 }
 
 static void lost(void) {
-	printf("lost\n");
-}
-
-static void tx_ready(void) {
-	static uint16_t count = 0;
-	count++;
-	if (count == 4) {
-		mac_send(b_data, 10);
-		count = 0;
-	}
+	putchar('L');
 }
 
 static void rx(uint8_t* data, uint16_t length) {
-	printf("rx[0] = %x\n", data[0]);
+	putchar('r');
 }
 
 int putchar(int c) {

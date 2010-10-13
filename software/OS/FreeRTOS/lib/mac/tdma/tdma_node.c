@@ -70,7 +70,8 @@ static void beacon_search(uint16_t timeout);
 static void slot_wait(uint16_t slot);
 static void attach_send(void);
 
-static void data_send(void);
+static uint16_t data_send(void);
+static void interpacket_wait(void);
 
 static uint16_t beacon_time_evt(void);
 static uint16_t slot_time_evt(void);
@@ -78,6 +79,7 @@ static uint16_t timeout_evt(void);
 
 /* Local Variables */
 static xQueueHandle xEventQueue;
+static xQueueHandle tx_queue;
 uint16_t mac_addr;
 static uint16_t coordAddr;
 static uint16_t beacon_loss, associate_wait;
@@ -90,7 +92,6 @@ static uint16_t beacon_time;
 static void (*handler_beacon)(uint8_t id, uint16_t beacon) = 0x0;
 static void (*handler_asso)(void) = 0x0;
 static void (*handler_disasso)(void) = 0x0;
-static void (*handler_tx_ready)(void) = 0x0;
 static void (*handler_rx)(uint8_t* data, uint16_t length) = 0x0;
 static void (*handler_lost)(void) = 0x0;
 
@@ -99,6 +100,9 @@ static uint8_t slot_dedicated;
 void mac_create_task(xSemaphoreHandle xSPIMutex) {
 	// Start the PHY layer
 	phy_init(xSPIMutex, frame_received, RADIO_CHANNEL);
+
+	// Create a frame Queue for the frames to send
+	tx_queue = xQueueCreate(MAC_TX_QUEUE_LENGTH, sizeof(frame_t));
 
 	// Create the Event Queue
 	xEventQueue = xQueueCreate(8, sizeof(uint16_t));
@@ -133,9 +137,6 @@ void mac_set_event_handler(enum mac_event evt, void(*handler)(void)) {
 	case MAC_DISASSOCIATED:
 		handler_disasso = handler;
 		break;
-	case MAC_TX_READY:
-		handler_tx_ready = handler;
-		break;
 	case MAC_LOST:
 		handler_lost = handler;
 		break;
@@ -148,11 +149,8 @@ void mac_set_data_received_handler(void(*handler)(uint8_t* data,
 }
 
 void mac_send(uint8_t* data, uint16_t length) {
+	// Routine checks
 	if (state != STATE_ASSOCIATED) {
-		return;
-	}
-
-	if (data_frame.length != 0) {
 		return;
 	}
 
@@ -166,13 +164,17 @@ void mac_send(uint8_t* data, uint16_t length) {
 	data_frame.type = FRAME_TYPE_DATA;
 	memcpy(data_frame.data, data, length);
 	data_frame.length = FRAME_HEADER_LENGTH + length;
+
+	// Put frame in queue
+	xQueueSendToBack(tx_queue, &data_frame, 0);
 }
 
 static void vMacTask(void* pvParameters) {
 	mac_init();
 
-	printf("TDMA parameters: %u slots, %u ms each, channel %u, addr %.4x\n", SLOT_COUNT,
-			SLOT_TIME / MS_TO_TICKS(1), RADIO_CHANNEL, mac_addr);
+	printf(
+			"TDMA parameters: %u slots, %u ticks [%u ms] each, channel %u, addr %.4x\n",
+			SLOT_COUNT, TIME_SLOT, SLOT_TIME_MS, RADIO_CHANNEL, mac_addr);
 
 	LEDS_OFF();
 	LED_BLUE_ON();
@@ -200,7 +202,7 @@ static void vMacTask(void* pvParameters) {
 		case STATE_ASSOCIATING:
 			// Loop on the synchronized beacon
 			block_until_event(EVENT_BEACON_TIME);
-			beacon_search(SLOT_TIME / 2);
+			beacon_search(TIME_SLOT / 2);
 			if (block_until_event(EVENT_RX | EVENT_TIMEOUT) == EVENT_RX) {
 				timerB_unset_alarm(ALARM_TIMEOUT);
 				phy_idle();
@@ -232,13 +234,20 @@ static void vMacTask(void* pvParameters) {
 		case STATE_ASSOCIATED:
 			// Loop on the synchronized beacon
 			block_until_event(EVENT_BEACON_TIME);
-			beacon_search(SLOT_TIME / 2);
+			beacon_search(TIME_SLOT / 2);
 			if (block_until_event(EVENT_RX | EVENT_TIMEOUT) == EVENT_RX) {
 				timerB_unset_alarm(ALARM_TIMEOUT);
 				phy_idle();
+				// Set slot alarm
 				slot_wait(slot_dedicated);
+				// Wait until beginning of slot
 				block_until_event(EVENT_SLOT_TIME);
-				data_send();
+				// Send all data we have while we have time
+				while (data_send() && ((beacon_time + (slot_dedicated
+						* TIME_SLOT) - timerB_time()) < TIME_GUARD)) {
+					interpacket_wait();
+					block_until_event(EVENT_TIMEOUT);
+				}
 			} else {
 				phy_idle();
 				beacon_loss++;
@@ -274,7 +283,7 @@ static void frame_received(uint8_t * data, uint16_t length, int8_t rssi,
 	}
 
 	// Cast the frame
-	frame = (beacon_t*) data;
+	frame = (beacon_t*) (void*) data;
 
 	// Check destination address
 	if ((ntoh_s(frame->dstAddr) != mac_addr) && (ntoh_s(frame->dstAddr)
@@ -303,8 +312,8 @@ static void frame_received(uint8_t * data, uint16_t length, int8_t rssi,
 	// Everything is okay!, set timer for beacon time
 	beacon_time = time;
 
-	timerB_set_alarm_from_time(ALARM_BEACON, (SLOT_COUNT + 1) * SLOT_TIME,
-			(SLOT_COUNT + 1) * SLOT_TIME, beacon_time - SLOT_GUARD_TIME);
+	timerB_set_alarm_from_time(ALARM_BEACON, (SLOT_COUNT + 1) * TIME_SLOT,
+			(SLOT_COUNT + 1) * TIME_SLOT, beacon_time - TIME_GUARD);
 	timerB_register_cb(ALARM_BEACON, beacon_time_evt);
 
 	// Loop on beacon payload for data
@@ -393,7 +402,7 @@ static void beacon_search(uint16_t timeout) {
 }
 
 static void slot_wait(uint16_t slot) {
-	timerB_set_alarm_from_time(ALARM_SLOT, slot * SLOT_TIME, 0, beacon_time);
+	timerB_set_alarm_from_time(ALARM_SLOT, slot * TIME_SLOT, 0, beacon_time);
 }
 
 static void attach_send(void) {
@@ -408,21 +417,20 @@ static void attach_send(void) {
 	data_frame.length = 0;
 }
 
-static void data_send(void) {
-	if (data_frame.length == 0) {
-		if (handler_tx_ready) {
-			handler_tx_ready();
-		}
-		return;
+static uint16_t data_send(void) {
+	// Try to get a frame to send
+	if (xQueueReceive(tx_queue, &data_frame, 0) != pdTRUE) {
+		// No frame to send
+		return 0;
 	}
 
 	phy_send(data_frame.raw, data_frame.length, 0);
-	putchar('s');
-	data_frame.length = 0;
+	return 1;
+}
 
-	if (handler_tx_ready) {
-		handler_tx_ready();
-	}
+static void interpacket_wait(void) {
+	timerB_set_alarm_from_now(ALARM_TIMEOUT, TIME_INTERPACKET, 0);
+	timerB_register_cb(ALARM_TIMEOUT, timeout_evt);
 }
 
 static uint16_t beacon_time_evt(void) {

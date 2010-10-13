@@ -115,8 +115,7 @@ static void vMacTask(void* pvParameters) {
 
 	printf(
 			"TDMA parameters: %u slots, %u ticks [%u ms] each, channel %u, addr %.4x\n",
-			SLOT_COUNT, SLOT_TIME, TICKS_TO_MS(SLOT_TIME), RADIO_CHANNEL,
-			mac_addr);
+			SLOT_COUNT, TIME_SLOT, SLOT_TIME_MS, RADIO_CHANNEL, mac_addr);
 
 	LEDS_OFF();
 	LED_BLUE_ON();
@@ -162,7 +161,7 @@ static void mac_init(void) {
 	timerB_start_ACLK_div(TIMERB_DIV_1);
 	timerB_register_cb(ALARM_SLOT, slot_time_evt);
 
-	timerB_set_alarm_from_now(ALARM_SLOT, SLOT_TIME, SLOT_TIME);
+	timerB_set_alarm_from_now(ALARM_SLOT, TIME_SLOT, TIME_SLOT);
 
 	// Fill beacon data
 	beacon_frame.length = FRAME_HEADER_LENGTH + 1;
@@ -236,7 +235,7 @@ static void frame_received(uint8_t * data, uint16_t length, int8_t rssi,
 	}
 
 	// Cast the frame
-	frame = (frame_t*) data;
+	frame = (frame_t*) (void*) data;
 
 	if (ntoh_s(frame->dstAddr) != mac_addr) {
 		// Bad destination

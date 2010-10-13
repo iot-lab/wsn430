@@ -47,6 +47,7 @@
 #define TICKS_TO_MS(a) ((uint16_t)(((uint32_t)(a) * 1000) / 32768))
 
 #include <tdma_userconfig.h>
+#include <timerB.h>
 
 #define MAX_PACKET_LENGTH 119
 
@@ -56,8 +57,8 @@
 #define SLOT_COUNT 9
 #endif
 
-#ifndef SLOT_TIME
-#define SLOT_TIME MS_TO_TICKS(50)
+#ifndef SLOT_TIME_MS
+#define SLOT_TIME_MS 10
 #endif
 
 #ifndef BEACON_LOSS_MAX
@@ -68,13 +69,17 @@
 #define RADIO_CHANNEL 4
 #endif
 
-#define SLOT_GUARD_TIME 50
+#ifndef MAC_TX_QUEUE_LENGTH
+#define MAC_TX_QUEUE_LENGTH 4
+#endif
 
 #define FRAME_HEADER_LENGTH 5
 
-#define ALARM_BEACON TIMERB_ALARM_CCR0
-#define ALARM_SLOT TIMERB_ALARM_CCR1
-#define ALARM_TIMEOUT TIMERB_ALARM_CCR2
+enum mac_alarm {
+	ALARM_BEACON = TIMERB_ALARM_CCR0,
+	ALARM_SLOT = TIMERB_ALARM_CCR1,
+	ALARM_TIMEOUT = TIMERB_ALARM_CCR2
+};
 
 #define hton_s(s, b) (b)[0] = (s) >> 8; (b)[1] = (s) & 0xFF
 #define ntoh_s(b) (((uint16_t)((b)[0])<<8) + (b)[1])
@@ -86,6 +91,12 @@ enum mac_internal_event {
 	EVENT_DISSOCIATE_REQ = 0x08,
 	EVENT_BEACON_TIME = 0x10,
 	EVENT_SLOT_TIME = 0x20
+};
+
+enum mac_timing {
+	TIME_SLOT = MS_TO_TICKS(SLOT_TIME_MS),
+	TIME_GUARD = 50,
+	TIME_INTERPACKET = 16
 };
 
 enum mac_frame_type {

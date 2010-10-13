@@ -50,15 +50,14 @@ void mac_create_task(xSemaphoreHandle xSPIMutex);
  * The different events used.
  */
 enum mac_event {
-	MAC_ASSOCIATED, MAC_LOST, MAC_DISASSOCIATED, MAC_TX_READY,
+	MAC_ASSOCIATED, MAC_LOST, MAC_DISASSOCIATED
 };
 
 /**
  * The different commands available.
  */
 enum mac_command {
-	MAC_ASSOCIATE,
-	MAC_DISASSOCIATE
+	MAC_ASSOCIATE, MAC_DISASSOCIATE
 };
 
 // Management
@@ -73,17 +72,18 @@ void mac_send_command(enum mac_command cmd);
  * \param evt the event to set a callback to
  * \param handler the function pointer to be called
  */
-void mac_set_event_handler(enum mac_event evt, void (*handler)(void));
+void mac_set_event_handler(enum mac_event evt, void(*handler)(void));
 /**
  * Set a callback function called when data has been received
  * \param handler the data received callback function pointer
  */
-void mac_set_data_received_handler(void (*handler)(uint8_t* data, uint16_t length));
+void mac_set_data_received_handler(void(*handler)(uint8_t* data,
+		uint16_t length));
 /**
  * Set a callback function called every time a beacon is received, useful for synchronization.
  * \param handler the beacon callback function pointer
  */
-void mac_set_beacon_handler(void (*handler)(uint8_t id, uint16_t beacon_time));
+void mac_set_beacon_handler(void(*handler)(uint8_t id, uint16_t beacon_time));
 /**
  * Send data to the coordinator. It is recommended to call this function right after the MAC_TX_READY
  * event is notified.
