@@ -1,9 +1,38 @@
 /*
- * phy_cc1100.c
+ * Copyright  2008-2009 INRIA/SensTools
  *
- *  Created on: Sep 27, 2010
- *      Author: burindes
+ * <dev-team@sentools.info>
+ *
+ * This software is a set of libraries designed to develop applications
+ * for the WSN430 embedded hardware platform.
+ *
+ * This software is governed by the CeCILL license under French law and
+ * abiding by the rules of distribution of free software.  You can  use,
+ * modify and/ or redistribute the software under the terms of the CeCILL
+ * license as circulated by CEA, CNRS and INRIA at the following URL
+ * "http://www.cecill.info".
+ *
+ * As a counterpart to the access to the source code and  rights to copy,
+ * modify and redistribute granted by the license, users are provided only
+ * with a limited warranty  and the software's author,  the holder of the
+ * economic rights,  and the successive licensors  have only  limited
+ * liability.
+ *
+ * In this respect, the user's attention is drawn to the risks associated
+ * with loading,  using,  modifying and/or developing or reproducing the
+ * software by the user in light of its specific status of free software,
+ * that may mean  that it is complicated to manipulate,  and  that  also
+ * therefore means  that it is reserved for developers  and  experienced
+ * professionals having in-depth computer knowledge. Users are therefore
+ * encouraged to load and test the software's suitability as regards their
+ * requirements in conditions enabling the security of their systems and/or
+ * data to be ensured and,  more generally, to use and operate it in the
+ * same conditions as regards security.
+ *
+ * The fact that you are presently reading this means that you have had
+ * knowledge of the CeCILL license and that you accept its terms.
  */
+
 
 /* Global includes */
 #include <io.h>
@@ -99,6 +128,8 @@ void phy_rx(void) {
 	// set IDLE state, flush
 	cc2420_cmd_idle();
 	cc2420_cmd_flushrx();
+	cc2420_io_sfd_int_clear();
+	cc2420_io_fifop_int_clear();
 
 	// Start RX
 	cc2420_cmd_rx();
@@ -147,11 +178,11 @@ uint16_t phy_send(uint8_t* data, uint16_t length, uint16_t *timestamp) {
 	cc2420_fifo_put(data, length);
 
 	// Wait until the last byte is sent
-	while (cc2420_io_sfd_read() == 0) {
+	while (!cc2420_io_sfd_read()) {
 		nop();
 	}
 
-	while (cc2420_io_sfd_read() != 0) {
+	while (cc2420_io_sfd_read()) {
 		nop();
 	}
 
@@ -188,7 +219,7 @@ uint16_t phy_send_cca(uint8_t* data, uint16_t length, uint16_t *timestamp) {
 	xSemaphoreGive(spi_mutex);
 
 	// Check if channel is clear
-	if (cc2420_io_cca_read() == 0) {
+	if (cc2420_io_cca_read()) {
 		// If not, restore
 		restore_state();
 		return 0;
@@ -229,12 +260,13 @@ static void cc2420_driver_init(void) {
 
 	// Set TX power
 	cc2420_set_txpower(radio_power);
-	printf("setting txpow %u\n", radio_power);
+
 	// Set interrupts
 	cc2420_io_sfd_register_cb(sync_irq);
 	cc2420_io_sfd_int_set_rising();
 	cc2420_io_sfd_int_clear();
 	cc2420_io_sfd_int_enable();
+
 	cc2420_io_fifop_register_cb(rx_irq);
 	cc2420_io_fifop_int_set_rising();
 	cc2420_io_fifop_int_clear();
@@ -261,6 +293,13 @@ static void handle_received_frame(void) {
 	// Take semaphore
 	xSemaphoreTake(spi_mutex, portMAX_DELAY);
 
+	// Check there is at least one byte in FIFO
+	if (!cc2420_io_fifo_read()) {
+		xSemaphoreGive(spi_mutex);
+		restore_state();
+		return;
+	}
+
 	// Get length byte
 	cc2420_fifo_get(&length, 1);
 
@@ -280,24 +319,18 @@ static void handle_received_frame(void) {
 	xSemaphoreGive(spi_mutex);
 
 	// Check CRC
-	if ((rx_data[rx_data_length - 1] & 0x80) == 0) {
+	if (!(rx_data[rx_data_length - 1] & 0x80)) {
 		// Bad CRC
 		restore_state();
 		return;
 	}
 
 	// Get RSSI
-	int16_t rssi;
-	rssi = rx_data[rx_data_length - 2];
-	if (rssi > 128) {
-		rssi -= 256;
-	}
-	rssi -= 90;
-	rssi /= 2;
+	int8_t rssi = (int8_t) rx_data[rx_data_length - 2] - 45;
 
 	// Call callback function if any
 	if (rx_cb) {
-		rx_cb(rx_data, rx_data_length - 2, (int8_t) rssi, sync_word_time);
+		rx_cb(rx_data, rx_data_length - 2, rssi, sync_word_time);
 	}
 
 	// Restore state
