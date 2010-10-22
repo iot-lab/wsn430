@@ -81,19 +81,28 @@ void vApplicationIdleHook(void);
 void vApplicationIdleHook(void) {
 	_BIS_SR(LPM0_bits);
 }
+static volatile uint16_t myfriend;
 
-void packet_received(uint16_t from, uint8_t* pkt, uint16_t pktLength,
-		int8_t rssi) {
-	printf("Frame received [%u] from %.4x (%d): %s\r\n", pktLength, from, rssi, pkt);
+void packet_received(uint16_t from, uint8_t* pkt, uint16_t length, int8_t rssi) {
+	printf("Frame received [%u] from %.4x (%d): %s\r\n", length, from, rssi,
+			pkt);
+	if (myfriend == 0x0) {
+		myfriend = from;
+		printf("My New Friend is %.4x\n", myfriend);
+	}
 }
 
 static void vSendingTask(void* pvParameters) {
+	myfriend = 0x0;
 	while (1) {
-		vTaskDelay(20);
-//		if (mac_send(MAC_BROADCAST_ADDR, (uint8_t*) "Test", sizeof("Test"))) {
-//			printf("Frame sent [%u]\r\n", sizeof("Test"));
-//		} else {
-//			printf("Frame send error\n");
-//		}
+		vTaskDelay(50);
+		printf("\nSending hello broadcast\n");
+		mac_send(MAC_BROADCAST_ADDR, (uint8_t*) "Test", sizeof("Test"), 0);
+
+		if (myfriend) {
+			vTaskDelay(50);
+			printf("\nSending frame to my friend %.4x\n", myfriend);
+			mac_send(myfriend, (uint8_t*) "Test", sizeof("Test"), 0);
+		}
 	}
 }

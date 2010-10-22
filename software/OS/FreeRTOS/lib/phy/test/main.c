@@ -41,7 +41,7 @@ int main(void) {
 	xSPIMutex = xSemaphoreCreateMutex();
 
 	/* Initialize the MAC layer, channel 0 */
-	phy_init(xSPIMutex, packet_received, 0, PHY_TX_0dBm);
+	phy_init(xSPIMutex, packet_received, 0, PHY_TX_10dBm);
 
 	/* Add the local task */
 	xTaskCreate( vSendingTask, (const signed char*) "sender", configMINIMAL_STACK_SIZE, NULL, 1, NULL );

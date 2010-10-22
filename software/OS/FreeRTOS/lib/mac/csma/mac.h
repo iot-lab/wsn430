@@ -68,8 +68,9 @@ void mac_init(xSemaphoreHandle spi_m, mac_rx_callback_t cb, uint8_t channel);
  * \param dest_addr the destination node address
  * \param data a pointer to the data to send
  * \param length the number of bytes to send
+ * \param ack 0 if no ack required, 1 if ack required
  * \return 1 if the packet will be sent, 0 if it won't
  */
-uint16_t mac_send(uint16_t dest_addr, uint8_t* data, uint16_t length);
+uint16_t mac_send(uint16_t dest_addr, uint8_t* data, uint16_t length, int16_t ack);
 
 #endif

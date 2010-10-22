@@ -54,7 +54,25 @@
 #include "timerB.h"
 
 enum {
-	HEADER_LENGTH = 4, MAX_PAYLOAD_LENGTH = 121
+	EVT_FRAME_TO_SEND = 1,
+	EVT_ACK_RECEIVED = 2,
+	EVT_BACKOFF = 4,
+	EVT_ACK_TIMEOUT = 8
+};
+
+enum {
+	HEADER_LENGTH = 5, MAX_PAYLOAD_LENGTH = 120
+};
+
+enum {
+	CTRL_TYPE_DATA = 0x1,
+	CTRL_TYPE_ACK = 0x2,
+	CTRL_TYPE_MASK = 0x3,
+	CTRL_ACK_REQ = 0x80
+};
+
+enum {
+	ACK_WAIT_TIME = 500
 };
 
 typedef union frame {
@@ -62,38 +80,56 @@ typedef union frame {
 	struct {
 		uint8_t dst_addr[2];
 		uint8_t src_addr[2];
+		uint8_t ctrl;
 		uint8_t payload[MAX_PAYLOAD_LENGTH];
 		uint8_t length;
 	};
 } frame_t;
 
+typedef union ack {
+	uint8_t data[HEADER_LENGTH + 1];
+	struct {
+		uint8_t dst_addr[2];
+		uint8_t src_addr[2];
+		uint8_t ctrl;
+		uint8_t length;
+	};
+} ack_t;
+
 /* Function Prototypes */
 static void mac_task(void* param);
+static uint16_t block_until_event(uint16_t event);
 static void init(void);
 static void frame_received(uint8_t * data, uint16_t length, int8_t rssi,
 		uint16_t time);
-static void random_wait(uint16_t range);
+static void set_random_wait(uint16_t range);
+static void set_ack_timeout(void);
+static inline uint16_t ntoh_s(uint8_t*);
+static inline void hton_s(uint8_t*, uint16_t);
+static inline void addr_copy(uint8_t*, const uint8_t*);
 
 // Timer callback
 static uint16_t wait_done(void);
+static uint16_t timeout(void);
 
 /* Local Variables */
-static xQueueHandle tx_queue;
-static xSemaphoreHandle wait_sem;
+static xQueueHandle tx_queue, event_queue;
 static mac_rx_callback_t received_cb;
 static frame_t frame_to_send, frame_to_queue;
+static ack_t ack_frame;
 uint16_t mac_addr;
 
 void mac_init(xSemaphoreHandle spi_mutex, mac_rx_callback_t rx_cb,
 		uint8_t channel) {
+
 	// Initialize the PHY layer
 	phy_init(spi_mutex, frame_received, channel, MAC_TX_POWER);
 
 	// Create a frame Queue for the frames to send
 	tx_queue = xQueueCreate(MAC_TX_QUEUE_LENGTH, sizeof(frame_t));
 
-	// Create a binary semaphore for backoff waiting
-	vSemaphoreCreateBinary(wait_sem);
+	// Create the Event Queue
+	event_queue = xQueueCreate(8, sizeof(uint16_t));
 
 	// Store the received frame callback
 	received_cb = rx_cb;
@@ -102,7 +138,8 @@ void mac_init(xSemaphoreHandle spi_mutex, mac_rx_callback_t rx_cb,
 	xTaskCreate( mac_task, (const signed char*)"CSMA", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES-2, NULL );
 }
 
-uint16_t mac_send(uint16_t dest_addr, uint8_t* data, uint16_t length) {
+uint16_t mac_send(uint16_t dest_addr, uint8_t* data, uint16_t length,
+		int16_t ack) {
 	// check the packet length
 	if (length > MAX_PAYLOAD_LENGTH) {
 		return 0;
@@ -114,6 +151,10 @@ uint16_t mac_send(uint16_t dest_addr, uint8_t* data, uint16_t length) {
 	frame_to_queue.dst_addr[1] = dest_addr & 0xFF;
 	frame_to_queue.src_addr[0] = mac_addr >> 8;
 	frame_to_queue.src_addr[1] = mac_addr & 0xFF;
+	frame_to_queue.ctrl = CTRL_TYPE_DATA;
+
+	if (ack)
+		frame_to_queue.ctrl |= CTRL_ACK_REQ;
 
 	// copy the packet
 	memcpy(frame_to_queue.payload, data, length);
@@ -128,6 +169,7 @@ uint16_t mac_send(uint16_t dest_addr, uint8_t* data, uint16_t length) {
 
 static void mac_task(void* param) {
 	int16_t loop;
+	uint16_t event;
 
 	// Set the node MAC address
 	init();
@@ -137,28 +179,61 @@ static void mac_task(void* param) {
 	// Enable RX
 	phy_rx();
 
-	// Infinite Loope
+	// Infinite Loop
 	for (;;) {
 		LED_RED_ON();
+
+		// Clear frame_to_send destination, to prevent ack sending
+		hton_s(frame_to_send.dst_addr, 0x0);
 
 		// Get a frame to send
 		if (xQueueReceive(tx_queue, &frame_to_send, portMAX_DELAY) != pdTRUE) {
 			continue;
 		}
 
+
 		// We have a frame to send, loop for max tries
 		for (loop = 0; loop < MAC_MAX_RETRY; loop++) {
 			// Wait a random back-off
-			random_wait(loop);
+			set_random_wait(loop);
+			block_until_event(EVT_BACKOFF);
 
 			// Try to send
-			if (phy_send_cca(frame_to_send.data, frame_to_send.length, 0)) {
-				// Frame sent OK
-				break;
+			if (!phy_send_cca(frame_to_send.data, frame_to_send.length, 0)) {
+				// Frame send failed (channel busy?)
+				continue;
 			}
 
+			if (frame_to_send.ctrl & CTRL_ACK_REQ) {
+				// Set timeout
+				set_ack_timeout();
+
+				// Wait until ACK or timeout
+				event = block_until_event(EVT_ACK_RECEIVED | EVT_ACK_TIMEOUT);
+				if (event == EVT_ACK_TIMEOUT) {
+					// loop and retry
+					continue;
+				} else {
+					// Remove timeout
+					timerB_unset_alarm(TIMERB_ALARM_CCR0);
+				}
+			}
+			// All good
+			break;
 		}
+
 	}
+}
+
+static uint16_t block_until_event(uint16_t mask) {
+	uint16_t evt;
+	do {
+		xQueueReceive(event_queue, &evt, portMAX_DELAY);
+		if ((evt & mask) != evt) {
+			printf("Discarded event %x (mask %x)\n", evt, mask);
+		}
+	} while ((evt & mask) != evt);
+	return evt;
 }
 
 static void init(void) {
@@ -181,9 +256,34 @@ static void frame_received(uint8_t * data, uint16_t length, int8_t rssi,
 	rx_frame = (frame_t*) (void*) data;
 
 	/* Check if addresses are correct */
-	dst = (((uint16_t) rx_frame->dst_addr[0]) << 8) + rx_frame->dst_addr[1];
-	src = (((uint16_t) rx_frame->src_addr[0]) << 8) + rx_frame->src_addr[1];
-	if (dst != mac_addr && dst != 0xFFFF) {
+	dst = ntoh_s(rx_frame->dst_addr);
+	src = ntoh_s(rx_frame->src_addr);
+
+	if (dst == mac_addr) {
+		// For me, check its type:
+		if ((rx_frame->ctrl & CTRL_TYPE_MASK) == CTRL_TYPE_ACK) {
+			// It's an ACK, check if it matches our sending frame
+			if (src == ntoh_s(frame_to_send.dst_addr)) {
+				uint16_t event = EVT_ACK_RECEIVED;
+				// push an ACK event
+				xQueueSendToBack(event_queue, &event, 0);
+			}
+			// otherwise drop it
+			return;
+		} else
+		// Check if it's a data frame
+		if ((rx_frame->ctrl & CTRL_TYPE_MASK) == CTRL_TYPE_DATA) {
+			// If an ACK is required, send it now
+			if (rx_frame->ctrl & CTRL_ACK_REQ) {
+				hton_s(ack_frame.src_addr, mac_addr);
+				addr_copy(ack_frame.dst_addr, rx_frame->src_addr);
+				ack_frame.ctrl = CTRL_TYPE_ACK;
+
+				phy_send(ack_frame.data, HEADER_LENGTH, 0x0);
+			}
+		}
+	} else if (dst != 0xFFFF) {
+		// If not for me and not broadcast, drop
 		return;
 	}
 
@@ -193,11 +293,8 @@ static void frame_received(uint8_t * data, uint16_t length, int8_t rssi,
 	}
 }
 
-static void random_wait(uint16_t range) {
+static void set_random_wait(uint16_t range) {
 	uint16_t wait_time;
-
-	// take the wait semaphore
-	xSemaphoreTake(wait_sem, 0);
 
 	// pick up a random time to wait
 	wait_time = rand();
@@ -211,15 +308,46 @@ static void random_wait(uint16_t range) {
 	// Set the timerB to generate an interrupt
 	timerB_register_cb(TIMERB_ALARM_CCR0, wait_done);
 	timerB_set_alarm_from_now(TIMERB_ALARM_CCR0, wait_time, 0);
+}
 
-	// block taking the semaphore, it should be given by the interrupt routine
-	xSemaphoreTake(wait_sem, portMAX_DELAY);
+static void set_ack_timeout() {
+	// Set the timerB to generate an interrupt
+	timerB_register_cb(TIMERB_ALARM_CCR0, timeout);
+	timerB_set_alarm_from_now(TIMERB_ALARM_CCR0, ACK_WAIT_TIME, 0);
+}
+
+static inline uint16_t ntoh_s(uint8_t* addr) {
+	return (((uint16_t) *addr) << 8) + *(addr + 1);
+}
+
+static inline void hton_s(uint8_t* dst, uint16_t addr) {
+	*dst++ = addr >> 8;
+	*dst = addr;
+}
+static inline void addr_copy(uint8_t* dst, const uint8_t* src) {
+	*dst++ = *src++;
+	*dst = *src;
 }
 
 static uint16_t wait_done(void) {
 	portBASE_TYPE yield;
+	uint16_t event = EVT_BACKOFF;
 
-	if (xSemaphoreGiveFromISR(wait_sem, &yield) == pdTRUE) {
+	if (xQueueSendToBackFromISR(event_queue, &event, &yield) == pdTRUE) {
+#if configUSE_PREEMPTION
+		if (yield) {
+			portYIELD();
+		}
+#endif
+	}
+
+	return 1;
+}
+static uint16_t timeout(void) {
+	portBASE_TYPE yield;
+	uint16_t event = EVT_ACK_TIMEOUT;
+
+	if (xQueueSendToBackFromISR(event_queue, &event, &yield) == pdTRUE) {
 #if configUSE_PREEMPTION
 		if (yield) {
 			portYIELD();

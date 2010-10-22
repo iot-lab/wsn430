@@ -201,6 +201,11 @@ uint16_t phy_send(uint8_t* data, uint16_t length, uint16_t *timestamp) {
 }
 
 uint16_t phy_send_cca(uint8_t* data, uint16_t length, uint16_t *timestamp) {
+	uint8_t tx_length;
+
+	if (length > PHY_MAX_LENGTH) {
+		return 0;
+	}
 
 	// Take semaphore
 	xSemaphoreTake(spi_mutex, portMAX_DELAY);
@@ -215,18 +220,45 @@ uint16_t phy_send_cca(uint8_t* data, uint16_t length, uint16_t *timestamp) {
 		nop();
 	}
 
-	// Release semaphore
-	xSemaphoreGive(spi_mutex);
+	// Start TX
+	cc2420_cmd_txoncca();
 
-	// Check if channel is clear
-	if (cc2420_io_cca_read()) {
-		// If not, restore
+	if (!(cc2420_get_status() & CC2420_STATUS_TX_ACTIVE)) {
+		// TX did not start, abort
+
+		// Release semaphore
+		xSemaphoreGive(spi_mutex);
+
+		// Restore the state
 		restore_state();
 		return 0;
 	}
 
-	// If clear, force Send
-	return phy_send(data, length, timestamp);
+	// Send length byte and first set
+	tx_length = length + 2;
+	cc2420_fifo_put(&tx_length, 1);
+	cc2420_fifo_put(data, length);
+
+	// Wait until the last byte is sent
+	while (!cc2420_io_sfd_read()) {
+		nop();
+	}
+
+	while (cc2420_io_sfd_read()) {
+		nop();
+	}
+
+	// Release semaphore
+	xSemaphoreGive(spi_mutex);
+
+	// Set timestamp if required
+	if (timestamp != 0x0) {
+		*timestamp = sync_word_time;
+	}
+
+	// Restore the state
+	restore_state();
+	return 1;
 }
 
 static void cc2420_task(void* param) {

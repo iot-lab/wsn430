@@ -75,14 +75,14 @@ static uint16_t rx_irq(void);
 /* Static variables */
 static xSemaphoreHandle rx_sem, spi_mutex;
 static phy_rx_callback_t rx_cb;
-static uint8_t radio_channel;
+static uint8_t radio_channel, radio_power;
 static enum phy_state state;
 static volatile uint16_t sync_word_time;
 static uint8_t rx_data[PHY_MAX_LENGTH + PHY_FOOTER_LENGTH];
 static uint16_t rx_data_length;
 
 void phy_init(xSemaphoreHandle spi_m, phy_rx_callback_t callback,
-		uint8_t channel) {
+		uint8_t channel, enum phy_tx_power power) {
 	// Store the SPI mutex
 	spi_mutex = spi_m;
 
@@ -91,6 +91,25 @@ void phy_init(xSemaphoreHandle spi_m, phy_rx_callback_t callback,
 
 	// Store the channel
 	radio_channel = channel;
+
+	// Store the TX power
+	switch (power) {
+	case PHY_TX_0dBm:
+		radio_power = 0xC2;
+		break;
+	case PHY_TX_5dBm:
+		radio_power = 0x67;
+		break;
+	case PHY_TX_10dBm:
+		radio_power = 0x27;
+		break;
+	case PHY_TX_20dBm:
+		radio_power = 0x0F;
+		break;
+	default:
+		radio_power = 0xC2;
+		break;
+	}
 
 	// Initialize the semaphore
 	vSemaphoreCreateBinary(rx_sem);
@@ -277,9 +296,7 @@ static void cc1100_driver_init(void) {
 	cc1100_cmd_calibrate();
 
 	// Configure TX power
-	uint8_t table;
-	table = 0x81; // +5dBm
-	cc1100_cfg_patable(&table, 1);
+	cc1100_cfg_patable(&radio_power, 1);
 	cc1100_cfg_pa_power(0);
 
 	// Release mutex
@@ -401,7 +418,7 @@ static void handle_received_frame(void) {
 	if (rssi > 128) {
 		rssi -= 256;
 	}
-	rssi -= 140;
+	rssi -= 148;
 	rssi /= 2;
 
 	// Call callback function if any
