@@ -33,7 +33,6 @@
  * knowledge of the CeCILL license and that you accept its terms.
  */
 
-
 /* Global includes */
 #include <io.h>
 #include <stdlib.h>
@@ -53,6 +52,13 @@
 #include "cc1100.h"
 #include "spi1.h"
 #include "timerB.h"
+
+#define DEBUG 0
+#if DEBUG==1
+#define PRINTF printf
+#else
+#define PRINTF(...)
+#endif
 
 /* Type def */
 enum phy_state {
@@ -129,7 +135,6 @@ void phy_rx(void) {
 	cc1100_cmd_idle();
 	cc1100_cmd_flush_rx();
 	cc1100_cmd_flush_tx();
-	cc1100_cmd_calibrate();
 
 	// Set gdo2 RXFIFO / EOP (RX)
 	cc1100_gdo2_int_disable();
@@ -140,6 +145,8 @@ void phy_rx(void) {
 	// Enable interrupts
 	cc1100_gdo2_int_clear();
 	cc1100_gdo2_int_enable();
+
+	cc1100_cfg_txoff_mode(CC1100_TXOFF_MODE_RX);
 
 	// Start RX
 	cc1100_cmd_rx();
@@ -160,6 +167,7 @@ void phy_idle(void) {
 
 	// Set Idle
 	cc1100_cmd_idle();
+	cc1100_cmd_calibrate();
 
 	// Release semaphore
 	xSemaphoreGive(spi_mutex);
@@ -209,10 +217,9 @@ uint16_t phy_send(uint8_t* data, uint16_t length, uint16_t *timestamp) {
 		}
 	}
 
-	// Wait until the last byte is sent
-	while ((cc1100_gdo0_read() != 0) && (cc1100_status_txbytes() != 0)) {
+	while (cc1100_gdo0_read() || ((cc1100_status() & CC1100_STATUS_MASK)
+			== CC1100_STATUS_TX))
 		nop();
-	}
 
 	// Release semaphore
 	xSemaphoreGive(spi_mutex);
@@ -222,7 +229,6 @@ uint16_t phy_send(uint8_t* data, uint16_t length, uint16_t *timestamp) {
 		*timestamp = sync_word_time;
 	}
 
-	// Restore the state
 	restore_state();
 
 	return 1;
@@ -325,6 +331,7 @@ static void handle_received_frame(void) {
 	if (cc1100_status_rxbytes() == 0) {
 		xSemaphoreGive(spi_mutex);
 		restore_state();
+		PRINTF("[PHY] no byte\n");
 		return;
 	}
 
@@ -335,6 +342,7 @@ static void handle_received_frame(void) {
 	if (rx_length > PHY_MAX_LENGTH) {
 		xSemaphoreGive(spi_mutex);
 		restore_state();
+		PRINTF("[PHY] length too big\n");
 		return;
 	}
 
@@ -354,6 +362,7 @@ static void handle_received_frame(void) {
 			xSemaphoreGive(spi_mutex);
 
 			restore_state();
+			PRINTF("[PHY] overflow\n");
 			return;
 		}
 
@@ -362,6 +371,7 @@ static void handle_received_frame(void) {
 			// Release semaphore
 			xSemaphoreGive(spi_mutex);
 			restore_state();
+			PRINTF("[PHY] local overflow\n");
 			return;
 		}
 
@@ -385,6 +395,7 @@ static void handle_received_frame(void) {
 		// Release semaphore
 		xSemaphoreGive(spi_mutex);
 		restore_state();
+		PRINTF("[PHY] overflow\n");
 		return;
 	}
 
@@ -393,22 +404,22 @@ static void handle_received_frame(void) {
 		// Release semaphore
 		xSemaphoreGive(spi_mutex);
 		restore_state();
+		PRINTF("[PHY] local overflow\n");
 		return;
 	}
 
 	// Get the bytes
 	cc1100_fifo_get(rx_ptr, length);
+	rx_ptr += length;
 
 	// Release semaphore
 	xSemaphoreGive(spi_mutex);
-
-	// Remove footer form length
-	rx_length -= 2;
 
 	// Check CRC
 	if ((rx_data[rx_data_length + 1] & 0x80) == 0) {
 		// Bad CRC
 		restore_state();
+		PRINTF("[PHY] bad crc\n");
 		return;
 	}
 
@@ -437,7 +448,6 @@ static uint16_t sync_irq(void) {
 
 static uint16_t rx_irq(void) {
 	portBASE_TYPE yield;
-
 	if (xSemaphoreGiveFromISR(rx_sem, &yield) == pdTRUE) {
 #if configUSE_PREEMPTION
 		if (yield) {

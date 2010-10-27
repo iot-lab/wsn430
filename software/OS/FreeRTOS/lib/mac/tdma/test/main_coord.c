@@ -21,6 +21,7 @@ static void prvSetupHardware(void);
 
 static void new_node(uint16_t node);
 static void new_data(uint16_t node, uint8_t* data, uint16_t length);
+static void beacon_tx(uint8_t id, uint16_t timestamp);
 
 /* Global Variables */
 static xSemaphoreHandle xSPIMutex;
@@ -40,6 +41,7 @@ int main(void) {
 
 	mac_set_node_associated_handler(new_node);
 	mac_set_data_received_handler(new_data);
+	mac_set_beacon_handler(beacon_tx);
 
 	/* Start the scheduler. */
 	vTaskStartScheduler();
@@ -84,5 +86,8 @@ static void new_node(uint16_t node) {
 
 static void new_data(uint16_t node, uint8_t* data, uint16_t length) {
 	mac_send(node, data, 1);
-	putchar('R');
+	printf("#%.4x: %u [%u]\n", node, data[0], length);
+}
+static void beacon_tx(uint8_t id, uint16_t timestamp) {
+	putchar('b');
 }

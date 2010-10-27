@@ -69,6 +69,10 @@
 #define RADIO_CHANNEL 4
 #endif
 
+#ifndef RADIO_POWER
+#define RADIO_POWER PHY_TX_0dBm
+#endif
+
 #ifndef MAC_TX_QUEUE_LENGTH
 #define MAC_TX_QUEUE_LENGTH 4
 #endif
@@ -81,8 +85,13 @@ enum mac_alarm {
 	ALARM_TIMEOUT = TIMERB_ALARM_CCR2
 };
 
-#define hton_s(s, b) (b)[0] = (s) >> 8; (b)[1] = (s) & 0xFF
-#define ntoh_s(b) (((uint16_t)((b)[0])<<8) + (b)[1])
+static inline void hton_s(uint16_t s, uint8_t* d) {
+	d[0] = s >> 8;
+	d[1] = s & 0xFF;
+}
+static inline uint16_t ntoh_s(uint8_t* a) {
+	return (((uint16_t) a[0]) << 8) + a[1];
+}
 
 enum mac_internal_event {
 	EVENT_TIMEOUT = 0x01,

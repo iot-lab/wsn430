@@ -89,7 +89,8 @@ void mac_set_beacon_handler(void(*handler)(uint8_t id, uint16_t beacon_time));
  * event is notified.
  * \param data a pointer to the data to send
  * \param length the number of bytes to send
+ * \return 0 if the frame can't be sent, 1 if it is queued
  */
-void mac_send(uint8_t* data, uint16_t length);
+uint16_t mac_send(uint8_t* data, uint16_t length);
 
 #endif

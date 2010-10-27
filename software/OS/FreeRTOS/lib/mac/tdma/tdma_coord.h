@@ -60,6 +60,12 @@ void mac_set_node_associated_handler(void (*handler)(uint16_t node));
 void mac_set_data_received_handler(void (*handler)(uint16_t node, uint8_t* data, uint16_t length));
 
 /**
+ * Set a callback function pointer, to be called when a beacon is sent.
+ * \param handler the function pointer
+ */
+void mac_set_beacon_handler(void (*handler)(uint8_t id, uint16_t timestamp));
+
+/**
  * Send data to a node.
  * \param node the destination node address
  * \param data a pointer to the data to send

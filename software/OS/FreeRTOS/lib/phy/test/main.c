@@ -40,8 +40,8 @@ int main(void) {
 	/* Create the SPI mutex */
 	xSPIMutex = xSemaphoreCreateMutex();
 
-	/* Initialize the MAC layer, channel 0 */
-	phy_init(xSPIMutex, packet_received, 0, PHY_TX_10dBm);
+	/* Initialize the MAC layer, channel 4 */
+	phy_init(xSPIMutex, packet_received, 4, PHY_TX_10dBm);
 
 	/* Add the local task */
 	xTaskCreate( vSendingTask, (const signed char*) "sender", configMINIMAL_STACK_SIZE, NULL, 1, NULL );
@@ -86,7 +86,7 @@ void vApplicationIdleHook(void) {
 
 void packet_received(uint8_t * data, uint16_t length, int8_t rssi,
 		uint16_t time) {
-	printf("Frame received [%u] %i\n", length, rssi);
+	printf("Frame received:  %s\n", data);
 }
 volatile uint16_t rx;
 
@@ -99,6 +99,8 @@ static uint16_t char_rx(uint8_t c) {
 }
 
 static void vSendingTask(void* pvParameters) {
+	static uint8_t msg[32];
+	static uint16_t len, i = 0;
 	rx = 0;
 	phy_rx();
 
@@ -110,11 +112,13 @@ static void vSendingTask(void* pvParameters) {
 		printf("TX...\n");
 
 		while (rx) {
-			if (phy_send((uint8_t*) "Test", sizeof("Test"), 0x0)) {
-				printf("Frame sent [%u]\r\n", sizeof("Test"));
+			len = sprintf(msg, "Hello %u\n", i++);
+			if (phy_send(msg, len, 0x0)) {
+				printf("Frame sent: %s", msg);
 			} else {
 				printf("Frame send error\n");
 			}
+			vTaskDelay(5);
 		}
 	}
 }

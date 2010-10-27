@@ -58,6 +58,13 @@
 #include "spi1.h"
 #include "uart0.h"
 
+#define DEBUG 0
+#if DEBUG == 1
+#define PRINTF printf
+#else
+#define PRINTF(...)
+#endif
+
 /* Function Prototypes */
 static void vMacTask(void* pvParameters);
 
@@ -82,13 +89,14 @@ uint16_t slot_running;
 static void (*node_associated_handler)(uint16_t node);
 static void (*data_received_handler)(uint16_t node, uint8_t* data,
 		uint16_t length);
+static void (*beacon_handler)(uint8_t id, uint16_t timestamp);
 
 void mac_create_task(xSemaphoreHandle xSPIMutex) {
 	// Create the Event Queue
 	xEventQueue = xQueueCreate(8, sizeof(uint16_t));
 
 	// Create the PHY task
-	phy_init(xSPIMutex, frame_received, RADIO_CHANNEL);
+	phy_init(xSPIMutex, frame_received, RADIO_CHANNEL, RADIO_POWER);
 
 	// Create the task
 	xTaskCreate(vMacTask, (const signed char * const ) "MAC",
@@ -96,6 +104,7 @@ void mac_create_task(xSemaphoreHandle xSPIMutex) {
 
 	node_associated_handler = 0x0;
 	data_received_handler = 0x0;
+	beacon_handler = 0x0;
 }
 
 void mac_send(uint16_t node, uint8_t* data, uint16_t length) {
@@ -109,11 +118,15 @@ void mac_set_data_received_handler(void(*handler)(uint16_t node, uint8_t* data,
 		uint16_t length)) {
 	data_received_handler = handler;
 }
+void mac_set_beacon_handler(void (*handler)(uint8_t id, uint16_t timestamp)) {
+	beacon_handler = handler;
+}
+
 
 static void vMacTask(void* pvParameters) {
 	mac_init();
 
-	printf(
+	PRINTF(
 			"TDMA parameters: %u slots, %u ticks [%u ms] each, channel %u, addr %.4x\n",
 			SLOT_COUNT, TIME_SLOT, SLOT_TIME_MS, RADIO_CHANNEL, mac_addr);
 
@@ -126,6 +139,9 @@ static void vMacTask(void* pvParameters) {
 
 		// send beacon
 		beacon_send();
+		if (beacon_handler) {
+			beacon_handler(beacon_frame.beacon_id-1, beacon_time);
+		}
 
 		// Block until slot time
 		block_until_event(EVENT_SLOT_TIME);
@@ -215,7 +231,7 @@ static uint16_t block_until_event(uint16_t mask) {
 	do {
 		xQueueReceive(xEventQueue, &evt, portMAX_DELAY);
 		if ((evt & mask) != evt) {
-			printf("Discarded event %x (mask %x)\n", evt, mask);
+			PRINTF("Discarded event %x (mask %x)\n", evt, mask);
 		}
 	} while ((evt & mask) != evt);
 	return evt;
@@ -230,7 +246,7 @@ static void frame_received(uint8_t * data, uint16_t length, int8_t rssi,
 	// Check length
 	if ((length < FRAME_HEADER_LENGTH) || (length > FRAME_HEADER_LENGTH
 			+ MAX_PACKET_LENGTH)) {
-		printf("bad length\n");
+		PRINTF("bad length\n");
 		return;
 	}
 
@@ -239,7 +255,7 @@ static void frame_received(uint8_t * data, uint16_t length, int8_t rssi,
 
 	if (ntoh_s(frame->dstAddr) != mac_addr) {
 		// Bad destination
-		printf("bad dst %x\n", ntoh_s(frame->dstAddr));
+		PRINTF("bad dst %x\n", ntoh_s(frame->dstAddr));
 		return;
 	}
 
@@ -272,12 +288,12 @@ static void frame_received(uint8_t * data, uint16_t length, int8_t rssi,
 			}
 			break;
 		default:
-			printf("bad data[0] %u\n", frame->data[0]);
+			PRINTF("bad data[0] %u\n", frame->data[0]);
 			break;
 		}
 		break;
 	default:
-		printf("bad type\n");
+		PRINTF("bad type\n");
 		// Bad type
 		return;
 	}

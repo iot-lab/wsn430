@@ -55,6 +55,13 @@
 #include "ds2411.h"
 #include "uart0.h"
 
+#define DEBUG 0
+#if DEBUG == 1
+#define PRINTF PRINTF
+#else
+#define PRINTF(...)
+#endif
+
 /* Function Prototypes */
 static void vMacTask(void* pvParameters);
 
@@ -99,7 +106,7 @@ static uint8_t slot_dedicated;
 
 void mac_create_task(xSemaphoreHandle xSPIMutex) {
 	// Start the PHY layer
-	phy_init(xSPIMutex, frame_received, RADIO_CHANNEL);
+	phy_init(xSPIMutex, frame_received, RADIO_CHANNEL, RADIO_POWER);
 
 	// Create a frame Queue for the frames to send
 	tx_queue = xQueueCreate(MAC_TX_QUEUE_LENGTH, sizeof(frame_t));
@@ -148,14 +155,14 @@ void mac_set_data_received_handler(void(*handler)(uint8_t* data,
 	handler_rx = handler;
 }
 
-void mac_send(uint8_t* data, uint16_t length) {
+uint16_t mac_send(uint8_t* data, uint16_t length) {
 	// Routine checks
 	if (state != STATE_ASSOCIATED) {
-		return;
+		return 0;
 	}
 
 	if (length > MAX_PACKET_LENGTH) {
-		return;
+		return 0;
 	}
 
 	// Prepare data frame
@@ -166,13 +173,17 @@ void mac_send(uint8_t* data, uint16_t length) {
 	data_frame.length = FRAME_HEADER_LENGTH + length;
 
 	// Put frame in queue
-	xQueueSendToBack(tx_queue, &data_frame, 0);
+	if (xQueueSendToBack(tx_queue, &data_frame, 0) == pdTRUE) {
+		return 1;
+	}
+
+	return 0;
 }
 
 static void vMacTask(void* pvParameters) {
 	mac_init();
 
-	printf(
+	PRINTF(
 			"TDMA parameters: %u slots, %u ticks [%u ms] each, channel %u, addr %.4x\n",
 			SLOT_COUNT, TIME_SLOT, SLOT_TIME_MS, RADIO_CHANNEL, mac_addr);
 
@@ -200,7 +211,6 @@ static void vMacTask(void* pvParameters) {
 			break;
 
 		case STATE_ASSOCIATING:
-			// Loop on the synchronized beacon
 			block_until_event(EVENT_BEACON_TIME);
 			beacon_search(TIME_SLOT / 2);
 			if (block_until_event(EVENT_RX | EVENT_TIMEOUT) == EVENT_RX) {
@@ -210,6 +220,7 @@ static void vMacTask(void* pvParameters) {
 					slot_wait(SLOT_COUNT);
 					block_until_event(EVENT_SLOT_TIME);
 					attach_send();
+					putchar('a');
 				} else if ((associate_wait == 0)
 						&& (state == STATE_ASSOCIATING)) {
 					do {
@@ -270,7 +281,7 @@ static void vMacTask(void* pvParameters) {
 }
 
 static void frame_received(uint8_t * data, uint16_t length, int8_t rssi,
-		uint16_t time) {
+		uint16_t timestamp) {
 	beacon_t *frame;
 	uint16_t srcAddr;
 	uint8_t beacon_type, beacon_length;
@@ -278,7 +289,7 @@ static void frame_received(uint8_t * data, uint16_t length, int8_t rssi,
 	// Check length
 	if ((length < FRAME_HEADER_LENGTH) || (length > FRAME_HEADER_LENGTH
 			+ MAX_PACKET_LENGTH)) {
-		printf("bad length\n");
+		PRINTF("bad length\n");
 		return;
 	}
 
@@ -289,7 +300,7 @@ static void frame_received(uint8_t * data, uint16_t length, int8_t rssi,
 	if ((ntoh_s(frame->dstAddr) != mac_addr) && (ntoh_s(frame->dstAddr)
 			!= 0xFFFF)) {
 		// Bad destination
-		printf("bad dst %x\n", ntoh_s(frame->dstAddr));
+		PRINTF("bad dst %x\n", ntoh_s(frame->dstAddr));
 		return;
 	}
 
@@ -299,18 +310,20 @@ static void frame_received(uint8_t * data, uint16_t length, int8_t rssi,
 	// Check type
 	if (frame->type != FRAME_TYPE_BEACON) {
 		// Bad type
-		printf("bad type %u\n", frame->type);
+		PRINTF("bad type %u\n", frame->type);
 		return;
 	}
 
 	if (coordAddr == 0x0) {
 		coordAddr = ntoh_s(frame->srcAddr);
+		PRINTF("coord = %.4x\n", coordAddr);
 	} else if (ntoh_s(frame->srcAddr) != coordAddr) {
+		PRINTF("bad src addr\n");
 		return;
 	}
 
 	// Everything is okay!, set timer for beacon time
-	beacon_time = time;
+	beacon_time = timestamp;
 
 	timerB_set_alarm_from_time(ALARM_BEACON, (SLOT_COUNT + 1) * TIME_SLOT,
 			(SLOT_COUNT + 1) * TIME_SLOT, beacon_time - TIME_GUARD);
@@ -477,7 +490,7 @@ static uint16_t block_until_event(uint16_t mask) {
 	do {
 		xQueueReceive(xEventQueue, &evt, portMAX_DELAY);
 		if ((evt & mask) != evt) {
-			printf("Discarded event %x (mask %x, state %u)\n", evt, mask, state);
+			PRINTF("D%xM%xS%u\n", evt, mask, state);
 		}
 	} while ((evt & mask) != evt);
 	return evt;

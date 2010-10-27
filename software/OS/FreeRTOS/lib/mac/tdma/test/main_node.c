@@ -74,10 +74,15 @@ static void prvSetupHardware(void) {
 	eint();
 }
 
-static uint8_t b_data[5];
-static void beacon(uint8_t id, uint16_t time) {
-	b_data[0]++;
-	mac_send(b_data, 5);
+static uint8_t data[4] = { 0 };
+static void beacon(uint8_t id, uint16_t timestamp) {
+	putchar('b');
+	if (id % 4 == 0) {
+		data[0]++;
+		mac_send(data, 119);
+		putchar('S');
+	}
+
 }
 
 static void associated(void) {
