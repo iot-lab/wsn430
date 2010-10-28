@@ -85,4 +85,9 @@ uint16_t phy_send(uint8_t* data, uint16_t length, uint16_t *timestamp);
  */
 uint16_t phy_send_cca(uint8_t* data, uint16_t length, uint16_t *timestamp);
 
+/**
+ * Get the maximum TX duration
+ */
+uint16_t phy_get_max_tx_duration(void);
+
 #endif /* PHY_H_ */

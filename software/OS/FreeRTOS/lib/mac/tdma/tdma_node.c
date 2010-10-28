@@ -57,10 +57,12 @@
 
 #define DEBUG 0
 #if DEBUG == 1
-#define PRINTF PRINTF
+#define PRINTF printf
 #else
 #define PRINTF(...)
 #endif
+
+#define LEDS 0
 
 /* Function Prototypes */
 static void vMacTask(void* pvParameters);
@@ -179,17 +181,18 @@ uint16_t mac_send(uint8_t* data, uint16_t length) {
 
 	return 0;
 }
-
+static volatile uint16_t t0, t1[2], t2[2], t4;
+static volatile uint16_t ti;
 static void vMacTask(void* pvParameters) {
 	mac_init();
 
 	PRINTF(
 			"TDMA parameters: %u slots, %u ticks [%u ms] each, channel %u, addr %.4x\n",
 			SLOT_COUNT, TIME_SLOT, SLOT_TIME_MS, RADIO_CHANNEL, mac_addr);
-
+#if LEDS
 	LEDS_OFF();
 	LED_BLUE_ON();
-
+#endif
 	state = STATE_IDLE;
 
 	for (;;) {
@@ -220,7 +223,6 @@ static void vMacTask(void* pvParameters) {
 					slot_wait(SLOT_COUNT);
 					block_until_event(EVENT_SLOT_TIME);
 					attach_send();
-					putchar('a');
 				} else if ((associate_wait == 0)
 						&& (state == STATE_ASSOCIATING)) {
 					do {
@@ -235,9 +237,6 @@ static void vMacTask(void* pvParameters) {
 				if (beacon_loss == BEACON_LOSS_MAX) {
 					state = STATE_BEACON_SEARCH;
 					timerB_unset_alarm(ALARM_BEACON);
-					if (handler_lost) {
-						handler_lost();
-					}
 				}
 			}
 			break;
@@ -253,11 +252,29 @@ static void vMacTask(void* pvParameters) {
 				slot_wait(slot_dedicated);
 				// Wait until beginning of slot
 				block_until_event(EVENT_SLOT_TIME);
+
 				// Send all data we have while we have time
-				while (data_send() && ((beacon_time + (slot_dedicated
-						* TIME_SLOT) - timerB_time()) < TIME_GUARD)) {
-					interpacket_wait();
-					block_until_event(EVENT_TIMEOUT);
+				ti = 0;
+				while (data_send()) {
+					ti++;
+					int16_t time_to_max;
+					// Get next slot time
+					time_to_max = (beacon_time + (slot_dedicated + 1)
+							* TIME_SLOT);
+					// Remove interpacket and max pkt duration
+					time_to_max -= (phy_get_max_tx_duration()
+							+ TIME_INTERPACKET);
+					// Remove actual time
+					time_to_max -= timerB_time();
+
+					if (time_to_max > 0) {
+						interpacket_wait();
+						block_until_event(EVENT_TIMEOUT);
+					} else {
+						// Too late for sending the next
+						break;
+					}
+
 				}
 			} else {
 				phy_idle();
@@ -276,7 +293,9 @@ static void vMacTask(void* pvParameters) {
 			break;
 		}
 
+#if LEDS
 		LED_RED_TOGGLE();
+#endif
 	}
 }
 
@@ -289,7 +308,7 @@ static void frame_received(uint8_t * data, uint16_t length, int8_t rssi,
 	// Check length
 	if ((length < FRAME_HEADER_LENGTH) || (length > FRAME_HEADER_LENGTH
 			+ MAX_PACKET_LENGTH)) {
-		PRINTF("bad length\n");
+		PRINTF("RX: bad length\n");
 		return;
 	}
 
@@ -300,7 +319,7 @@ static void frame_received(uint8_t * data, uint16_t length, int8_t rssi,
 	if ((ntoh_s(frame->dstAddr) != mac_addr) && (ntoh_s(frame->dstAddr)
 			!= 0xFFFF)) {
 		// Bad destination
-		PRINTF("bad dst %x\n", ntoh_s(frame->dstAddr));
+		PRINTF("RX: bad dst %x\n", ntoh_s(frame->dstAddr));
 		return;
 	}
 
@@ -310,20 +329,21 @@ static void frame_received(uint8_t * data, uint16_t length, int8_t rssi,
 	// Check type
 	if (frame->type != FRAME_TYPE_BEACON) {
 		// Bad type
-		PRINTF("bad type %u\n", frame->type);
+		PRINTF("RX: bad type %u\n", frame->type);
 		return;
 	}
 
 	if (coordAddr == 0x0) {
 		coordAddr = ntoh_s(frame->srcAddr);
-		PRINTF("coord = %.4x\n", coordAddr);
+		PRINTF("RX: coord = %.4x\n", coordAddr);
 	} else if (ntoh_s(frame->srcAddr) != coordAddr) {
-		PRINTF("bad src addr\n");
+		PRINTF("RX: bad src addr\n");
 		return;
 	}
 
 	// Everything is okay!, set timer for beacon time
 	beacon_time = timestamp;
+	beacon_loss = 0;
 
 	timerB_set_alarm_from_time(ALARM_BEACON, (SLOT_COUNT + 1) * TIME_SLOT,
 			(SLOT_COUNT + 1) * TIME_SLOT, beacon_time - TIME_GUARD);
@@ -377,7 +397,7 @@ static void frame_received(uint8_t * data, uint16_t length, int8_t rssi,
 	uint16_t event = EVENT_RX;
 	xQueueSendToBack(xEventQueue, &event, 0);
 
-	if (handler_beacon) {
+	if ((state == STATE_ASSOCIATED) && handler_beacon) {
 		handler_beacon(frame->beacon_id, beacon_time);
 	}
 }
@@ -431,13 +451,16 @@ static void attach_send(void) {
 }
 
 static uint16_t data_send(void) {
+	uint16_t t = TBR;
 	// Try to get a frame to send
 	if (xQueueReceive(tx_queue, &data_frame, 0) != pdTRUE) {
 		// No frame to send
 		return 0;
 	}
+	t1[ti] = t;
 
 	phy_send(data_frame.raw, data_frame.length, 0);
+	t2[ti] = TBR;
 	return 1;
 }
 

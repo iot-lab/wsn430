@@ -65,8 +65,11 @@ enum phy_state {
 	IDLE = 1, RX = 2
 };
 
+
 #define PHY_MAX_LENGTH 125
 #define PHY_FOOTER_LENGTH 2
+
+#define TX_MAX_DURATION 190
 
 /* Function Prototypes */
 static void cc1100_task(void* param);
@@ -237,6 +240,10 @@ uint16_t phy_send(uint8_t* data, uint16_t length, uint16_t *timestamp) {
 uint16_t phy_send_cca(uint8_t* data, uint16_t length, uint16_t *timestamp) {
 	// TODO real cca
 	return phy_send(data, length, timestamp);
+}
+
+uint16_t phy_get_max_tx_duration(void) {
+	return TX_MAX_DURATION;
 }
 
 static void cc1100_task(void* param) {

@@ -19,12 +19,15 @@
 /* Hardware initialization */
 static void prvSetupHardware(void);
 
+static void vPrinterTask(void* pvParameters);
 static void new_node(uint16_t node);
 static void new_data(uint16_t node, uint8_t* data, uint16_t length);
 static void beacon_tx(uint8_t id, uint16_t timestamp);
 
 /* Global Variables */
 static xSemaphoreHandle xSPIMutex;
+static xQueueHandle rx_queue;
+static uint8_t rx_frame[128];
 
 /**
  * The main function.
@@ -39,9 +42,12 @@ int main(void) {
 	/* Create the task of the application */
 	mac_create_task(xSPIMutex);
 
-	mac_set_node_associated_handler(new_node);
-	mac_set_data_received_handler(new_data);
-	mac_set_beacon_handler(beacon_tx);
+	/* Create a Pkt data Queue */
+	rx_queue = xQueueCreate(6, sizeof(rx_frame));
+
+	/* Create the task */
+	xTaskCreate(vPrinterTask, (const signed char * const ) "printer",
+			configMINIMAL_STACK_SIZE, NULL, 1, NULL );
 
 	/* Start the scheduler. */
 	vTaskStartScheduler();
@@ -70,6 +76,30 @@ static void prvSetupHardware(void) {
 	/* Enable Interrupts */
 	eint();
 }
+uint16_t rx_node;
+static void vPrinterTask(void* pvParameters) {
+	// Start MAC layer
+	mac_set_node_associated_handler(new_node);
+	mac_set_data_received_handler(new_data);
+	mac_set_beacon_handler(beacon_tx);
+
+	uint8_t last = 0;
+
+	LED_GREEN_OFF();
+	while (1) {
+		if (xQueueReceive(rx_queue, &rx_frame, portMAX_DELAY) == pdTRUE) {
+			printf("r%u", rx_frame[0]);
+				uint8_t missed = rx_frame[0] - last - 1;
+			if (missed) {
+				printf("\t[-%u]", missed);
+			}
+			last = *rx_frame;
+//			mac_send(rx_node, rx_frame, 1);
+			printf("\n");
+
+		}
+	}
+}
 
 int putchar(int c) {
 	return uart0_putchar(c);
@@ -81,13 +111,15 @@ void vApplicationIdleHook(void) {
 }
 
 static void new_node(uint16_t node) {
-	printf("new node: %4x\n", node);
+	printf("#new node: %4x\n", node);
 }
 
 static void new_data(uint16_t node, uint8_t* data, uint16_t length) {
-	mac_send(node, data, 1);
-	printf("#%.4x: %u [%u]\n", node, data[0], length);
+	LED_GREEN_TOGGLE();
+	rx_node = node;
+	xQueueSendToBack(rx_queue, data, 0);
 }
 static void beacon_tx(uint8_t id, uint16_t timestamp) {
+	LED_RED_TOGGLE();
 	putchar('b');
 }

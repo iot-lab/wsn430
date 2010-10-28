@@ -58,12 +58,14 @@
 #include "spi1.h"
 #include "uart0.h"
 
-#define DEBUG 0
+#define DEBUG 1
 #if DEBUG == 1
 #define PRINTF printf
 #else
 #define PRINTF(...)
 #endif
+
+#define LEDS 0
 
 /* Function Prototypes */
 static void vMacTask(void* pvParameters);
@@ -129,13 +131,15 @@ static void vMacTask(void* pvParameters) {
 	PRINTF(
 			"TDMA parameters: %u slots, %u ticks [%u ms] each, channel %u, addr %.4x\n",
 			SLOT_COUNT, TIME_SLOT, SLOT_TIME_MS, RADIO_CHANNEL, mac_addr);
-
+#if LEDS == 1
 	LEDS_OFF();
 	LED_BLUE_ON();
-
+#endif
 	/* Packet Sending/Receiving */
 	for (;;) {
+#if LEDS == 1
 		LED_RED_TOGGLE();
+#endif
 
 		// send beacon
 		beacon_send();
@@ -148,7 +152,9 @@ static void vMacTask(void* pvParameters) {
 
 		// loop on slots
 		for (slot_running = 1; slot_running <= SLOT_COUNT; slot_running++) {
+#if LEDS == 1
 			LED_GREEN_TOGGLE();
+#endif
 
 			// Block until next slot, frames are handled directly
 			block_until_event(EVENT_SLOT_TIME);
@@ -246,7 +252,7 @@ static void frame_received(uint8_t * data, uint16_t length, int8_t rssi,
 	// Check length
 	if ((length < FRAME_HEADER_LENGTH) || (length > FRAME_HEADER_LENGTH
 			+ MAX_PACKET_LENGTH)) {
-		PRINTF("bad length\n");
+		PRINTF("RX: bad length\n");
 		return;
 	}
 
@@ -255,7 +261,7 @@ static void frame_received(uint8_t * data, uint16_t length, int8_t rssi,
 
 	if (ntoh_s(frame->dstAddr) != mac_addr) {
 		// Bad destination
-		PRINTF("bad dst %x\n", ntoh_s(frame->dstAddr));
+		PRINTF("RX: bad dst %x\n", ntoh_s(frame->dstAddr));
 		return;
 	}
 
@@ -264,9 +270,11 @@ static void frame_received(uint8_t * data, uint16_t length, int8_t rssi,
 	switch (frame->type) {
 	case FRAME_TYPE_DATA:
 		slot_result = tdma_table_pos(srcAddr);
-		if (slot_running == slot_result && data_received_handler) {
+		if ((slot_running == slot_result) && data_received_handler) {
 			data_received_handler(srcAddr, frame->data, length
 					- FRAME_HEADER_LENGTH);
+		} else {
+			PRINTF("RX: out of slot\n");
 		}
 		break;
 	case FRAME_TYPE_MGT:
@@ -288,12 +296,12 @@ static void frame_received(uint8_t * data, uint16_t length, int8_t rssi,
 			}
 			break;
 		default:
-			PRINTF("bad data[0] %u\n", frame->data[0]);
+			PRINTF("RX: bad data[0] %u\n", frame->data[0]);
 			break;
 		}
 		break;
 	default:
-		PRINTF("bad type\n");
+		PRINTF("RX: bad type\n");
 		// Bad type
 		return;
 	}

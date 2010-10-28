@@ -54,11 +54,11 @@
 #define MAX_BEACON_DATA_LENGTH 55
 
 #ifndef SLOT_COUNT
-#define SLOT_COUNT 9
+#define SLOT_COUNT 9 // For 8 nodes!, total period = 10 slots
 #endif
 
 #ifndef SLOT_TIME_MS
-#define SLOT_TIME_MS 10
+#define SLOT_TIME_MS 15
 #endif
 
 #ifndef BEACON_LOSS_MAX
@@ -74,7 +74,7 @@
 #endif
 
 #ifndef MAC_TX_QUEUE_LENGTH
-#define MAC_TX_QUEUE_LENGTH 4
+#define MAC_TX_QUEUE_LENGTH 8
 #endif
 
 #define FRAME_HEADER_LENGTH 5
@@ -105,7 +105,7 @@ enum mac_internal_event {
 enum mac_timing {
 	TIME_SLOT = MS_TO_TICKS(SLOT_TIME_MS),
 	TIME_GUARD = 50,
-	TIME_INTERPACKET = 16
+	TIME_INTERPACKET = 5
 };
 
 enum mac_frame_type {

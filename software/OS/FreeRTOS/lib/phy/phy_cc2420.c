@@ -62,6 +62,8 @@ enum phy_state {
 #define PHY_MAX_LENGTH 125
 #define PHY_FOOTER_LENGTH 2
 
+#define TX_MAX_DURATION 153
+
 /* Function Prototypes */
 static void cc2420_task(void* param);
 static void cc2420_driver_init(void);
@@ -259,6 +261,10 @@ uint16_t phy_send_cca(uint8_t* data, uint16_t length, uint16_t *timestamp) {
 	// Restore the state
 	restore_state();
 	return 1;
+}
+
+uint16_t phy_get_max_tx_duration(void) {
+	return TX_MAX_DURATION;
 }
 
 static void cc2420_task(void* param) {
