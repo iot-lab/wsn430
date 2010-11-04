@@ -274,15 +274,27 @@ static void cc1100_driver_init(void) {
 	cc1100_cfg_crc_autoflush(CC1100_CRC_AUTOFLUSH_DISABLE);
 	cc1100_cfg_white_data(CC1100_DATA_WHITENING_ENABLE);
 	cc1100_cfg_crc_en(CC1100_CRC_CALCULATION_ENABLE);
-	cc1100_cfg_freq_if(0x0C);
+	cc1100_cfg_freq_if(0x06);
 	cc1100_cfg_fs_autocal(CC1100_AUTOCAL_NEVER);
 	cc1100_cfg_mod_format(CC1100_MODULATION_MSK);
 	cc1100_cfg_sync_mode(CC1100_SYNCMODE_30_32);
 	cc1100_cfg_manchester_en(CC1100_MANCHESTER_DISABLE);
 
-	// set channel bandwidth (560 kHz)
+	// set channel bandwidth (200 kHz)
+//	cc1100_cfg_chanbw_e(2);
+//	cc1100_cfg_chanbw_m(0);
+
+	// set channel bandwidth (500 kHz)
 	cc1100_cfg_chanbw_e(0);
 	cc1100_cfg_chanbw_m(2);
+
+	// set channel bandwidth (370 kHz)
+//	cc1100_cfg_chanbw_e(1);
+//	cc1100_cfg_chanbw_m(1);
+
+	// set channel spacing 200kHz
+	cc1100_cfg_chanspc_e(0x2);
+	cc1100_cfg_chanspc_m(0xE5);
 
 	// set data rate (0xD/0x2F is 250kbps)
 	cc1100_cfg_drate_e(0x0D);

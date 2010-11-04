@@ -104,7 +104,7 @@ enum mac_internal_event {
 
 enum mac_timing {
 	TIME_SLOT = MS_TO_TICKS(SLOT_TIME_MS),
-	TIME_GUARD = 50,
+	TIME_GUARD = 100,
 	TIME_INTERPACKET = 5
 };
 
