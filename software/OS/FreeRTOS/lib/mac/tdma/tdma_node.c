@@ -52,8 +52,10 @@
 
 /* Drivers Include */
 #include "timerB.h"
-#include "ds2411.h"
 #include "uart0.h"
+#ifndef __MDS__
+#include "ds2411.h"
+#endif
 
 #define DEBUG 0
 #if DEBUG == 1
@@ -191,7 +193,11 @@ static void vMacTask(void* pvParameters) {
 			SLOT_COUNT, TIME_SLOT, SLOT_TIME_MS, RADIO_CHANNEL, mac_addr);
 #if LEDS
 	LEDS_OFF();
+	#ifndef __MDS__
 	LED_BLUE_ON();
+	#else
+	LED_YELLOW_ON();
+	#endif
 #endif
 	state = STATE_IDLE;
 
@@ -403,19 +409,32 @@ static void frame_received(uint8_t * data, uint16_t length, int8_t rssi,
 }
 
 static void mac_init(void) {
+	#ifndef __MDS__
 	/* Initialize the unique electronic signature and read it */
 	ds2411_init();
 	mac_addr = (((uint16_t) ds2411_id.serial1) << 8) + (ds2411_id.serial0);
+	#else
+	mac_addr = __MAC__;
+	#endif
 
 	/* Seed the random number generator */
 	srand(mac_addr);
 
 	// Setup TimerB ACLK 32kHz
 	timerB_init();
+
+	#ifndef __MDS__
 	timerB_start_ACLK_div(TIMERB_DIV_1);
 	timerB_register_cb(ALARM_BEACON, beacon_time_evt);
 	timerB_register_cb(ALARM_SLOT, slot_time_evt);
 	timerB_register_cb(ALARM_TIMEOUT, timeout_evt);
+	#else
+	timerB_ACLK_div(TIMERB_DIV_1);
+	timerB_register_cb(ALARM_BEACON, beacon_time_evt);
+	timerB_register_cb(ALARM_SLOT, slot_time_evt);
+	timerB_register_cb(ALARM_TIMEOUT, timeout_evt);
+	timerB_start();
+	#endif
 }
 
 static void idle(void) {
