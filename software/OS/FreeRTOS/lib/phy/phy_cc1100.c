@@ -280,17 +280,9 @@ static void cc1100_driver_init(void) {
 	cc1100_cfg_sync_mode(CC1100_SYNCMODE_30_32);
 	cc1100_cfg_manchester_en(CC1100_MANCHESTER_DISABLE);
 
-	// set channel bandwidth (200 kHz)
-//	cc1100_cfg_chanbw_e(2);
-//	cc1100_cfg_chanbw_m(0);
-
 	// set channel bandwidth (500 kHz)
 	cc1100_cfg_chanbw_e(0);
 	cc1100_cfg_chanbw_m(2);
-
-	// set channel bandwidth (370 kHz)
-//	cc1100_cfg_chanbw_e(1);
-//	cc1100_cfg_chanbw_m(1);
 
 	// set channel spacing 200kHz
 	cc1100_cfg_chanspc_e(0x2);

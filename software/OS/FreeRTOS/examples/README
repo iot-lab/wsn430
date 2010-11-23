@@ -1,0 +1,8 @@
+This folder contains six application examples for WSN430 using FreeRTOS.
+Refer to http://senstools.gforge.inria.fr for mode information.
+
+In order to compile these examples, you should set two environment variables:
+- FREERTOS_PATH should point to the FreeRTOS folder (containing the Source and Demo folders)
+- WSN430_DRIVERS_PATH should point to the WSN430 drivers folder (archive available on the senstools website)
+
+Then open a terminal in each example folder and run 'make'

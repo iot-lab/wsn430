@@ -62,9 +62,8 @@
 
 /* Type def */
 enum phy_state {
-	IDLE = 1, RX = 2
+	IDLE = 1, RX = 2, TX = 3
 };
-
 
 #define PHY_MAX_LENGTH 125
 #define PHY_FOOTER_LENGTH 2
@@ -79,13 +78,12 @@ static void restore_state(void);
 
 /* CC2500 callback functions */
 static uint16_t sync_irq(void);
-static uint16_t rx_irq(void);
 
 /* Static variables */
 static xSemaphoreHandle rx_sem, spi_mutex;
 static phy_rx_callback_t rx_cb;
 static uint8_t radio_channel, radio_power;
-static enum phy_state state;
+static volatile enum phy_state state, old_state;
 static volatile uint16_t sync_word_time;
 static uint8_t rx_data[PHY_MAX_LENGTH + PHY_FOOTER_LENGTH];
 static uint16_t rx_data_length;
@@ -104,19 +102,19 @@ void phy_init(xSemaphoreHandle spi_m, phy_rx_callback_t callback,
 	// Store the TX power
 	switch (power) {
 	case PHY_TX_0dBm:
-		radio_power = 0xFE; //0xC2;
+		radio_power = 0xFE;
 		break;
 	case PHY_TX_5dBm:
-		radio_power = 0x7F; //0x67;
+		radio_power = 0x7F;
 		break;
 	case PHY_TX_10dBm:
-		radio_power = 0x97; //0x27;
+		radio_power = 0x97;
 		break;
 	case PHY_TX_20dBm:
-		radio_power = 0x46; //0x0F;
+		radio_power = 0x46;
 		break;
 	default:
-		radio_power = 0xC6; //0xC2;
+		radio_power = 0xFE;
 		break;
 	}
 
@@ -125,6 +123,7 @@ void phy_init(xSemaphoreHandle spi_m, phy_rx_callback_t callback,
 
 	// Set initial state
 	state = IDLE;
+	old_state = IDLE;
 
 	// Create the task
 	xTaskCreate(cc2500_task, (const signed char*) "phy_cc2500", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES-1, NULL);
@@ -139,17 +138,8 @@ void phy_rx(void) {
 	cc2500_cmd_flush_rx();
 	cc2500_cmd_flush_tx();
 
-	// Set gdo2 RXFIFO / EOP (RX)
-	cc2500_gdo2_int_disable();
+	// Set gdo2 RXFIFO
 	cc2500_cfg_gdo2(CC2500_GDOx_RX_FIFO);
-	cc2500_gdo2_int_set_rising_edge();
-	cc2500_gdo2_register_callback(rx_irq);
-
-	// Enable interrupts
-	cc2500_gdo2_int_clear();
-	cc2500_gdo2_int_enable();
-
-	cc2500_cfg_txoff_mode(CC2500_TXOFF_MODE_RX);
 
 	// Start RX
 	cc2500_cmd_rx();
@@ -159,6 +149,7 @@ void phy_rx(void) {
 
 	// Update state
 	state = RX;
+	old_state = RX;
 }
 
 void phy_idle(void) {
@@ -177,6 +168,7 @@ void phy_idle(void) {
 
 	// Update state
 	state = IDLE;
+	old_state = IDLE;
 }
 
 uint16_t phy_send(uint8_t* data, uint16_t length, uint16_t *timestamp) {
@@ -185,6 +177,8 @@ uint16_t phy_send(uint8_t* data, uint16_t length, uint16_t *timestamp) {
 	if (length > PHY_MAX_LENGTH) {
 		return 0;
 	}
+	state = TX;
+
 	tx_data = data;
 	tx_length = length;
 
@@ -196,14 +190,13 @@ uint16_t phy_send(uint8_t* data, uint16_t length, uint16_t *timestamp) {
 	cc2500_cmd_flush_tx();
 
 	// Configure gdo2 to TX FIFO
-	cc2500_gdo2_int_disable();
 	cc2500_cfg_gdo2(CC2500_GDOx_TX_FIFO);
-
-	// Start TX
-	cc2500_cmd_tx();
 
 	// Send length byte and first set
 	length = tx_length > 63 ? 63 : tx_length;
+
+	// Start TX
+	cc2500_cmd_tx();
 
 	cc2500_fifo_put(&tx_length, 1);
 	cc2500_fifo_put(tx_data, length);
@@ -220,9 +213,10 @@ uint16_t phy_send(uint8_t* data, uint16_t length, uint16_t *timestamp) {
 		}
 	}
 
-	while (cc2500_gdo0_read() || ((cc2500_status() & CC2500_STATUS_MASK)
-			== CC2500_STATUS_TX))
+	// Wait while there are bytes in TX FIFO and EOP has not happened
+	while (cc2500_status_txbytes() || cc2500_gdo0_read()) {
 		nop();
+	}
 
 	// Release semaphore
 	xSemaphoreGive(spi_mutex);
@@ -233,7 +227,6 @@ uint16_t phy_send(uint8_t* data, uint16_t length, uint16_t *timestamp) {
 	}
 
 	restore_state();
-
 	return 1;
 }
 
@@ -274,7 +267,7 @@ static void cc2500_driver_init(void) {
 	cc2500_cfg_crc_autoflush(CC2500_CRC_AUTOFLUSH_DISABLE);
 	cc2500_cfg_white_data(CC2500_DATA_WHITENING_ENABLE);
 	cc2500_cfg_crc_en(CC2500_CRC_CALCULATION_ENABLE);
-	cc2500_cfg_freq_if(0x0C); //cc2500_cfg_freq_if(0x06);
+	cc2500_cfg_freq_if(0x0A);
 	cc2500_cfg_fs_autocal(CC2500_AUTOCAL_NEVER);
 	cc2500_cfg_mod_format(CC2500_MODULATION_MSK);
 	cc2500_cfg_sync_mode(CC2500_SYNCMODE_30_32);
@@ -285,12 +278,12 @@ static void cc2500_driver_init(void) {
 	cc2500_cfg_chanbw_m(2);
 
 	// set channel spacing 200kHz
-	cc2500_cfg_chanspc_e(0x2);
-	cc2500_cfg_chanspc_m(0xF8); //cc2500_cfg_chanspc_m(0xE5);
+	cc2500_cfg_chanspc_e(0x02);
+	cc2500_cfg_chanspc_m(0xF8);
 
-	// set data rate (0xD/0x2F is 250kbps)
+	// set data rate (0xD/0x3B is 250kbps)
 	cc2500_cfg_drate_e(0x0D);
-	cc2500_cfg_drate_m(0x3B); //cc2500_cfg_drate_m(0x2F);
+	cc2500_cfg_drate_m(0x3B);
 
 	// go to idle after RX and TX
 	cc2500_cfg_rxoff_mode(CC2500_RXOFF_MODE_IDLE);
@@ -299,8 +292,8 @@ static void cc2500_driver_init(void) {
 	// Set channel
 	cc2500_cfg_chan(radio_channel);
 
-	// Set FIFO threshold to low
-	cc2500_cfg_fifo_thr(0);
+	// Set FIFO threshold to middle
+	cc2500_cfg_fifo_thr(7);
 
 	// Set gdo0 SYNC word detection (both RX and TX)
 	cc2500_gdo0_int_disable();
@@ -318,16 +311,20 @@ static void cc2500_driver_init(void) {
 
 	// Release mutex
 	xSemaphoreGive(spi_mutex);
+
+	PRINTF("[PHY] init'ed with channel %x\n",
+			cc2500_read_reg(CC2500_REG_CHANNR));
 }
 
 static void restore_state(void) {
 	// Reset old state
-	switch (state) {
-	case IDLE:
-		phy_idle();
-		break;
+	switch (old_state) {
 	case RX:
 		phy_rx();
+		break;
+	case IDLE:
+	default:
+		phy_idle();
 		break;
 	}
 }
@@ -358,6 +355,7 @@ static void handle_received_frame(void) {
 	}
 
 	rx_data_length = rx_length;
+
 	// Add 2 to the length for the status bytes
 	rx_length += PHY_FOOTER_LENGTH;
 	rx_ptr = rx_data;
@@ -396,6 +394,7 @@ static void handle_received_frame(void) {
 		while (!cc2500_gdo2_read() && cc2500_gdo0_read()) {
 			;
 		}
+
 	}
 
 	// Packet complete, get the end
@@ -454,18 +453,17 @@ static void handle_received_frame(void) {
 
 static uint16_t sync_irq(void) {
 	sync_word_time = TBR;
-	return 0;
-}
 
-static uint16_t rx_irq(void) {
-	portBASE_TYPE yield;
-	if (xSemaphoreGiveFromISR(rx_sem, &yield) == pdTRUE) {
+	if (state == RX) {
+		portBASE_TYPE yield;
+		if (xSemaphoreGiveFromISR(rx_sem, &yield) == pdTRUE) {
 #if configUSE_PREEMPTION
-		if (yield) {
-			portYIELD();
-		}
+			if (yield) {
+				portYIELD();
+			}
 #endif
+		}
+		return 1;
 	}
-
-	return 1;
+	return 0;
 }

@@ -85,7 +85,7 @@ void mac_set_data_received_handler(void(*handler)(uint8_t* data,
  */
 void mac_set_beacon_handler(void(*handler)(uint8_t id, uint16_t beacon_time));
 /**
- * Send data to the coordinator. It is recommended to call this function right after the MAC_TX_READY
+ * Send data to the coordinator.
  * event is notified.
  * \param data a pointer to the data to send
  * \param length the number of bytes to send

@@ -63,31 +63,13 @@ static void prvSetupHardware(void) {
 	/* Stop the watchdog timer. */
 	WDTCTL = WDTPW + WDTHOLD;
 
-	#ifndef __MDS__
 	/* Setup MCLK 8MHz and SMCLK 1MHz */
 	set_mcu_speed_xt2_mclk_8MHz_smclk_1MHz();
-	#else
-	set_smclk_src(SMCLK_SRC_DCO);
-	set_mclk_src(MCLK_SRC_DCO);
-	set_aclk_src(ACLK_SRC_XT1);
-
-	#if(CLK_FREQ == 8000000)
-	set_dco_speed(DCO_CLK_8MHZ);
-	#elif(CLK_FREQ == 16000000)
-	set_dco_speed(DCO_CLK_16MHZ);
-	#else
-	#error "CLK_FREQ not supported"
-	#endif
-	#endif
 
 	LEDS_INIT();
 	LEDS_OFF();
 
-	#ifndef __MDS__
 	uart0_init(UART0_CONFIG_1MHZ_115200);
-	#else
-	uart0_init(UART_SPEED_115200);
-	#endif
 	printf("FreeRTOS TDMA coordinator test program\r\n");
 
 	/* Enable Interrupts */
@@ -102,7 +84,6 @@ static void vPrinterTask(void* pvParameters) {
 
 	uint8_t last = 0;
 
-	LED_GREEN_OFF();
 	while (1) {
 		if (xQueueReceive(rx_queue, &rx_frame, portMAX_DELAY) == pdTRUE) {
 			printf("r%u", rx_frame[0]);
@@ -111,7 +92,6 @@ static void vPrinterTask(void* pvParameters) {
 				printf("\t[-%u]", missed);
 			}
 			last = *rx_frame;
-//			mac_send(rx_node, rx_frame, 1);
 			printf("\n");
 
 		}
@@ -119,12 +99,8 @@ static void vPrinterTask(void* pvParameters) {
 }
 
 int putchar(int c) {
-	#ifndef __MDS__
-	return uart0_putchar(c);
-	#else
 	uart0_putchar(c);
 	return c;
-	#endif
 }
 
 void vApplicationIdleHook(void);
@@ -137,11 +113,9 @@ static void new_node(uint16_t node) {
 }
 
 static void new_data(uint16_t node, uint8_t* data, uint16_t length) {
-	LED_GREEN_TOGGLE();
 	rx_node = node;
 	xQueueSendToBack(rx_queue, data, 0);
 }
 static void beacon_tx(uint8_t id, uint16_t timestamp) {
-	LED_RED_TOGGLE();
 	putchar('b');
 }

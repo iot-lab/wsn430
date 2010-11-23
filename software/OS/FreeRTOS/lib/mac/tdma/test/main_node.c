@@ -69,31 +69,13 @@ static void prvSetupHardware(void) {
 	/* Stop the watchdog timer. */
 	WDTCTL = WDTPW + WDTHOLD;
 
-	#ifndef __MDS__
 	/* Setup MCLK 8MHz and SMCLK 1MHz */
 	set_mcu_speed_xt2_mclk_8MHz_smclk_1MHz();
-	#else
-	set_smclk_src(SMCLK_SRC_DCO);
-	set_mclk_src(MCLK_SRC_DCO);
-	set_aclk_src(ACLK_SRC_XT1);
-
-	#if(CLK_FREQ == 8000000)
-	set_dco_speed(DCO_CLK_8MHZ);
-	#elif(CLK_FREQ == 16000000)
-	set_dco_speed(DCO_CLK_16MHZ);
-	#else
-	#error "CLK_FREQ not supported"
-	#endif
-	#endif
 
 	LEDS_INIT();
 	LEDS_OFF();
 
-	#ifndef __MDS__
 	uart0_init(UART0_CONFIG_1MHZ_115200);
-	#else
-	uart0_init(UART_SPEED_115200);
-	#endif
 
 	printf("FreeRTOS TDMA node test program\r\n");
 
@@ -122,14 +104,13 @@ static void vSensorTask(void* pvParameters) {
 	for (;;) {
 		if (xSemaphoreTake(tx_sem,portMAX_DELAY) == pdTRUE) {
 			int i;
-			LED_GREEN_TOGGLE();
 			for (i = 0; i < TX_BURST; i++) {
 				// Send
 				(*frame)++;
-				mac_send(frame, TX_LENGTH);
-				printf("s%u", *frame);
+				if (mac_send(frame, TX_LENGTH)) {
+					printf("s%u\n", *frame);
+				}
 			}
-			putchar('\n');
 		}
 	}
 }
@@ -143,12 +124,11 @@ static uint16_t send_time(void) {
 }
 
 static void beacon(uint8_t id, uint16_t timestamp) {
-	LED_RED_TOGGLE();
 	putchar('b');
 }
 
 static void associated(void) {
-	printf("asso\n");
+	printf("#asso\n");
 }
 
 static void lost(void) {
@@ -159,12 +139,8 @@ static void rx(uint8_t* data, uint16_t length) {
 }
 
 int putchar(int c) {
-	#ifndef __MDS__
-	return uart0_putchar(c);
-	#else
 	uart0_putchar(c);
 	return c;
-	#endif
 }
 
 void vApplicationIdleHook(void);
