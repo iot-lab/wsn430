@@ -54,7 +54,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip_arp.c,v 1.5 2008/02/07 01:35:00 adamdunkels Exp $
+ * $Id: uip_arp.c,v 1.7 2010/10/24 22:29:39 adamdunkels Exp $
  *
  */
 
@@ -290,7 +290,7 @@ uip_arp_arpin(void)
   uip_len = 0;
   
   switch(BUF->opcode) {
-  case HTONS(ARP_REQUEST):
+  case UIP_HTONS(ARP_REQUEST):
     /* ARP request. If it asked for our address, we send out a
        reply. */
     /*    if(BUF->dipaddr[0] == uip_hostaddr[0] &&
@@ -306,7 +306,7 @@ uip_arp_arpin(void)
 	 with this host in the future. */
       uip_arp_update(&BUF->sipaddr, &BUF->shwaddr);
       
-      BUF->opcode = HTONS(ARP_REPLY);
+      BUF->opcode = UIP_HTONS(ARP_REPLY);
 
       memcpy(BUF->dhwaddr.addr, BUF->shwaddr.addr, 6);
       memcpy(BUF->shwaddr.addr, uip_ethaddr.addr, 6);
@@ -316,11 +316,11 @@ uip_arp_arpin(void)
       uip_ipaddr_copy(&BUF->dipaddr, &BUF->sipaddr);
       uip_ipaddr_copy(&BUF->sipaddr, &uip_hostaddr);
 
-      BUF->ethhdr.type = HTONS(UIP_ETHTYPE_ARP);
+      BUF->ethhdr.type = UIP_HTONS(UIP_ETHTYPE_ARP);
       uip_len = sizeof(struct arp_hdr);
     }
     break;
-  case HTONS(ARP_REPLY):
+  case UIP_HTONS(ARP_REPLY):
     /* ARP reply. We insert or update the ARP table if it was meant
        for us. */
     if(uip_ipaddr_cmp(&BUF->dipaddr, &uip_hostaddr)) {
@@ -374,6 +374,14 @@ uip_arp_out(void)
   /* First check if destination is a local broadcast. */
   if(uip_ipaddr_cmp(&IPBUF->destipaddr, &uip_broadcast_addr)) {
     memcpy(IPBUF->ethhdr.dest.addr, broadcast_ethaddr.addr, 6);
+  } else if(IPBUF->destipaddr.u8[0] == 224) {
+    /* Multicast. */
+    IPBUF->ethhdr.dest.addr[0] = 0x01;
+    IPBUF->ethhdr.dest.addr[1] = 0x00;
+    IPBUF->ethhdr.dest.addr[2] = 0x5e;
+    IPBUF->ethhdr.dest.addr[3] = IPBUF->destipaddr.u8[1];
+    IPBUF->ethhdr.dest.addr[4] = IPBUF->destipaddr.u8[2];
+    IPBUF->ethhdr.dest.addr[5] = IPBUF->destipaddr.u8[3];
   } else {
     /* Check if the destination address is on the local network. */
     if(!uip_ipaddr_maskcmp(&IPBUF->destipaddr, &uip_hostaddr, &uip_netmask)) {
@@ -404,12 +412,12 @@ uip_arp_out(void)
     
       uip_ipaddr_copy(&BUF->dipaddr, &ipaddr);
       uip_ipaddr_copy(&BUF->sipaddr, &uip_hostaddr);
-      BUF->opcode = HTONS(ARP_REQUEST); /* ARP request. */
-      BUF->hwtype = HTONS(ARP_HWTYPE_ETH);
-      BUF->protocol = HTONS(UIP_ETHTYPE_IP);
+      BUF->opcode = UIP_HTONS(ARP_REQUEST); /* ARP request. */
+      BUF->hwtype = UIP_HTONS(ARP_HWTYPE_ETH);
+      BUF->protocol = UIP_HTONS(UIP_ETHTYPE_IP);
       BUF->hwlen = 6;
       BUF->protolen = 4;
-      BUF->ethhdr.type = HTONS(UIP_ETHTYPE_ARP);
+      BUF->ethhdr.type = UIP_HTONS(UIP_ETHTYPE_ARP);
 
       uip_appdata = &uip_buf[UIP_TCPIP_HLEN + UIP_LLH_LEN];
     
@@ -422,7 +430,7 @@ uip_arp_out(void)
   }
   memcpy(IPBUF->ethhdr.src.addr, uip_ethaddr.addr, 6);
   
-  IPBUF->ethhdr.type = HTONS(UIP_ETHTYPE_IP);
+  IPBUF->ethhdr.type = UIP_HTONS(UIP_ETHTYPE_IP);
 
   uip_len += sizeof(struct uip_eth_hdr);
 }
@@ -430,3 +438,4 @@ uip_arp_out(void)
 
 /** @} */
 /** @} */
+

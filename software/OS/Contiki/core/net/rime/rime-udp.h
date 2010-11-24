@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rime-udp.h,v 1.1 2009/04/06 13:13:26 nvt-se Exp $
+ * $Id: rime-udp.h,v 1.2 2010/02/18 21:48:39 adamdunkels Exp $
  */
 
 /**
@@ -45,7 +45,5 @@
 #include "dev/radio.h"
 
 extern const struct mac_driver rime_udp_driver;
-
-const struct mac_driver *rime_udp_init(const struct radio_driver *r);
 
 #endif /* __UDPMAC_H__ */

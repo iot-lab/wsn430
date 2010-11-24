@@ -46,7 +46,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: abc.h,v 1.15 2009/03/12 21:58:20 adamdunkels Exp $
+ * $Id: abc.h,v 1.17 2010/06/14 19:19:17 adamdunkels Exp $
  */
 /**
  * \file
@@ -58,7 +58,7 @@
 #ifndef __ABC_H__
 #define __ABC_H__
 
-#include "net/rime/packetbuf.h"
+#include "net/packetbuf.h"
 #include "net/rime/channel.h"
 
 struct abc_conn;
@@ -72,6 +72,7 @@ struct abc_conn;
 struct abc_callbacks {
   /** Called when a packet has been received by the abc module. */
   void (* recv)(struct abc_conn *ptr);
+  void (* sent)(struct abc_conn *ptr, int status, int num_tx);
 };
 
 struct abc_conn {
@@ -133,8 +134,10 @@ int abc_send(struct abc_conn *c);
  *             directly.
  *
  */
+
 void abc_input(struct channel *channel);
 
+void abc_sent(struct channel *channel, int status, int num_tx);
 
 #endif /* __ABC_H__ */
 /** @} */

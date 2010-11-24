@@ -47,7 +47,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.h,v 1.11 2009/04/29 20:48:57 adamdunkels Exp $
+ * $Id: collect.h,v 1.23 2010/10/28 15:36:02 adamdunkels Exp $
  */
 
 /**
@@ -62,13 +62,22 @@
 
 #include "net/rime/announcement.h"
 #include "net/rime/runicast.h"
+#include "net/rime/neighbor-discovery.h"
+#include "net/rime/collect-neighbor.h"
+#include "net/packetqueue.h"
+#include "sys/ctimer.h"
+#include "lib/list.h"
 
-#define COLLECT_ATTRIBUTES  { PACKETBUF_ADDR_ESENDER,    PACKETBUF_ADDRSIZE }, \
-                            { PACKETBUF_ATTR_EPACKET_ID, PACKETBUF_ATTR_BIT * 4 }, \
-                            { PACKETBUF_ATTR_TTL,        PACKETBUF_ATTR_BIT * 4 }, \
-                            { PACKETBUF_ATTR_HOPS,       PACKETBUF_ATTR_BIT * 4 }, \
-                            { PACKETBUF_ATTR_MAX_REXMIT, PACKETBUF_ATTR_BIT * 3 }, \
-                            RUNICAST_ATTRIBUTES
+#define COLLECT_PACKET_ID_BITS 8
+
+#define COLLECT_ATTRIBUTES  { PACKETBUF_ADDR_ESENDER,     PACKETBUF_ADDRSIZE }, \
+                            { PACKETBUF_ATTR_EPACKET_ID,  PACKETBUF_ATTR_BIT * COLLECT_PACKET_ID_BITS }, \
+                            { PACKETBUF_ATTR_PACKET_ID,   PACKETBUF_ATTR_BIT * COLLECT_PACKET_ID_BITS }, \
+                            { PACKETBUF_ATTR_TTL,         PACKETBUF_ATTR_BIT * 4 }, \
+                            { PACKETBUF_ATTR_HOPS,        PACKETBUF_ATTR_BIT * 4 }, \
+                            { PACKETBUF_ATTR_MAX_REXMIT,  PACKETBUF_ATTR_BIT * 5 }, \
+                            { PACKETBUF_ATTR_PACKET_TYPE, PACKETBUF_ATTR_BIT }, \
+                            UNICAST_ATTRIBUTES
 
 struct collect_callbacks {
   void (* recv)(const rimeaddr_t *originator, uint8_t seqno,
@@ -76,17 +85,40 @@ struct collect_callbacks {
 };
 
 struct collect_conn {
-  struct runicast_conn runicast_conn;
+  struct unicast_conn unicast_conn;
+#if ! COLLECT_CONF_ANNOUNCEMENTS
+  struct neighbor_discovery_conn neighbor_discovery_conn;
+#else /* ! COLLECT_CONF_ANNOUNCEMENTS */
   struct announcement announcement;
+  struct ctimer transmit_after_scan_timer;
+#endif /* COLLECT_CONF_ANNOUNCEMENTS */
   const struct collect_callbacks *cb;
-  struct ctimer t;
+  struct ctimer retransmission_timer;
+  LIST_STRUCT(send_queue_list);
+  struct packetqueue send_queue;
+  struct collect_neighbor_list neighbor_list;
+
+  struct ctimer keepalive_timer;
+  clock_time_t keepalive_period;
+
+  struct ctimer proactive_probing_timer;
+
+  rimeaddr_t parent, current_parent;
   uint16_t rtmetric;
-  uint8_t forwarding;
   uint8_t seqno;
+  uint8_t sending, transmissions, max_rexmits;
+  uint8_t eseqno;
+  uint8_t is_router;
+};
+
+enum {
+  COLLECT_NO_ROUTER,
+  COLLECT_ROUTER,
 };
 
 void collect_open(struct collect_conn *c, uint16_t channels,
-	       const struct collect_callbacks *callbacks);
+                  uint8_t is_router,
+                  const struct collect_callbacks *callbacks);
 void collect_close(struct collect_conn *c);
 
 int collect_send(struct collect_conn *c, int rexmits);
@@ -95,7 +127,11 @@ void collect_set_sink(struct collect_conn *c, int should_be_sink);
 
 int collect_depth(struct collect_conn *c);
 
-#define COLLECT_MAX_DEPTH 255
+void collect_set_keepalive(struct collect_conn *c, clock_time_t period);
+
+void collect_print_stats(void);
+
+#define COLLECT_MAX_DEPTH ((1 << 12) - 1)
 
 #endif /* __COLLECT_H__ */
 /** @} */

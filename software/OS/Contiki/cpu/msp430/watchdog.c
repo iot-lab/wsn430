@@ -28,20 +28,26 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: watchdog.c,v 1.5 2008/02/11 10:45:19 adamdunkels Exp $
+ * @(#)$Id: watchdog.c,v 1.11 2010/10/24 21:10:25 adamdunkels Exp $
  */
 #include <io.h>
+#include <signal.h>
 #include "dev/watchdog.h"
 
-static int stopped = 0;
+static int counter = 0;
+
+
 /*---------------------------------------------------------------------------*/
 void
 watchdog_init(void)
 {
   /* The MSP430 watchdog is enabled at boot-up, so we stop it during
      initialization. */
-  stopped = 0;
+  counter = 0;
   watchdog_stop();
+
+  IFG1 &= ~WDTIFG;
+  IE1 |= WDTIE;
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -49,9 +55,9 @@ watchdog_start(void)
 {
   /* We setup the watchdog to reset the device after one second,
      unless watchdog_periodic() is called. */
-  stopped--;
-  if(!stopped) {
-    WDTCTL = WDTPW | WDTCNTCL | WDT_ARST_1000;
+  counter--;
+  if(counter == 0) {
+    WDTCTL = WDTPW | WDTCNTCL | WDT_ARST_1000 | WDTTMSEL;
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -60,16 +66,18 @@ watchdog_periodic(void)
 {
   /* This function is called periodically to restart the watchdog
      timer. */
-  if(!stopped) {
-    WDTCTL = (WDTCTL & 0xff) | WDTPW | WDTCNTCL;
-  }
+  /*  if(counter < 0) {*/
+    WDTCTL = (WDTCTL & 0xff) | WDTPW | WDTCNTCL | WDTTMSEL;
+    /*  }*/
 }
 /*---------------------------------------------------------------------------*/
 void
 watchdog_stop(void)
 {
-  WDTCTL = WDTPW | WDTHOLD;
-  stopped++;
+  counter++;
+  if(counter == 1) {
+    WDTCTL = WDTPW | WDTHOLD;
+  }
 }
 /*---------------------------------------------------------------------------*/
 void

@@ -34,7 +34,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: runicast.c,v 1.9 2010/01/26 10:19:26 adamdunkels Exp $
+ * $Id: runicast.c,v 1.12 2010/03/26 12:29:29 nifi Exp $
  */
 
 /**
@@ -45,11 +45,9 @@
  */
 
 #include "net/rime/runicast.h"
-#include "net/rime/neighbor.h"
 #include "net/rime.h"
 #include <string.h>
 
-#define RUNICAST_PACKET_ID_BITS 2
 
 #ifdef RUNICAST_CONF_REXMIT_TIME
 #define REXMIT_TIME RUNICAST_CONF_REXMIT_TIME
@@ -73,33 +71,42 @@ static const struct packetbuf_attrlist attributes[] =
 
 /*---------------------------------------------------------------------------*/
 static void
-sent_by_stunicast(struct stunicast_conn *stunicast)
+sent_by_stunicast(struct stunicast_conn *stunicast, int status, int num_tx)
 {
   struct runicast_conn *c = (struct runicast_conn *)stunicast;
 
-  if(c->rxmit != 0) {
-    RIMESTATS_ADD(rexmit);
-    PRINTF("%d.%d: runicast: packet %u resent %u\n",
-	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-	   packetbuf_attr(PACKETBUF_ATTR_PACKET_ID), c->rxmit);
-  }
+  PRINTF("runicast: sent_by_stunicast c->rxmit %d num_tx %d\n",
+         c->rxmit, num_tx);
 
-  c->rxmit++;
-  if(c->rxmit >= c->max_rxmit) {
-    RIMESTATS_ADD(timedout);
-    c->is_tx = 0;
-    stunicast_cancel(&c->c);
-    if(c->u->timedout) {
-      c->u->timedout(c, stunicast_receiver(&c->c), c->rxmit);
+  /* Only process data packets, not ACKs. */
+  if(packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) == PACKETBUF_ATTR_PACKET_TYPE_DATA) {
+    
+    c->rxmit += 1;
+    
+    if(c->rxmit != 0) {
+      RIMESTATS_ADD(rexmit);
+      PRINTF("%d.%d: runicast: sent_by_stunicast packet %u (%u) resent %u\n",
+             rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+             packetbuf_attr(PACKETBUF_ATTR_PACKET_ID),
+             c->sndnxt, c->rxmit);
     }
-    PRINTF("%d.%d: runicast: packet %d timed out\n",
-	   rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
-	   c->sndnxt);
-  } else {
-    int shift;
-
-    shift = c->rxmit > 4? 4: c->rxmit;
-    stunicast_set_timer(&c->c, (REXMIT_TIME) << shift);
+    if(c->rxmit >= c->max_rxmit) {
+      RIMESTATS_ADD(timedout);
+      c->is_tx = 0;
+      stunicast_cancel(&c->c);
+      if(c->u->timedout) {
+        c->u->timedout(c, stunicast_receiver(&c->c), c->rxmit);
+      }
+      c->rxmit = 0;
+      PRINTF("%d.%d: runicast: packet %d timed out\n",
+             rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
+             c->sndnxt);
+    } else {
+      int shift;
+      
+      shift = c->rxmit > 4? 4: c->rxmit;
+      stunicast_set_timer(&c->c, (REXMIT_TIME) << shift);
+    }
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -226,6 +233,7 @@ runicast_send(struct runicast_conn *c, const rimeaddr_t *receiver,
   packetbuf_set_attr(PACKETBUF_ATTR_RELIABLE, 1);
   packetbuf_set_attr(PACKETBUF_ATTR_PACKET_TYPE, PACKETBUF_ATTR_PACKET_TYPE_DATA);
   packetbuf_set_attr(PACKETBUF_ATTR_PACKET_ID, c->sndnxt);
+  packetbuf_set_attr(PACKETBUF_ATTR_MAX_MAC_TRANSMISSIONS, 3);
   c->max_rxmit = max_retransmissions;
   c->rxmit = 0;
   c->is_tx = 1;

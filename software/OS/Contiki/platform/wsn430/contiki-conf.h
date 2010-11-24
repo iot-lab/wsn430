@@ -9,40 +9,63 @@
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
 
-#define WITH_CC1100
+#include "platform-conf.h"
 
+#ifdef PROJECT_CONF_H
+#include "project-conf.h"
+#endif /* PROJECT_CONF_H */
 
-#ifdef WITH_CC1100
-#define WSN430_RADIO_DRIVER cc1100_radio_driver
-#else
-#define WSN430_RADIO_DRIVER cc2420_radio_driver
-#endif
+#ifndef NETSTACK_CONF_MAC
+#define NETSTACK_CONF_MAC     csma_driver
+#endif /* NETSTACK_CONF_MAC */
 
-#define WITH_NULLMAC 0
+#ifndef NETSTACK_CONF_RDC
+//#define NETSTACK_CONF_RDC     contikimac_driver
+#define NETSTACK_CONF_RDC     xmac_driver
+#endif /* NETSTACK_CONF_RDC */
 
-/* Specifies the default MAC driver */
-#define MAC_CONF_CSMA               1
+#ifndef NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE
+#define NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE 8
+#endif /* NETSTACK_CONF_RDC_CHANNEL_CHECK_RATE */
 
-#define XMAC_CONF_COMPOWER          0
-#define CXMAC_CONF_COMPOWER         1
-
+#ifndef NETSTACK_CONF_FRAMER
+#define NETSTACK_CONF_FRAMER  framer_802154
+#endif /* NETSTACK_CONF_FRAMER */
 
 #if WITH_UIP6
-#define MAC_CONF_DRIVER             cxmac_driver
-#define MAC_CONF_CHANNEL_CHECK_RATE 8
-#define RIME_CONF_NO_POLITE_ANNOUCEMENTS 0
-#define CXMAC_CONF_ANNOUNCEMENTS    0
-#define XMAC_CONF_ANNOUNCEMENTS     0
-#else /* WITH_UIP6 */
-#define MAC_CONF_DRIVER             xmac_driver
-#define MAC_CONF_CHANNEL_CHECK_RATE 4
-#define TIMESYNCH_CONF_ENABLED 0
-#define RIME_CONF_NO_POLITE_ANNOUCEMENTS 1
-#define XMAC_CONF_ANNOUNCEMENTS     1
-#define CXMAC_CONF_ANNOUNCEMENTS    1
-#endif /* WITH_UIP6 */
+/* Network setup for IPv6 */
+#define NETSTACK_CONF_NETWORK sicslowpan_driver
+#define CXMAC_CONF_ANNOUNCEMENTS         0
+#define XMAC_CONF_ANNOUNCEMENTS          0
 
-#define QUEUEBUF_CONF_NUM          16
+#ifndef QUEUEBUF_CONF_NUM
+#define QUEUEBUF_CONF_NUM                8
+#endif
+
+#else /* WITH_UIP6 */
+
+/* Network setup for non-IPv6 (rime). */
+
+#define NETSTACK_CONF_NETWORK rime_driver
+
+#define COLLECT_CONF_ANNOUNCEMENTS       1
+#define CXMAC_CONF_ANNOUNCEMENTS         0
+#define XMAC_CONF_ANNOUNCEMENTS          0
+#define CONTIKIMAC_CONF_ANNOUNCEMENTS    0
+
+#define CONTIKIMAC_CONF_COMPOWER         1
+#define XMAC_CONF_COMPOWER               1
+#define CXMAC_CONF_COMPOWER              1
+
+#ifndef COLLECT_NEIGHBOR_CONF_MAX_COLLECT_NEIGHBORS
+#define COLLECT_NEIGHBOR_CONF_MAX_COLLECT_NEIGHBORS     32
+#endif /* COLLECT_NEIGHBOR_CONF_MAX_COLLECT_NEIGHBORS */
+
+#ifndef QUEUEBUF_CONF_NUM
+#define QUEUEBUF_CONF_NUM                16
+#endif /* QUEUEBUF_CONF_NUM */
+
+#endif /* WITH_UIP6 */
 
 #define PACKETBUF_CONF_ATTRS_INLINE 1
 
@@ -50,45 +73,24 @@
 #define RF_CHANNEL              26
 #endif /* RF_CHANNEL */
 
+#define CONTIKIMAC_CONF_BROADCAST_RATE_LIMIT 0
+
 #define IEEE802154_CONF_PANID       0xABCD
 
 #define SHELL_VARS_CONF_RAM_BEGIN 0x1100
 #define SHELL_VARS_CONF_RAM_END 0x2000
 
-
-
-#define CFS_CONF_OFFSET_TYPE	long
-
 #define PROFILE_CONF_ON 0
 #define ENERGEST_CONF_ON 1
-
-#define HAVE_STDINT_H
-#define MSP430_MEMCPY_WORKAROUND 1
-#include "msp430def.h"
-
-
-#define CCIF
-#define CLIF
-
-#define CC_CONF_INLINE inline
 
 #define AODV_COMPLIANCE
 #define AODV_NUM_RT_ENTRIES 32
 
-#define TMOTE_SKY 1
 #define WITH_ASCII 1
 
 #define PROCESS_CONF_NUMEVENTS 8
 #define PROCESS_CONF_STATS 1
 /*#define PROCESS_CONF_FASTPOLL    4*/
-
-/* CPU target speed in Hz */
-#define F_CPU 8000000uL
-
-/* Our clock resolution, this is the same as Unix HZ. */
-#define CLOCK_CONF_SECOND 128
-
-#define BAUD2UBR(baud) ((F_CPU/baud))
 
 #ifdef WITH_UIP6
 
@@ -97,12 +99,27 @@
 #define UIP_CONF_LL_802154              1
 #define UIP_CONF_LLH_LEN                0
 
-#ifndef UIP_CONF_ROUTER
-#define UIP_CONF_ROUTER			0
-#endif
+#define UIP_CONF_ROUTER                 1
+#ifndef UIP_CONF_IPV6_RPL
+#define UIP_CONF_IPV6_RPL               1
+#endif /* UIP_CONF_IPV6_RPL */
+
+/* configure number of neighbors and routes */
+#ifndef UIP_CONF_DS6_NBR_NBU
+#define UIP_CONF_DS6_NBR_NBU     30
+#endif /* UIP_CONF_DS6_NBR_NBU */
+#ifndef UIP_CONF_DS6_ROUTE_NBU
+#define UIP_CONF_DS6_ROUTE_NBU   30
+#endif /* UIP_CONF_DS6_ROUTE_NBU */
+
+#define UIP_CONF_ND6_SEND_RA		0
+#define UIP_CONF_ND6_REACHABLE_TIME     600000
+#define UIP_CONF_ND6_RETRANS_TIMER      10000
 
 #define UIP_CONF_IPV6                   1
-#define UIP_CONF_IPV6_QUEUE_PKT         1
+#ifndef UIP_CONF_IPV6_QUEUE_PKT
+#define UIP_CONF_IPV6_QUEUE_PKT         0
+#endif /* UIP_CONF_IPV6_QUEUE_PKT */
 #define UIP_CONF_IPV6_CHECKS            1
 #define UIP_CONF_IPV6_REASSEMBLY        0
 #define UIP_CONF_NETIF_MAX_ADDRESSES    3
@@ -110,18 +127,21 @@
 #define UIP_CONF_ND6_MAX_NEIGHBORS      4
 #define UIP_CONF_ND6_MAX_DEFROUTERS     2
 #define UIP_CONF_IP_FORWARD             0
+#ifndef UIP_CONF_BUFFER_SIZE
 #define UIP_CONF_BUFFER_SIZE		240
+#endif
 
 #define SICSLOWPAN_CONF_COMPRESSION_IPV6        0
 #define SICSLOWPAN_CONF_COMPRESSION_HC1         1
 #define SICSLOWPAN_CONF_COMPRESSION_HC01        2
-#define SICSLOWPAN_CONF_COMPRESSION             SICSLOWPAN_CONF_COMPRESSION_HC01
+#define SICSLOWPAN_CONF_COMPRESSION             SICSLOWPAN_COMPRESSION_HC06
 #ifndef SICSLOWPAN_CONF_FRAG
 #define SICSLOWPAN_CONF_FRAG                    1
 #define SICSLOWPAN_CONF_MAXAGE                  8
 #endif /* SICSLOWPAN_CONF_FRAG */
 #define SICSLOWPAN_CONF_CONVENTIONAL_MAC	1
 #define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS       2
+#define SICSLOWPAN_CONF_MAX_MAC_TRANSMISSIONS   5
 #else /* WITH_UIP6 */
 #define UIP_CONF_IP_FORWARD      1
 #define UIP_CONF_BUFFER_SIZE     108
@@ -131,8 +151,12 @@
 
 #define UIP_CONF_DHCP_LIGHT
 #define UIP_CONF_LLH_LEN         0
+#ifndef  UIP_CONF_RECEIVE_WINDOW
 #define UIP_CONF_RECEIVE_WINDOW  48
+#endif
+#ifndef  UIP_CONF_TCP_MSS
 #define UIP_CONF_TCP_MSS         48
+#endif
 #define UIP_CONF_MAX_CONNECTIONS 4
 #define UIP_CONF_MAX_LISTENPORTS 8
 #define UIP_CONF_UDP_CONNS       12
@@ -146,31 +170,6 @@
 
 #define UIP_CONF_TCP_SPLIT       0
 
-
-typedef unsigned short uip_stats_t;
-typedef unsigned short clock_time_t;
-
-
-/* External flash definitions */
-typedef unsigned long off_t;
-#define ROM_ERASE_UNIT_SIZE  512
-#define XMEM_ERASE_UNIT_SIZE (64*1024L)
-
-/* Use the first 64k of external flash for node configuration */
-#define NODE_ID_XMEM_OFFSET     (0 * XMEM_ERASE_UNIT_SIZE)
-
-/* Use the second 64k of external flash for codeprop. */
-#define EEPROMFS_ADDR_CODEPROP  (1 * XMEM_ERASE_UNIT_SIZE)
-
-#define CFS_XMEM_CONF_OFFSET    (2 * XMEM_ERASE_UNIT_SIZE)
-#define CFS_XMEM_CONF_SIZE      (1 * XMEM_ERASE_UNIT_SIZE)
-
-#define CFS_RAM_CONF_SIZE 4096
-
-
-#ifdef PROJECT_CONF_H
-#include PROJECT_CONF_H
-#endif /* PROJECT_CONF_H */
 
 
 

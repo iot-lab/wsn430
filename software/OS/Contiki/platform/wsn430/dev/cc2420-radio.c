@@ -51,19 +51,35 @@
 #include "dev/cc2420-radio.h"
 #include "cc2420.h"
 
-#include "net/rime/packetbuf.h"
+#include "net/packetbuf.h"
 #include "net/rime/rimestats.h"
-#include "rtimer.h"
+#include "net/netstack.h"
 
-#define WITH_SEND_CCA 0
+#include "sys/timetable.h"
 
-#define CCA_WAIT_TIME (5 * RTIMER_ARCH_SECOND / 10000)
+#define WITH_SEND_CCA 1
 
 #define FOOTER_LEN 2
+
+#ifndef CC2420_CONF_CHECKSUM
+#define CC2420_CONF_CHECKSUM 0
+#endif /* CC2420_CONF_CHECKSUM */
+
+#ifndef CC2420_CONF_AUTOACK
+#define CC2420_CONF_AUTOACK 0
+#endif /* CC2420_CONF_AUTOACK */
+
+#if CC2420_CONF_CHECKSUM
+#include "lib/crc16.h"
+#define CHECKSUM_LEN 2
+#else
+#define CHECKSUM_LEN 0
+#endif /* CC2420_CONF_CHECKSUM */
+
+#define AUX_LEN (CHECKSUM_LEN + FOOTER_LEN)
+
 #define FOOTER1_CRC_OK      0x80
 #define FOOTER1_CORRELATION 0x7f
-
-#define AUX_LEN (FOOTER_LEN)
 
 #define CC2420_MAX_PACKET_LEN 127
 
@@ -74,6 +90,15 @@
 #define PRINTF(...) do {} while (0)
 #endif
 
+static uint8_t volatile pending;
+
+#define BUSYWAIT_UNTIL(cond, max_time)                                  \
+  do {                                                                  \
+    rtimer_clock_t t0;                                                  \
+    t0 = RTIMER_NOW();                                                  \
+    while(!(cond) && RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + (max_time)));   \
+  } while(0)
+
 /*---------------------------------------------------------------------------*/
 PROCESS(cc2420_radio_process, "CC2420 driver")
 ;
@@ -81,11 +106,21 @@ PROCESS(cc2420_radio_process, "CC2420 driver")
 // Interface Methods
 static int cc2420_on(void);
 static int cc2420_off(void);
+
 static int cc2420_read(void *buf, unsigned short bufsize);
+
+static int cc2420_prepare(const void *data, unsigned short len);
+static int cc2420_transmit(unsigned short len);
 static int cc2420_send(const void *data, unsigned short len);
-static void cc2420_set_receiver(void(* recv)(const struct radio_driver *d));
-const struct radio_driver cc2420_radio_driver = { cc2420_send, cc2420_read,
-		cc2420_set_receiver, cc2420_on, cc2420_off, };
+
+static int cc2420_receiving_packet(void);
+static int pending_packet(void);
+static int cc2420_cca(void);
+static int detected_energy(void);
+
+const struct radio_driver cc2420_radio_driver = { cc2420_radio_init,
+		cc2420_prepare, cc2420_transmit, cc2420_send, cc2420_read, cc2420_cca,
+		cc2420_receiving_packet, pending_packet, cc2420_on, cc2420_off };
 
 // Helpful Functions
 /**
@@ -106,26 +141,23 @@ static void off(void);
 static uint8_t receive_on = 0;
 static volatile int16_t rx_flag = 0;
 
-static void (* receiver_callback)(const struct radio_driver *);
 static uint8_t locked, lock_on, lock_off;
-#define GET_LOCK() locked = 1
+#define GET_LOCK() locked++
 static void RELEASE_LOCK(void) {
-	if (lock_on) {
-		on();
-		lock_on = 0;
+	if (locked == 1) {
+		if (lock_on) {
+			on();
+			lock_on = 0;
+		}
+		if (lock_off) {
+			off();
+			lock_off = 0;
+		}
 	}
-	if (lock_off) {
-		off();
-		lock_off = 0;
-	}
-	locked = 0;
+	locked--;
 }
 /*---------------------------------------------------------------------------*/
-static void cc2420_set_receiver(void(* recv)(const struct radio_driver *)) {
-	receiver_callback = recv;
-}
-/*---------------------------------------------------------------------------*/
-void cc2420_radio_init(void) {
+int cc2420_radio_init(void) {
 
 	cc2420_init();
 	cc2420_set_frequency(2405 + 5 * 26);
@@ -139,6 +171,8 @@ void cc2420_radio_init(void) {
 
 	// Start the process
 	process_start(&cc2420_radio_process, NULL);
+
+	return 1;
 }
 /*---------------------------------------------------------------------------*/
 static int cc2420_off(void) {
@@ -154,16 +188,17 @@ static int cc2420_off(void) {
 		return 1;
 	}
 
+	GET_LOCK();
 	/* If we are currently receiving a packet (indicated by SFD == 1),
 	 we don't actually switch the radio off now, but signal that the
 	 driver should switch off the radio once the packet has been
 	 received and processed, by setting the 'lock_off' variable. */
 	if (cc2420_io_sfd_read()) {
 		lock_off = 1;
-		return 1;
+	} else {
+		off();
 	}
-
-	off();
+	RELEASE_LOCK();
 	return 1;
 }
 /*---------------------------------------------------------------------------*/
@@ -177,30 +212,23 @@ static int cc2420_on(void) {
 		return 1;
 	}
 
+	GET_LOCK();
 	on();
+	RELEASE_LOCK();
 	return 1;
 }
 /*---------------------------------------------------------------------------*/
-static int cc2420_send(const void *payload, unsigned short payload_len) {
+static int cc2420_transmit(unsigned short payload_len) {
 
 	int i;
 	uint8_t total_len;
+#if CC2420_CONF_CHECKSUM
+	uint16_t checksum;
+#endif /* CC2420_CONF_CHECKSUM */
+
 	GET_LOCK();
 
-	PRINTF("cc2420: sending %d bytes\n", payload_len);
-
-	RIMESTATS_ADD(lltx);
-
-	/* Wait for any previous transmission to finish. */
-	while (cc2420_get_status() & CC2420_STATUS_TX_ACTIVE)
-		;
-
-	/* Write packet to TX FIFO. */
-	cc2420_cmd_flushtx();
-
 	total_len = payload_len + AUX_LEN;
-	cc2420_fifo_put(&total_len, 1);
-	cc2420_fifo_put((uint8_t*) payload, payload_len);
 
 	/* The TX FIFO can only hold one packet. Make sure to not overrun
 	 * FIFO by waiting for transmission to start here and synchronizing
@@ -209,11 +237,15 @@ static int cc2420_send(const void *payload, unsigned short payload_len) {
 	 * Note that we may have to wait up to 320 us (20 symbols) before
 	 * transmission starts.
 	 */
-#define LOOP_20_SYMBOLS 400	/* 326us (msp430 @ 2.4576MHz) */
+#ifndef CC2420_CONF_SYMBOL_LOOP_COUNT
+#error CC2420_CONF_SYMBOL_LOOP_COUNT needs to be set!!!
+#else
+#define LOOP_20_SYMBOLS CC2420_CONF_SYMBOL_LOOP_COUNT
+#endif
 
 #if WITH_SEND_CCA
 	cc2420_cmd_rx();
-	while(!(cc2420_get_status() & CC2420_STATUS_TX_ACTIVE));
+	BUSYWAIT_UNTIL(cc2420_get_status() & CC2420_STATUS_TX_ACTIVE, RTIMER_SECOND / 10);
 	cc2420_cmd_txoncca();
 #else /* WITH_SEND_CCA */
 	cc2420_cmd_tx();
@@ -224,7 +256,8 @@ static int cc2420_send(const void *payload, unsigned short payload_len) {
 			if (!(cc2420_get_status() & CC2420_STATUS_TX_ACTIVE)) {
 				/* SFD went high yet we are not transmitting!
 				 * => We started receiving a packet right now */
-				return RADIO_TX_ERR;
+				RELEASE_LOCK();
+				return RADIO_TX_COLLISION;
 			}
 
 			if (receive_on) {
@@ -234,8 +267,7 @@ static int cc2420_send(const void *payload, unsigned short payload_len) {
 
 			/* We wait until transmission has ended so that we get an
 			 accurate measurement of the transmission time.*/
-			while (cc2420_get_status() & CC2420_STATUS_TX_ACTIVE)
-				;
+			BUSYWAIT_UNTIL(!(cc2420_get_status() & CC2420_STATUS_TX_ACTIVE), RTIMER_SECOND / 10);
 
 			ENERGEST_OFF(ENERGEST_TYPE_TRANSMIT);
 			if (receive_on) {
@@ -258,12 +290,50 @@ static int cc2420_send(const void *payload, unsigned short payload_len) {
 	PRINTF("cc2420: do_send() transmission never started\n");
 
 	RELEASE_LOCK();
-	return RADIO_TX_ERR; /* Transmission never started! */
+	return RADIO_TX_COLLISION; /* Transmission never started! */
+}
+/*---------------------------------------------------------------------------*/
+static int cc2420_prepare(const void *payload, unsigned short payload_len) {
+	uint8_t total_len;
+#if CC2420_CONF_CHECKSUM
+	uint16_t checksum;
+#endif /* CC2420_CONF_CHECKSUM */
+	GET_LOCK();
+
+	PRINTF("cc2420: sending %d bytes\n", payload_len);
+
+	RIMESTATS_ADD(lltx);
+
+	/* Write packet to TX FIFO. */
+	cc2420_cmd_flushtx();
+
+#if CC2420_CONF_CHECKSUM
+	checksum = crc16_data(payload, payload_len, 0);
+#endif /* CC2420_CONF_CHECKSUM */
+
+	total_len = payload_len + AUX_LEN;
+
+	cc2420_fifo_put(&total_len, 1);
+	cc2420_fifo_put((uint8_t*) payload, payload_len);
+#if CC2420_CONF_CHECKSUM
+	cc2420_fifo_put((uint8_t*) &checksum, CHECKSUM_LEN);
+#endif /* CC2420_CONF_CHECKSUM */
+
+	RELEASE_LOCK();
+	return 0;
+}
+/*---------------------------------------------------------------------------*/
+static int cc2420_send(const void *payload, unsigned short payload_len) {
+	cc2420_prepare(payload, payload_len);
+	return cc2420_transmit(payload_len);
 }
 /*---------------------------------------------------------------------------*/
 static int cc2420_read(void *buf, unsigned short bufsize) {
 	uint8_t footer[2];
 	uint8_t len;
+#if CC2420_CONF_CHECKSUM
+	uint16_t checksum;
+#endif /* CC2420_CONF_CHECKSUM */
 
 	if (!cc2420_io_fifop_read()) {
 		/* If FIFO is 0, there is no packet in the RXFIFO. */
@@ -297,9 +367,22 @@ static int cc2420_read(void *buf, unsigned short bufsize) {
 	}
 
 	cc2420_fifo_get(buf, len - AUX_LEN);
+#if CC2420_CONF_CHECKSUM
+	cc2420_fifo_get((uint8_t*)&checksum, CHECKSUM_LEN);
+#endif /* CC2420_CONF_CHECKSUM */
 	cc2420_fifo_get(footer, FOOTER_LEN);
 
+#if CC2420_CONF_CHECKSUM
+	if(checksum != crc16_data(buf, len - AUX_LEN, 0)) {
+		PRINTF("checksum failed 0x%04x != 0x%04x\n",
+				checksum, crc16_data(buf, len - AUX_LEN, 0));
+	}
+
+	if(footer[1] & FOOTER1_CRC_OK &&
+			checksum == crc16_data(buf, len - AUX_LEN, 0)) {
+#else
 	if (footer[1] & FOOTER1_CRC_OK) {
+#endif /* CC2420_CONF_CHECKSUM */
 		uint8_t cc2420_last_rssi = footer[0];
 		uint8_t cc2420_last_correlation = footer[1] & FOOTER1_CORRELATION;
 
@@ -313,17 +396,17 @@ static int cc2420_read(void *buf, unsigned short bufsize) {
 		len = AUX_LEN;
 	}
 
-	/* Clean up in case of FIFO overflow!  This happens for every full
-	 * length frame and is signaled by FIFOP = 1 and FIFO = 0.
-	 */
-	if (cc2420_io_fifop_read() && !cc2420_io_fifo_read()) {
-		/*    printf("cc2420_read: FIFOP_IS_1 1\n");*/
-		cc2420_cmd_flushrx();
-	} else if (cc2420_io_fifop_read()) {
-		/* Another packet has been received and needs attention. */
-		process_poll(&cc2420_radio_process);
+	if (cc2420_io_fifop_read()) {
+		if (!cc2420_io_fifo_read()) {
+			/* Clean up in case of FIFO overflow!  This happens for every full
+			 * length frame and is signaled by FIFOP = 1 and FIFO = 0.
+			 */
+			cc2420_cmd_flushrx();
+		} else {
+			/* Another packet has been received and needs attention. */
+			process_poll(&cc2420_radio_process);
+		}
 	}
-
 	RELEASE_LOCK();
 
 	if (len < AUX_LEN) {
@@ -335,6 +418,7 @@ static int cc2420_read(void *buf, unsigned short bufsize) {
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(cc2420_radio_process, ev, data) {
 
+	int len;
 	PROCESS_BEGIN();
 
 		PRINTF("cc2420_process: started\n");
@@ -342,14 +426,15 @@ PROCESS_THREAD(cc2420_radio_process, ev, data) {
 		while(1) {
 			PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
 
-			if(receiver_callback != NULL) {
-				PRINTF("cc2420_process: calling receiver callback\n");
-				receiver_callback(&cc2420_radio_driver);
-			} else {
-				PRINTF("cc2420_process not receiving function\n");
-				cc2420_cmd_flushrx();
-			}
-		}
+			PRINTF("cc2420_process: calling receiver callback\n");
+
+			packetbuf_clear();
+			len = cc2420_read(packetbuf_dataptr(), PACKETBUF_SIZE);
+			if(len > 0) {
+				packetbuf_set_datalen(len);
+
+				NETSTACK_RDC.input();
+			}}
 
 		PROCESS_END();
 	}
@@ -379,10 +464,13 @@ static void off(void) {
 	receive_on = 0;
 
 	/* Wait for transmission to end before turning radio off. */
-	while (cc2420_get_status() & CC2420_STATUS_TX_ACTIVE)
-		;
+	BUSYWAIT_UNTIL(!(cc2420_get_status() & CC2420_STATUS_TX_ACTIVE), RTIMER_SECOND / 10);
 
 	cc2420_cmd_idle();
 	cc2420_io_fifop_int_disable();
 	ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
+
+	if (!cc2420_io_fifop_read()) {
+		cc2420_cmd_flushrx();
+	}
 }

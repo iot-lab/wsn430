@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rtimer-arch.c,v 1.13 2010/01/30 14:03:35 adamdunkels Exp $
+ * $Id: rtimer-arch.c,v 1.15 2010/09/13 20:51:09 nifi Exp $
  */
 
 /**
@@ -77,11 +77,24 @@ rtimer_arch_init(void)
   eint();
 }
 /*---------------------------------------------------------------------------*/
+rtimer_clock_t
+rtimer_arch_now(void)
+{
+  rtimer_clock_t t1, t2;
+  do {
+    t1 = TAR;
+    t2 = TAR;
+  } while(t1 != t2);
+  return t1;
+}
+/*---------------------------------------------------------------------------*/
 void
 rtimer_arch_schedule(rtimer_clock_t t)
 {
   PRINTF("rtimer_arch_schedule time %u\n", t);
 
+  TACTL &= ~MC1;
   TACCR0 = t;
+  TACTL |= MC1;
 }
 /*---------------------------------------------------------------------------*/

@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: process.c,v 1.10 2010/02/02 21:13:27 adamdunkels Exp $
+ * @(#)$Id: process.c,v 1.12 2010/10/20 22:24:46 adamdunkels Exp $
  */
 
 /**
@@ -115,7 +115,7 @@ process_start(struct process *p, const char *arg)
   p->state = PROCESS_STATE_RUNNING;
   PT_INIT(&p->pt);
 
-  PRINTF("process: starting '%s'\n", p->name);
+  PRINTF("process: starting '%s'\n", PROCESS_NAME_STRING(p));
 
   /* Post a synchronous initialization event to the process. */
   process_post_synch(p, PROCESS_EVENT_INIT, (process_data_t)arg);
@@ -127,7 +127,14 @@ exit_process(struct process *p, struct process *fromprocess)
   register struct process *q;
   struct process *old_current = process_current;
 
-  PRINTF("process: exit_process '%s'\n", p->name);
+  PRINTF("process: exit_process '%s'\n", PROCESS_NAME_STRING(p));
+
+  /* Make sure the process is in the process list before we try to
+     exit it. */
+  for(q = process_list; q != p && q != NULL; q = q->next);
+  if(q == NULL) {
+    return;
+  }
 
   if(process_is_running(p)) {
     /* Process was running */
@@ -150,7 +157,7 @@ exit_process(struct process *p, struct process *fromprocess)
       p->thread(&p->pt, PROCESS_EVENT_EXIT, NULL);
     }
   }
-  
+
   if(p == process_list) {
     process_list = process_list->next;
   } else {
@@ -172,13 +179,13 @@ call_process(struct process *p, process_event_t ev, process_data_t data)
 
 #if DEBUG
   if(p->state == PROCESS_STATE_CALLED) {
-    printf("process: process '%s' called again with event %d\n", p->name, ev);
+    printf("process: process '%s' called again with event %d\n", PROCESS_NAME_STRING(p), ev);
   }
 #endif /* DEBUG */
   
   if((p->state & PROCESS_STATE_RUNNING) &&
      p->thread != NULL) {
-    PRINTF("process: calling process '%s' with event %d\n", p->name, ev);
+    PRINTF("process: calling process '%s' with event %d\n", PROCESS_NAME_STRING(p), ev);
     process_current = p;
     p->state = PROCESS_STATE_CALLED;
     ret = p->thread(&p->pt, ev, data);
@@ -319,19 +326,19 @@ process_post(struct process *p, process_event_t ev, process_data_t data)
 
   if(PROCESS_CURRENT() == NULL) {
     PRINTF("process_post: NULL process posts event %d to process '%s', nevents %d\n",
-	   ev, p->name, nevents);
+	   ev,PROCESS_NAME_STRING(p), nevents);
   } else {
     PRINTF("process_post: Process '%s' posts event %d to process '%s', nevents %d\n",
-	   PROCESS_CURRENT()->name, ev,
-	   p == PROCESS_BROADCAST? "<broadcast>": p->name, nevents);
+	   PROCESS_NAME_STRING(PROCESS_CURRENT()), ev,
+	   p == PROCESS_BROADCAST? "<broadcast>": PROCESS_NAME_STRING(p), nevents);
   }
   
   if(nevents == PROCESS_CONF_NUMEVENTS) {
 #if DEBUG
     if(p == PROCESS_BROADCAST) {
-      printf("soft panic: event queue is full when broadcast event %d was posted from %s\n", ev, process_current->name);
+      printf("soft panic: event queue is full when broadcast event %d was posted from %s\n", ev, PROCESS_NAME_STRING(process_current));
     } else {
-      printf("soft panic: event queue is full when event %d was posted to %s frpm %s\n", ev, p->name, process_current->name);
+      printf("soft panic: event queue is full when event %d was posted to %s frpm %s\n", ev, PROCESS_NAME_STRING(p), PROCESS_NAME_STRING(process_current));
     }
 #endif /* DEBUG */
     return PROCESS_ERR_FULL;

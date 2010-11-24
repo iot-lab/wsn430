@@ -60,7 +60,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: stunicast.h,v 1.4 2009/11/08 19:40:18 adamdunkels Exp $
+ * $Id: stunicast.h,v 1.7 2010/06/14 19:19:17 adamdunkels Exp $
  */
 
 /**
@@ -73,9 +73,9 @@
 #ifndef __STUNICAST_H__
 #define __STUNICAST_H__
 
+#include "sys/ctimer.h"
 #include "net/rime/unicast.h"
-#include "net/rime/ctimer.h"
-#include "net/rime/queuebuf.h"
+#include "net/queuebuf.h"
 
 struct stunicast_conn;
 
@@ -83,7 +83,7 @@ struct stunicast_conn;
 
 struct stunicast_callbacks {
   void (* recv)(struct stunicast_conn *c, const rimeaddr_t *from);
-  void (* sent)(struct stunicast_conn *c);
+  void (* sent)(struct stunicast_conn *c, int status, int num_tx);
 };
 
 struct stunicast_conn {

@@ -63,6 +63,8 @@
 #define ICMP6_NS                        135  /**< Neighbor Solicitation */
 #define ICMP6_NA                        136  /**< Neighbor advertisement */
 #define ICMP6_REDIRECT                  137  /**< Redirect */
+
+#define ICMP6_RPL                       155  /**< RPL */
 /** @} */
 
 
@@ -96,9 +98,9 @@
 #define UIP_ICMP6_ERROR_LEN               4
 
 /** \brief ICMPv6 Error message constant part */
-struct uip_icmp6_error{
+typedef struct uip_icmp6_error{
   u32_t param;
-};
+} uip_icmp6_error;
 
 /** \name ICMPv6 RFC4443 Message processing and sending */
 /** @{ */
@@ -113,12 +115,23 @@ uip_icmp6_echo_request_input(void);
 
 /**
  * \brief Send an icmpv6 error message
- * \param type type of the Error message
+ * \param type type of the error message
  * \param code of the error message
  * \param type 32 bit parameter of the error message, semantic depends on error 
  */
 void
 uip_icmp6_error_output(u8_t type, u8_t code, u32_t param); 
+
+/**
+ * \brief Send an icmpv6 message
+ * \param dest destination address of the message
+ * \param type type of the message
+ * \param code of the message
+ * \param payload_len length of the payload
+ */
+void
+uip_icmp6_send(uip_ipaddr_t *dest, int type, int code, int payload_len);
+
 
 /** @} */
 

@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: mac.h,v 1.11 2010/02/03 16:45:12 adamdunkels Exp $
+ * $Id: mac.h,v 1.14 2010/10/03 20:37:32 adamdunkels Exp $
  */
 
 /**
@@ -44,6 +44,11 @@
 #include "contiki-conf.h"
 #include "dev/radio.h"
 
+
+typedef void (* mac_callback_t)(void *ptr, int status, int transmissions);
+
+void mac_call_sent_callback(mac_callback_t sent, void *ptr, int status, int num_tx);
+
 /**
  * The structure of a MAC protocol driver in Contiki.
  */
@@ -51,17 +56,14 @@ struct mac_driver {
   char *name;
 
   /** Initialize the MAC driver */
-  const struct mac_driver *(* init)(const struct radio_driver *r);
+  void (* init)(void);
 
   /** Send a packet from the Rime buffer  */
-  int (* send)(void);
+  void (* send)(mac_callback_t sent_callback, void *ptr);
 
-  /** Read a received packet into the Rime buffer. */
-  int (* read)(void);
-
-  /** Set a function to be called when a packet has been received. */
-  void (* set_receive_function)(void (*f)(const struct mac_driver *d));
-
+  /** Callback for getting notified of incoming packet. */
+  void (* input)(void);
+  
   /** Turn the MAC layer on. */
   int (* on)(void);
 
@@ -84,6 +86,9 @@ enum {
   /**< The MAC layer did not get an acknowledgement for the packet. */
   MAC_TX_NOACK,
 
+  /**< The MAC layer deferred the transmission for a later time. */
+  MAC_TX_DEFERRED,
+
   /**< The MAC layer transmission could not be performed because of an
      error. The upper layer may try again later. */
   MAC_TX_ERR,
@@ -93,17 +98,5 @@ enum {
      error will be fatal then as well. */
   MAC_TX_ERR_FATAL,
 };
-#ifndef MAC_CHANNEL_CHECK_RATE
-#ifdef MAC_CONF_CHANNEL_CHECK_RATE
-#define MAC_CHANNEL_CHECK_RATE MAC_CONF_CHANNEL_CHECK_RATE
-#else /* MAC_CONF_CHANNEL_CHECK_RATE */
-#define MAC_CHANNEL_CHECK_RATE 4
-#endif /* MAC_CONF_CHANNEL_CHECK_RATE */
-#endif /* MAC_CHANNEL_CHECK_RATE */
-
-#if (MAC_CHANNEL_CHECK_RATE & (MAC_CHANNEL_CHECK_RATE - 1)) != 0
-#error MAC_CONF_CHANNEL_CHECK_RATE must be a power of two (i.e., 1, 2, 4, 8, 16, 32, 64, ...).
-#error Change MAC_CONF_CHANNEL_CHECK_RATE in contiki-conf.h or in your Makefile.
-#endif
 
 #endif /* __MAC_H__ */

@@ -48,6 +48,7 @@
 
 #include "net/rime.h"
 #include "net/rime/rudolph1.h"
+//#include "cfs/cfs.h"
 
 #define DEFAULT_SEND_INTERVAL CLOCK_SECOND * 2
 #define TRICKLE_INTERVAL CLOCK_SECOND / 2

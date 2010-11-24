@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: clock.c,v 1.21 2010/01/30 14:03:35 adamdunkels Exp $
+ * @(#)$Id: clock.c,v 1.25 2010/04/04 12:29:50 adamdunkels Exp $
  */
 
 
@@ -63,7 +63,9 @@ interrupt(TIMERA1_VECTOR) timera1 (void) {
 
     /* Make sure interrupt time is future */
     do {
+      /*      TACTL &= ~MC1;*/
       TACCR1 += INTERVAL;
+      /*      TACTL |= MC1;*/
       ++count;
 
       /* Make sure the CLOCK_CONF_SECOND is a power of two, to ensure
@@ -76,6 +78,7 @@ interrupt(TIMERA1_VECTOR) timera1 (void) {
 #endif
       if(count % CLOCK_CONF_SECOND == 0) {
 	++seconds;
+        energest_flush();
       }
     } while((TACCR1 - TAR) > INTERVAL);
 
@@ -98,7 +101,12 @@ interrupt(TIMERA1_VECTOR) timera1 (void) {
 clock_time_t
 clock_time(void)
 {
-  return count;
+  clock_time_t t1, t2;
+  do {
+    t1 = count;
+    t2 = count;
+  } while(t1 != t2);
+  return t1;
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -130,8 +138,11 @@ clock_init(void)
 {
   dint();
 
-  /* Select ACLK 32768Hz clock, divide by 4 */
-  TACTL = TASSEL0 | TACLR | ID_2;
+  /* Select SMCLK (2.4576MHz), clear TAR */
+  /* TACTL = TASSEL1 | TACLR | ID_3; */
+  
+  /* Select ACLK 32768Hz clock, divide by 2 */
+  TACTL = TASSEL0 | TACLR | ID_1;
 
   /* Initialize ccr1 to create the X ms interval. */
   /* CCR1 interrupt enabled, interrupt occurs when timer equals CCR1. */

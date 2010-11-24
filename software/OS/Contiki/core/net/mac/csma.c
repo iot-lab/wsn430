@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Swedish Institute of Computer Science.
+ * Copyright (c) 2010, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,189 +28,247 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: csma.c,v 1.5 2010/02/03 01:17:54 adamdunkels Exp $
+ * $Id: csma.c,v 1.22 2010/10/24 21:07:00 adamdunkels Exp $
  */
 
 /**
  * \file
- *         A MAC 
+ *         A Carrier Sense Multiple Access (CSMA) MAC layer
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
 
-#define CSMA_CONF_REXMIT 1
-
 #include "net/mac/csma.h"
-#include "net/rime/packetbuf.h"
-#include "net/rime/queuebuf.h"
-#include "net/rime/ctimer.h"
+#include "net/packetbuf.h"
+#include "net/queuebuf.h"
+
+#include "sys/ctimer.h"
 
 #include "lib/random.h"
+
+#include "net/netstack.h"
 
 #include "lib/list.h"
 #include "lib/memb.h"
 
 #include <string.h>
 
+#define DEBUG 0
+#if DEBUG
+#include <stdio.h>
+#define PRINTF(...) printf(__VA_ARGS__)
+#else /* DEBUG */
+#define PRINTF(...)
+#endif /* DEBUG */
+
+#ifndef CSMA_MAX_MAC_TRANSMISSIONS
+#ifdef CSMA_CONF_MAX_MAC_TRANSMISSIONS
+#define CSMA_MAX_MAC_TRANSMISSIONS CSMA_CONF_MAX_MAC_TRANSMISSIONS
+#else
+#define CSMA_MAX_MAC_TRANSMISSIONS 1
+#endif /* CSMA_CONF_MAX_MAC_TRANSMISSIONS */
+#endif /* CSMA_MAX_MAC_TRANSMISSIONS */
+
+#if CSMA_MAX_MAC_TRANSMISSIONS < 1
+#error CSMA_CONF_MAX_MAC_TRANSMISSIONS must be at least 1.
+#error Change CSMA_CONF_MAX_MAC_TRANSMISSIONS in contiki-conf.h or in your Makefile.
+#endif /* CSMA_CONF_MAX_MAC_TRANSMISSIONS < 1 */
+
 struct queued_packet {
   struct queued_packet *next;
   struct queuebuf *buf;
   struct ctimer retransmit_timer;
-  uint8_t retransmits;
+  mac_callback_t sent;
+  void *cptr;
+  uint8_t transmissions, max_transmissions;
+  uint8_t collisions, deferrals;
 };
 
-#define MAX_QUEUED_PACKETS 4
-LIST(packet_list);
+#define MAX_QUEUED_PACKETS 8
 MEMB(packet_memb, struct queued_packet, MAX_QUEUED_PACKETS);
 
-static const struct mac_driver *mac;
-static void (* receiver_callback)(const struct mac_driver *);
-
-const struct mac_driver *csma_init(const struct mac_driver *psc);
+static void packet_sent(void *ptr, int status, int num_transmissions);
 
 /*---------------------------------------------------------------------------*/
-#if CSMA_CONF_REXMIT
 static void
 retransmit_packet(void *ptr)
 {
-  int ret;
   struct queued_packet *q = ptr;
 
   queuebuf_to_packetbuf(q->buf);
-  ret = mac->send();
-
+  PRINTF("csma: resending number %d %p\n", q->transmissions, q);
+  NETSTACK_RDC.send(packet_sent, q);
+}
+/*---------------------------------------------------------------------------*/
+static void
+free_packet(struct queued_packet *q)
+{
+  //  printf("free_packet %p\n", q);
+  ctimer_stop(&q->retransmit_timer);
   queuebuf_free(q->buf);
-  list_remove(packet_list, q);
   memb_free(&packet_memb, q);
 }
 /*---------------------------------------------------------------------------*/
-static int
-send_packet(void)
+static void
+packet_sent(void *ptr, int status, int num_transmissions)
 {
-  struct queuebuf *buf;
-  int ret;
-  clock_time_t time;
-  rimeaddr_t receiver;
+  struct queued_packet *q = ptr;
+  clock_time_t time = 0;
+  mac_callback_t sent;
+  void *cptr;
+  int num_tx;
 
-  /* Remember packet for later. */
-  rimeaddr_copy(&receiver, packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
-  buf = queuebuf_new_from_packetbuf();
-  ret = mac->send();
-  /*  if(ret != MAC_TX_OK) {
-    printf("CSMA: err %d\n", ret);
-    }*/
+  //  printf("packet_sent %p\n", q);
+  
+  switch(status) {
+  case MAC_TX_OK:
+  case MAC_TX_NOACK:
+    q->transmissions++;
+    break;
+  case MAC_TX_COLLISION:
+    q->collisions++;
+    break;
+  case MAC_TX_DEFERRED:
+    q->deferrals++;
+    break;
+  }
 
-  /* Check if we saw a collission, and if we have a queuebuf with the
-     packet available. Only retransmit unicast packets. Retransmit
-     only once, for now. */
-  if((ret == MAC_TX_COLLISION || ret == MAC_TX_NOACK) &&
-     buf != NULL && !rimeaddr_cmp(&receiver, &rimeaddr_null)) {
-    struct queued_packet *q;
+  sent = q->sent;
+  cptr = q->cptr;
+  num_tx = q->transmissions;
+  
+  if(status == MAC_TX_COLLISION ||
+     status == MAC_TX_NOACK) {
 
-    q = memb_alloc(&packet_memb);
-    if(q == NULL) {
-      queuebuf_free(buf);
-      return ret;
-    }
-    q->buf = buf;
-    q->retransmits = 0;
-
-    if(ret == MAC_TX_COLLISION) {
-      /* If the packet wasn't sent because of a collission, we let the
-         other packet get through before we try again. */
-      time = mac->channel_check_interval();
-      if(time == 0) {
-        time = CLOCK_SECOND;
-      }
-      time = time + (random_rand() % (3 * time));
-    } else {
-      /* If the packet didn't get an ACK, we retransmit immediately. */
-      time = 0;
-    }
+    /* If the transmission was not performed because of a collision or
+       noack, we must retransmit the packet. */
     
-    ctimer_set(&q->retransmit_timer, time,
-	       retransmit_packet, q);
-    list_add(packet_list, q);
+    switch(status) {
+    case MAC_TX_COLLISION:
+      PRINTF("csma: rexmit collision %d\n", q->transmissions);
+      break;
+    case MAC_TX_NOACK:
+      PRINTF("csma: rexmit noack %d\n", q->transmissions);
+      break;
+    default:
+      PRINTF("csma: rexmit err %d, %d\n", status, q->transmissions);
+    }
+
+    /* The retransmission time must be proportional to the channel
+       check interval of the underlying radio duty cycling layer. */
+    time = NETSTACK_RDC.channel_check_interval();
+
+    /* If the radio duty cycle has no channel check interval (i.e., it
+       does not turn the radio off), we make the retransmission time
+       proportional to the configured MAC channel check rate. */
+    if(time == 0) {
+      time = CLOCK_SECOND / NETSTACK_RDC_CHANNEL_CHECK_RATE;
+    }
+
+    /* The retransmission time uses a linear backoff so that the
+       interval between the transmissions increase with each
+       retransmit. */
+    time = time + (random_rand() % ((q->transmissions + 1) * 2 * time));
+
+    if(q->transmissions + q->collisions < q->max_transmissions) {
+      PRINTF("csma: retransmitting with time %lu %p\n", time, q);
+      ctimer_set(&q->retransmit_timer, time,
+                 retransmit_packet, q);
+    } else {
+      PRINTF("csma: drop after %d\n", q->transmissions);
+      queuebuf_to_packetbuf(q->buf);
+      free_packet(q);
+      //      printf("call 1 %p\n", cptr);
+      mac_call_sent_callback(sent, cptr, status, num_tx);
+    }
   } else {
-    queuebuf_free(buf);
-  }
-  return ret;
-}
-#else /* CSMA_CONF_REXMIT */
-static int
-send_packet(void)
-{
-  return mac->send();
-}
-#endif /* CSMA_CONF_REXMIT */
-/*---------------------------------------------------------------------------*/
-static void
-input_packet(const struct mac_driver *d)
-{
-  if(receiver_callback) {
-    receiver_callback(&csma_driver);
+    if(status == MAC_TX_OK) {
+      PRINTF("csma: rexmit ok %d\n", q->transmissions);
+    } else {
+      PRINTF("csma: rexmit failed %d: %d\n", q->transmissions, status);
+    }
+    queuebuf_to_packetbuf(q->buf);
+    free_packet(q);
+    //    printf("call 2 %p\n", cptr);
+    mac_call_sent_callback(sent, cptr, status, num_tx);
   }
 }
 /*---------------------------------------------------------------------------*/
-static int
-read_packet(void)
+static void
+send_packet(mac_callback_t sent, void *ptr)
 {
-  int len;
-  len = mac->read();
-  return len;
+  struct queued_packet *q;
+  static uint16_t seqno;
+  
+  packetbuf_set_attr(PACKETBUF_ATTR_MAC_SEQNO, seqno++);
+  
+  /* Remember packet for later. */
+  q = memb_alloc(&packet_memb);
+  if(q != NULL) {
+    //    printf("send_packet %p\n", q);
+    q->buf = queuebuf_new_from_packetbuf();
+    if(q != NULL) {
+      if(packetbuf_attr(PACKETBUF_ATTR_MAX_MAC_TRANSMISSIONS) == 0) {
+        /* Use default configuration for max transmissions */
+        q->max_transmissions = CSMA_MAX_MAC_TRANSMISSIONS;
+      } else {
+        q->max_transmissions =
+          packetbuf_attr(PACKETBUF_ATTR_MAX_MAC_TRANSMISSIONS);
+      }
+      q->transmissions = 0;
+      q->collisions = 0;
+      q->deferrals = 0;
+      q->sent = sent;
+      q->cptr = ptr;
+      NETSTACK_RDC.send(packet_sent, q);
+      return;
+    }
+    memb_free(&packet_memb, q);
+  }
+  PRINTF("csma: could not allocate queuebuf, will drop if collision or noack\n");
+  NETSTACK_RDC.send(sent, ptr);
 }
 /*---------------------------------------------------------------------------*/
 static void
-set_receive_function(void (* recv)(const struct mac_driver *))
+input_packet(void)
 {
-  receiver_callback = recv;
+  NETSTACK_NETWORK.input();
 }
 /*---------------------------------------------------------------------------*/
 static int
 on(void)
 {
-  return mac->on();
+  return NETSTACK_RDC.on();
 }
 /*---------------------------------------------------------------------------*/
 static int
 off(int keep_radio_on)
 {
-  return mac->off(keep_radio_on);
+  return NETSTACK_RDC.off(keep_radio_on);
 }
 /*---------------------------------------------------------------------------*/
 static unsigned short
 channel_check_interval(void)
 {
-  if(mac->channel_check_interval) {
-    return mac->channel_check_interval();
+  if(NETSTACK_RDC.channel_check_interval) {
+    return NETSTACK_RDC.channel_check_interval();
   }
   return 0;
 }
 /*---------------------------------------------------------------------------*/
-#define NAMEBUF_LEN 16
-static char namebuf[NAMEBUF_LEN];
+static void
+init(void)
+{
+  memb_init(&packet_memb);
+}
+/*---------------------------------------------------------------------------*/
 const struct mac_driver csma_driver = {
-  namebuf,
-  NULL,
+  "CSMA",
+  init,
   send_packet,
-  read_packet,
-  set_receive_function,
+  input_packet,
   on,
   off,
   channel_check_interval,
 };
-/*---------------------------------------------------------------------------*/
-const struct mac_driver *
-csma_init(const struct mac_driver *psc)
-{
-  memb_init(&packet_memb);
-  list_init(packet_list);
-  mac = psc;
-  mac->set_receive_function(input_packet);
-  /*  printf("CSMA with MAC %s, channel check rate %d Hz\n", mac->name,
-      CLOCK_SECOND / channel_check_interval());*/
-  memcpy(namebuf, "CSMA ", 5);
-  memcpy(namebuf + 5, psc->name, NAMEBUF_LEN - 6);
-  return &csma_driver;
-}
 /*---------------------------------------------------------------------------*/

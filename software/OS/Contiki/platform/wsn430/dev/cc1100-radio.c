@@ -51,9 +51,11 @@
 #include "dev/cc1100-radio.h"
 #include "cc1100.h"
 
-#include "net/rime/packetbuf.h"
+#include "net/packetbuf.h"
 #include "net/rime/rimestats.h"
-#include "rtimer.h"
+#include "net/netstack.h"
+
+#include "sys/timetable.h"
 
 #define WITH_SEND_CCA 0
 
@@ -76,11 +78,21 @@ PROCESS(cc1100_radio_process, "CC1100 driver")
 // Interface Methods
 static int cc1100_on(void);
 static int cc1100_off(void);
+
 static int cc1100_read(void *buf, unsigned short bufsize);
+
+static int cc1100_prepare(const void *data, unsigned short len);
+static int cc1100_transmit(unsigned short len);
 static int cc1100_send(const void *data, unsigned short len);
-static void cc1100_set_receiver(void(* recv)(const struct radio_driver *d));
-const struct radio_driver cc1100_radio_driver = { cc1100_send, cc1100_read,
-		cc1100_set_receiver, cc1100_on, cc1100_off, };
+
+static int cc1100_receiving_packet(void);
+static int pending_packet(void);
+static int cc1100_cca(void);
+static int detected_energy(void);
+
+const struct radio_driver cc1100_radio_driver = { cc1100_radio_init,
+		cc1100_prepare, cc1100_transmit, cc1100_send, cc1100_read, cc1100_cca,
+		cc1100_receiving_packet, pending_packet, cc1100_on, cc1100_off};
 
 // Helpful Functions
 /**
@@ -115,14 +127,8 @@ static uint8_t rx_buffer_ptr = 0;
 static uint8_t receive_on = 0;
 static volatile int16_t rx_flag = 0;
 
-static void (* receiver_callback)(const struct radio_driver *);
-
 /*---------------------------------------------------------------------------*/
-static void cc1100_set_receiver(void(* recv)(const struct radio_driver *)) {
-	receiver_callback = recv;
-}
-/*---------------------------------------------------------------------------*/
-void cc1100_radio_init(void) {
+int cc1100_radio_init(void) {
 	cc1100_init();
 	cc1100_cmd_idle();
 
@@ -165,6 +171,8 @@ void cc1100_radio_init(void) {
 
 	// Start the process
 	process_start(&cc1100_radio_process, NULL);
+
+	return 1;
 }
 /*---------------------------------------------------------------------------*/
 static int cc1100_off(void) {
@@ -189,7 +197,8 @@ static int cc1100_on(void) {
 	return 1;
 }
 /*---------------------------------------------------------------------------*/
-static int cc1100_send(const void *payload, unsigned short payload_len) {
+static const void *tx_payload;
+static int cc1100_transmit(unsigned short payload_len) {
 	uint16_t len, ptr;
 
 	// check the length
@@ -205,8 +214,6 @@ static int cc1100_send(const void *payload, unsigned short payload_len) {
 		PRINTF("cc1100_send: radio busy, RX\n");
 		return RADIO_TX_ERR;
 	}
-
-	PRINTF("cc1100_send: sending %u bytes\n", payload_len);
 
 	// Disable Interrupts
 	cc1100_gdo0_int_disable();
@@ -273,7 +280,7 @@ static int cc1100_send(const void *payload, unsigned short payload_len) {
 	cc1100_fifo_put(&totlen, 1);
 
 	/* Put the maximum number of bytes */
-	cc1100_fifo_put((uint8_t*) payload, len);
+	cc1100_fifo_put((uint8_t*) tx_payload, len);
 
 	if (receive_on) {
 		ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
@@ -293,7 +300,7 @@ static int cc1100_send(const void *payload, unsigned short payload_len) {
 
 		// refill fifo
 		len = ((payload_len - ptr) > 50) ? 50 : (payload_len - ptr);
-		cc1100_fifo_put(&((uint8_t*) payload)[ptr], len);
+		cc1100_fifo_put(&((uint8_t*) tx_payload)[ptr], len);
 		ptr += len;
 	}
 
@@ -315,6 +322,21 @@ static int cc1100_send(const void *payload, unsigned short payload_len) {
 	return RADIO_TX_OK;
 }
 /*---------------------------------------------------------------------------*/
+static int cc1100_prepare(const void *payload, unsigned short payload_len) {
+	PRINTF("cc1100: sending %d bytes\n", payload_len);
+
+	RIMESTATS_ADD(lltx);
+
+	//HACK: just store pointer
+	tx_payload = payload;
+	return 0;
+}
+/*---------------------------------------------------------------------------*/
+static int cc1100_send(const void *payload, unsigned short payload_len) {
+	cc1100_prepare(payload, payload_len);
+	return cc1100_transmit(payload_len);
+}
+/*---------------------------------------------------------------------------*/
 static int cc1100_read(void *buf, unsigned short bufsize) {
 	int retlen;
 
@@ -324,7 +346,7 @@ static int cc1100_read(void *buf, unsigned short bufsize) {
 			rx();
 		}
 
-		// If n opacket received, return
+		// If no packet received, return
 		if (rx_buffer_len == 0)
 			return 0;
 	}
@@ -345,17 +367,36 @@ static int cc1100_read(void *buf, unsigned short bufsize) {
 	rx_buffer_len = 0;
 	return retlen;
 }
+
+/*---------------------------------------------------------------------------*/
+static int cc1100_cca(void) {
+	return !cc1100_receiving_packet();
+}
+/*---------------------------------------------------------------------------*/
+int cc1100_receiving_packet(void) {
+	return cc1100_gdo0_read();
+}
+/*---------------------------------------------------------------------------*/
+static int pending_packet(void) {
+	return (rx_buffer_len > 0);
+}
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(cc1100_radio_process, ev, data) {
+	int len;
 	PROCESS_BEGIN();
 		PRINTF("cc1100_radio_process: started\n");
 
 		while(1) {
 			PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
 			// The only event we can receive is when packet RX has started
-
-			if (rx() && receiver_callback) {
-				receiver_callback(&cc1100_radio_driver);
+			if (rx()) {
+				PRINTF("cc1100_process: calling receiver callback\n");
+				packetbuf_clear();
+				len = cc1100_read(packetbuf_dataptr(), PACKETBUF_SIZE);
+				if(len > 0) {
+					packetbuf_set_datalen(len);
+					NETSTACK_RDC.input();
+				}
 			}
 		}
 		PROCESS_END();

@@ -45,7 +45,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: trickle.h,v 1.11 2009/04/06 21:20:35 adamdunkels Exp $
+ * $Id: trickle.h,v 1.13 2010/06/14 19:19:17 adamdunkels Exp $
  */
 
 /**
@@ -58,9 +58,10 @@
 #ifndef __TRICKLE_H__
 #define __TRICKLE_H__
 
+#include "sys/ctimer.h"
+
 #include "net/rime/broadcast.h"
-#include "net/rime/ctimer.h"
-#include "net/rime/queuebuf.h"
+#include "net/queuebuf.h"
 
 #define TRICKLE_ATTRIBUTES  { PACKETBUF_ATTR_EPACKET_ID, PACKETBUF_ATTR_BIT * 8 },\
                             BROADCAST_ATTRIBUTES

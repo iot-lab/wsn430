@@ -43,7 +43,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: list.c,v 1.2 2008/12/16 09:59:42 joxe Exp $
+ * $Id: list.c,v 1.5 2010/06/15 18:54:27 adamdunkels Exp $
  */
 #include "lib/list.h"
 
@@ -144,6 +144,9 @@ list_add(list_t list, void *item)
 {
   struct list *l;
 
+  /* Make sure not to add the same element twice */
+  list_remove(list, item);
+
   ((struct list *)item)->next = NULL;
   
   l = list_tail(list);
@@ -162,6 +165,9 @@ void
 list_push(list_t list, void *item)
 {
   /*  struct list *l;*/
+
+  /* Make sure not to add the same element twice */
+  list_remove(list, item);
 
   ((struct list *)item)->next = *list;
   *list = item;
@@ -303,6 +309,22 @@ list_insert(list_t list, void *previtem, void *newitem)
     ((struct list *)newitem)->next = ((struct list *)previtem)->next;
     ((struct list *)previtem)->next = newitem;
   }
+}
+/*---------------------------------------------------------------------------*/
+/**
+ * \brief      Get the next item following this item
+ * \param item A list item
+ * \returns    A next item on the list
+ *
+ *             This function takes a list item and returns the next
+ *             item on the list, or NULL if there are no more items on
+ *             the list. This function is used when iterating through
+ *             lists.
+ */
+void *
+list_item_next(void *item)
+{
+  return item == NULL? NULL: ((struct list *)item)->next;
 }
 /*---------------------------------------------------------------------------*/
 /** @} */

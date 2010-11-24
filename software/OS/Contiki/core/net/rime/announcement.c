@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: announcement.c,v 1.2 2009/11/08 19:40:17 adamdunkels Exp $
+ * $Id: announcement.c,v 1.6 2010/06/15 19:22:25 adamdunkels Exp $
  */
 
 /**
@@ -50,7 +50,7 @@
 LIST(announcements);
 
 static void (* listen_callback)(int time);
-static void (* observer_callback)(uint16_t id, uint16_t val);
+static announcement_observer observer_callback;
 
 /*---------------------------------------------------------------------------*/
 void
@@ -60,15 +60,16 @@ announcement_init(void)
 }
 /*---------------------------------------------------------------------------*/
 void
-announcement_register(struct announcement *a, uint16_t id, uint16_t value,
+announcement_register(struct announcement *a, uint16_t id,
 		      announcement_callback_t callback)
 {
   a->id = id;
-  a->value = value;
+  a->has_value = 0;
   a->callback = callback;
   list_add(announcements, a);
   if(observer_callback) {
-    observer_callback(a->id, a->value);
+    observer_callback(a->id, a->has_value,
+                      a->value, 0, ANNOUNCEMENT_BUMP);
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -79,20 +80,34 @@ announcement_remove(struct announcement *a)
 }
 /*---------------------------------------------------------------------------*/
 void
+announcement_remove_value(struct announcement *a)
+{
+  a->has_value = 0;
+  if(observer_callback) {
+    observer_callback(a->id, 0, 0, 0, ANNOUNCEMENT_NOBUMP);
+  }
+
+}
+/*---------------------------------------------------------------------------*/
+void
 announcement_set_value(struct announcement *a, uint16_t value)
 {
+  uint16_t oldvalue = a->value;
+
+  a->has_value = 1;
   a->value = value;
   if(observer_callback) {
-    observer_callback(a->id, a->value);
+    observer_callback(a->id, a->has_value,
+                      value, oldvalue, ANNOUNCEMENT_NOBUMP);
   }
 }
 /*---------------------------------------------------------------------------*/
 void
-announcement_set_id(struct announcement *a, uint16_t id)
+announcement_bump(struct announcement *a)
 {
-  a->id = id;
   if(observer_callback) {
-    observer_callback(a->id, a->value);
+    observer_callback(a->id, a->has_value,
+                      a->value, a->value, ANNOUNCEMENT_BUMP);
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -111,7 +126,7 @@ announcement_register_listen_callback(void (*callback)(int time))
 }
 /*---------------------------------------------------------------------------*/
 void
-announcement_register_observer_callback(void (*callback)(uint16_t id, uint16_t value))
+announcement_register_observer_callback(announcement_observer callback)
 {
   observer_callback = callback;
 }
@@ -126,7 +141,7 @@ void
 announcement_heard(const rimeaddr_t *from, uint16_t id, uint16_t value)
 {
   struct announcement *a;
-  for(a = list_head(announcements); a != NULL; a = a->next) {
+  for(a = list_head(announcements); a != NULL; a = list_item_next(a)) {
     if(a->id == id) {
       if(a->callback != NULL) {
 	a->callback(a, from, id, value);

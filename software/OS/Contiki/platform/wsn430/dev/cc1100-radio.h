@@ -46,7 +46,7 @@
 #include "contiki.h"
 #include "dev/radio.h"
 
-void cc1100_radio_init(void);
+int cc1100_radio_init(void);
 
 extern const struct radio_driver cc1100_radio_driver;
 

@@ -54,7 +54,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: announcement.h,v 1.5 2009/11/08 19:40:17 adamdunkels Exp $
+ * $Id: announcement.h,v 1.8 2010/03/25 08:49:56 adamdunkels Exp $
  */
 
 /**
@@ -86,6 +86,7 @@ struct announcement {
   uint16_t id;
   uint16_t value;
   announcement_callback_t callback;
+  uint8_t has_value;
 };
 
 /**
@@ -96,7 +97,6 @@ struct announcement {
  * \brief      Register an announcement
  * \param a    A pointer to a struct announcement
  * \param id   The identifying number of the announcement
- * \param value The initial value of the announcement
  * \param callback A pointer to a callback function that is called
  *             when an announcement is heard
  *
@@ -112,7 +112,7 @@ struct announcement {
  *
  */
 void announcement_register(struct announcement *a,
-			   uint16_t id, uint16_t value,
+			   uint16_t id,
 			   announcement_callback_t callback);
 
 /**
@@ -140,18 +140,32 @@ void announcement_remove(struct announcement *a);
  */
 void announcement_set_value(struct announcement *a, uint16_t value);
 
-
 /**
- * \brief      Set the identifier of an announcement
+ * \brief      Remove the value of an announcement
  * \param a    A pointer to a struct announcement that has
  *             previously been registered
  *
- *             This function sets the identifier of an announcement
- *             that has previously been registered with
+ *             This function removes the value of an announcement that
+ *             has previously been registered with
  *             announcement_register().
  *
  */
-void announcement_set_id(struct announcement *a, uint16_t id);
+void announcement_remove_value(struct announcement *a);
+
+
+/**
+ * \brief      Bump an announcement
+ * \param a    A pointer to a struct announcement that has
+ *             previously been registered
+ *
+ *             This function is called to inform the announcement
+ *             module that a particular announcement has changed in a
+ *             way that it should be bumped. When an announcement is
+ *             bumped, the announcement back-end may send out a new
+ *             announcement to neighbors.
+ *
+ */
+void announcement_bump(struct announcement *a);
 
 /**
  * \brief      Listen for announcements for a specific amount of
@@ -225,6 +239,15 @@ void announcement_heard(const rimeaddr_t *from, uint16_t id, uint16_t value);
  */
 void announcement_register_listen_callback(void (*callback)(int time));
 
+enum {
+  ANNOUNCEMENT_NOBUMP,
+  ANNOUNCEMENT_BUMP,
+};
+
+typedef void (* announcement_observer)(uint16_t id, uint8_t has_value,
+                                       uint16_t newvalue, uint16_t oldvalue,
+                                       uint8_t bump);
+
 /**
  * \brief      Register an observer callback with the announcement module
  * \param observer A pointer to an observer function
@@ -239,8 +262,7 @@ void announcement_register_listen_callback(void (*callback)(int time));
  *             message with the updated values.
  *
  */
-void announcement_register_observer_callback(void (*observer)(uint16_t id,
-							      uint16_t value));
+void announcement_register_observer_callback(announcement_observer observer);
 
 /**
  * @}

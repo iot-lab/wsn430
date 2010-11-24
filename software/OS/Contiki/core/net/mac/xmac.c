@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: xmac.c,v 1.52 2010/02/03 01:17:32 adamdunkels Exp $
+ * $Id: xmac.c,v 1.59 2010/10/03 22:46:53 joxe Exp $
  */
 
 /**
@@ -44,7 +44,7 @@
 #include "dev/radio.h"
 #include "dev/watchdog.h"
 #include "lib/random.h"
-#include "net/mac/framer.h"
+#include "net/netstack.h"
 #include "net/mac/xmac.h"
 #include "net/rime.h"
 #include "net/rime/timesynch.h"
@@ -61,7 +61,7 @@
 #include <string.h>
 
 #ifndef WITH_ACK_OPTIMIZATION
-#define WITH_ACK_OPTIMIZATION        1
+#define WITH_ACK_OPTIMIZATION        0
 #endif
 #ifndef WITH_ENCOUNTER_OPTIMIZATION
 #define WITH_ENCOUNTER_OPTIMIZATION  1
@@ -70,7 +70,7 @@
 #define WITH_STREAMING               1
 #endif
 #ifndef WITH_STROBE_BROADCAST
-#define WITH_STROBE_BROADCAST        1
+#define WITH_STROBE_BROADCAST        0
 #endif
 
 struct announcement_data {
@@ -114,7 +114,7 @@ struct xmac_hdr {
 #ifdef XMAC_CONF_OFF_TIME
 #define DEFAULT_OFF_TIME (XMAC_CONF_OFF_TIME)
 #else
-#define DEFAULT_OFF_TIME (RTIMER_ARCH_SECOND / MAC_CHANNEL_CHECK_RATE - DEFAULT_ON_TIME)
+#define DEFAULT_OFF_TIME (RTIMER_ARCH_SECOND / NETSTACK_RDC_CHANNEL_CHECK_RATE - DEFAULT_ON_TIME)
 #endif
 
 #define DEFAULT_PERIOD (DEFAULT_OFF_TIME + DEFAULT_ON_TIME)
@@ -158,8 +158,6 @@ static volatile unsigned char someone_is_sending = 0;
 static volatile unsigned char we_are_sending = 0;
 static volatile unsigned char radio_is_on = 0;
 
-static const struct radio_driver *radio;
-
 #undef LEDS_ON
 #undef LEDS_OFF
 #undef LEDS_TOGGLE
@@ -194,8 +192,6 @@ static int announcement_radio_txpower;
    for announcements from neighbors. */
 static uint8_t is_listening;
 
-static void (* receiver_callback)(const struct mac_driver *);
-
 #if XMAC_CONF_COMPOWER
 static struct compower_activity current_packet;
 #endif /* XMAC_CONF_COMPOWER */
@@ -225,19 +221,22 @@ static rtimer_clock_t stream_until;
 #define MIN(a, b) ((a) < (b)? (a) : (b))
 #endif /* MIN */
 
-/*---------------------------------------------------------------------------*/
-static void
-set_receive_function(void (* recv)(const struct mac_driver *))
-{
-  receiver_callback = recv;
-}
+struct seqno {
+  rimeaddr_t sender;
+  uint8_t seqno;
+};
+
+#define MAX_SEQNOS 8
+static struct seqno received_seqnos[MAX_SEQNOS];
+
+
 /*---------------------------------------------------------------------------*/
 static void
 on(void)
 {
   if(xmac_is_on && radio_is_on == 0) {
     radio_is_on = 1;
-    radio->on();
+    NETSTACK_RADIO.on();
     LEDS_ON(LEDS_RED);
   }
 }
@@ -248,7 +247,7 @@ off(void)
   if(xmac_is_on && radio_is_on != 0 && is_listening == 0 &&
      is_streaming == 0) {
     radio_is_on = 0;
-    radio->off();
+    NETSTACK_RADIO.off();
     LEDS_OFF(LEDS_RED);
   }
 }
@@ -309,7 +308,7 @@ powercycle(struct rtimer *t, void *ptr)
     schedule_powercycle(t, xmac_config.on_time);
     PT_YIELD(&pt);
 
-    if(xmac_config.off_time > 0) {
+    if(xmac_config.off_time > 0 && !NETSTACK_RADIO.receiving_packet()) {
       powercycle_turn_radio_off();
       if(waiting_for_packet != 0) {
 	waiting_for_packet++;
@@ -372,7 +371,7 @@ format_announcement(char *hdr)
   adata.num = 0;
   for(a = announcement_list();
       a != NULL && adata.num < ANNOUNCEMENT_MAX;
-      a = a->next) {
+      a = list_item_next(a)) {
     adata.data[adata.num].id = a->id;
     adata.data[adata.num].value = a->value;
     adata.num++;
@@ -396,7 +395,7 @@ register_encounter(const rimeaddr_t *neighbor, rtimer_clock_t time)
   struct encounter *e;
 
   /* If we have an entry for this neighbor already, we renew it. */
-  for(e = list_head(encounter_list); e != NULL; e = e->next) {
+  for(e = list_head(encounter_list); e != NULL; e = list_item_next(e)) {
     if(rimeaddr_cmp(neighbor, &e->neighbor)) {
       e->time = time;
       break;
@@ -423,7 +422,7 @@ send_packet(void)
   rtimer_clock_t t;
   rtimer_clock_t encounter_time = 0;
   int strobes;
-  volatile struct xmac_hdr *hdr;
+  struct xmac_hdr *hdr;
   int got_strobe_ack = 0;
   uint8_t strobe[MAX_STROBE_SIZE];
   int strobe_len, len;
@@ -458,7 +457,7 @@ send_packet(void)
   }
   is_reliable = packetbuf_attr(PACKETBUF_ATTR_RELIABLE) ||
     packetbuf_attr(PACKETBUF_ATTR_ERELIABLE);
-  len = framer_get()->create();
+  len = NETSTACK_FRAMER.create();
   strobe_len = len + sizeof(struct xmac_hdr);
   if(len == 0 || strobe_len > sizeof(strobe)) {
     /* Failed to send */
@@ -505,7 +504,7 @@ send_packet(void)
      an encounter with this particular neighbor. If so, we can compute
      the time for the next expected encounter and setup a ctimer to
      switch on the radio just before the encounter. */
-  for(e = list_head(encounter_list); e != NULL; e = e->next) {
+  for(e = list_head(encounter_list); e != NULL; e = list_item_next(e)) {
     const rimeaddr_t *neighbor = packetbuf_addr(PACKETBUF_ADDR_RECEIVER);
 
     if(rimeaddr_cmp(neighbor, &e->neighbor)) {
@@ -567,12 +566,11 @@ send_packet(void)
 	rtimer_clock_t now = RTIMER_NOW();
 	/* See if we got an ACK */
 	packetbuf_clear();
-	len = radio->read(packetbuf_dataptr(), PACKETBUF_SIZE);
+	len = NETSTACK_RADIO.read(packetbuf_dataptr(), PACKETBUF_SIZE);
 	if(len > 0) {
 	  packetbuf_set_datalen(len);
-	  if(framer_get()->parse()) {
+	  if(NETSTACK_FRAMER.parse()) {
 	    hdr = packetbuf_dataptr();
-
 	    if(hdr->dispatch == DISPATCH && hdr->type == TYPE_STROBE_ACK) {
 	      if(rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
 			      &rimeaddr_node_addr)) {
@@ -599,16 +597,16 @@ send_packet(void)
 
 	if(is_broadcast) {
 #if WITH_STROBE_BROADCAST
-	  radio->send(strobe, strobe_len);
+	  NETSTACK_RADIO.send(strobe, strobe_len);
 #else
 	  /* restore the packet to send */
 	  queuebuf_to_packetbuf(packet);
-	  radio->send(packetbuf_hdrptr(), packetbuf_totlen());
+	  NETSTACK_RADIO.send(packetbuf_hdrptr(), packetbuf_totlen());
 #endif
 	  off();
 	} else {
 	  rtimer_clock_t wt;
-	  radio->send(strobe, strobe_len);
+	  NETSTACK_RADIO.send(strobe, strobe_len);
 #if 1
 	  /* Turn off the radio for a while to let the other side
 	     respond. We don't need to keep our radio on when we know
@@ -646,7 +644,7 @@ send_packet(void)
 
   /* Send the data packet. */
   if((is_broadcast || got_strobe_ack || is_streaming) && collisions == 0) {
-    radio->send(packetbuf_hdrptr(), packetbuf_totlen());
+    NETSTACK_RADIO.send(packetbuf_hdrptr(), packetbuf_totlen());
   }
 
 #if WITH_ENCOUNTER_OPTIMIZATION
@@ -690,43 +688,30 @@ send_packet(void)
 
 }
 /*---------------------------------------------------------------------------*/
-static int
-qsend_packet(void)
+static void
+qsend_packet(mac_callback_t sent, void *ptr)
 {
+  int ret;
+  
   if(someone_is_sending) {
     PRINTF("xmac: should queue packet, now just dropping %d %d %d %d.\n",
 	   waiting_for_packet, someone_is_sending, we_are_sending, radio_is_on);
     RIMESTATS_ADD(sendingdrop);
-    return MAC_TX_COLLISION;
+    ret = MAC_TX_COLLISION;
   } else {
     PRINTF("xmac: send immediately.\n");
-    return send_packet();
+    ret = send_packet();
   }
+
+  mac_call_sent_callback(sent, ptr, ret, 1);
 }
 /*---------------------------------------------------------------------------*/
 static void
-input_packet(const struct radio_driver *d)
-{
-  if(receiver_callback) {
-    receiver_callback(&xmac_driver);
-  }
-}
-/*---------------------------------------------------------------------------*/
-static int
-read_packet(void)
+input_packet(void)
 {
   struct xmac_hdr *hdr;
-  uint8_t len;
 
-  packetbuf_clear();
-
-  len = radio->read(packetbuf_dataptr(), PACKETBUF_SIZE);
-  if(len == 0) {
-    return 0;
-  }
-
-  packetbuf_set_datalen(len);
-  if(framer_get()->parse()) {
+  if(NETSTACK_FRAMER.parse()) {
     hdr = packetbuf_dataptr();
 
     if(hdr->dispatch != DISPATCH) {
@@ -741,6 +726,27 @@ read_packet(void)
 	/* We have received the final packet, so we can go back to being
 	   asleep. */
 	off();
+
+        /* Check for duplicate packet by comparing the sequence number
+           of the incoming packet with the last few ones we saw. */
+        {
+          int i;
+          for(i = 0; i < MAX_SEQNOS; ++i) {
+            if(packetbuf_attr(PACKETBUF_ATTR_PACKET_ID) == received_seqnos[i].seqno &&
+               rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_SENDER),
+                            &received_seqnos[i].sender)) {
+              /* Drop the packet. */
+              return;
+            }
+          }
+          for(i = MAX_SEQNOS - 1; i > 0; --i) {
+            memcpy(&received_seqnos[i], &received_seqnos[i - 1],
+                   sizeof(struct seqno));
+          }
+          received_seqnos[0].seqno = packetbuf_attr(PACKETBUF_ATTR_PACKET_ID);
+          rimeaddr_copy(&received_seqnos[0].sender,
+                        packetbuf_addr(PACKETBUF_ADDR_SENDER));
+        }
 
 #if XMAC_CONF_COMPOWER
 	/* Accumulate the power consumption for the packet reception. */
@@ -759,7 +765,8 @@ read_packet(void)
 	waiting_for_packet = 0;
 
         PRINTDEBUG("xmac: data(%u)\n", packetbuf_datalen());
-	return packetbuf_datalen();
+	NETSTACK_MAC.input();
+        return;
       } else {
         PRINTDEBUG("xmac: data not for us\n");
       }
@@ -780,13 +787,13 @@ read_packet(void)
 			   packetbuf_addr(PACKETBUF_ADDR_SENDER));
 	packetbuf_set_addr(PACKETBUF_ADDR_SENDER, &rimeaddr_node_addr);
 	packetbuf_compact();
-	if(framer_get()->create()) {
+	if(NETSTACK_FRAMER.create()) {
 	  /* We turn on the radio in anticipation of the incoming
 	     packet. */
 	  someone_is_sending = 1;
 	  waiting_for_packet = 1;
 	  on();
-	  radio->send(packetbuf_hdrptr(), packetbuf_totlen());
+	  NETSTACK_RADIO.send(packetbuf_hdrptr(), packetbuf_totlen());
 	  PRINTDEBUG("xmac: send strobe ack %u\n", packetbuf_totlen());
 	} else {
 	  PRINTF("xmac: failed to send strobe ack\n");
@@ -805,7 +812,7 @@ read_packet(void)
 
       /* We are done processing the strobe and we therefore return
 	 to the caller. */
-      return RIME_OK;
+      return;
 #if XMAC_CONF_ANNOUNCEMENTS
     } else if(hdr->type == TYPE_ANNOUNCEMENT) {
       packetbuf_hdrreduce(sizeof(struct xmac_hdr));
@@ -820,7 +827,6 @@ read_packet(void)
   } else {
     PRINTF("xmac: failed to parse (%u)\n", packetbuf_totlen());
   }
-  return 0;
 }
 /*---------------------------------------------------------------------------*/
 #if XMAC_CONF_ANNOUNCEMENTS
@@ -845,8 +851,8 @@ send_announcement(void *ptr)
     packetbuf_set_addr(PACKETBUF_ADDR_SENDER, &rimeaddr_node_addr);
     packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, &rimeaddr_null);
     packetbuf_set_attr(PACKETBUF_ATTR_RADIO_TXPOWER, announcement_radio_txpower);
-    if(framer_get()->create()) {
-      radio->send(packetbuf_hdrptr(), packetbuf_totlen());
+    if(NETSTACK_FRAMER.create()) {
+      NETSTACK_RADIO.send(packetbuf_hdrptr(), packetbuf_totlen());
     }
   }
 }
@@ -879,8 +885,8 @@ xmac_set_announcement_radio_txpower(int txpower)
 #endif /* XMAC_CONF_ANNOUNCEMENTS */
 }
 /*---------------------------------------------------------------------------*/
-const struct mac_driver *
-xmac_init(const struct radio_driver *d)
+static void
+init(void)
 {
   radio_is_on = 0;
   waiting_for_packet = 0;
@@ -889,8 +895,6 @@ xmac_init(const struct radio_driver *d)
 	     (void (*)(struct rtimer *, void *))powercycle, NULL);
 
   xmac_is_on = 1;
-  radio = d;
-  radio->set_receive_function(input_packet);
 
 #if WITH_ENCOUNTER_OPTIMIZATION
   list_init(encounter_list);
@@ -902,7 +906,6 @@ xmac_init(const struct radio_driver *d)
   ctimer_set(&announcement_cycle_ctimer, ANNOUNCEMENT_TIME,
 	     cycle_announcement, NULL);
 #endif /* XMAC_CONF_ANNOUNCEMENTS */
-  return &xmac_driver;
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -919,9 +922,9 @@ turn_off(int keep_radio_on)
 {
   xmac_is_on = 0;
   if(keep_radio_on) {
-    return radio->on();
+    return NETSTACK_RADIO.on();
   } else {
-    return radio->off();
+    return NETSTACK_RADIO.off();
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -931,13 +934,12 @@ channel_check_interval(void)
   return (1ul * CLOCK_SECOND * DEFAULT_PERIOD) / RTIMER_ARCH_SECOND;
 }
 /*---------------------------------------------------------------------------*/
-const struct mac_driver xmac_driver =
+const struct rdc_driver xmac_driver =
   {
     "X-MAC",
-    xmac_init,
+    init,
     qsend_packet,
-    read_packet,
-    set_receive_function,
+    input_packet,
     turn_on,
     turn_off,
     channel_check_interval,

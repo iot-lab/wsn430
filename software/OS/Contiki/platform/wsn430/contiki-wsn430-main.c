@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.40 2008/11/09 12:22:04 adamdunkels Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.84 2010/05/25 21:32:41 joxe Exp $
  */
 
 /*
@@ -43,30 +43,22 @@
 #include "contiki.h"
 
 #include "dev/leds.h"
-#include "dev/watchdog.h"
+#include "dev/serial-line.h"
 #include "dev/slip.h"
+#include "dev/watchdog.h"
 #include "dev/xmem.h"
 #ifdef WITH_CC1100
 #include "dev/cc1100-radio.h"
 #else
 #include "dev/cc2420-radio.h"
 #endif
-#include "dev/serial-line.h"
 
 #include "lib/random.h"
-#include "net/mac/csma.h"
+#include "net/netstack.h"
 #include "net/mac/frame802154.h"
-#include "net/mac/framer-802154.h"
-#include "net/mac/framer-nullmac.h"
-#include "net/mac/framer.h"
 
 #if WITH_UIP6
-#include "net/sicslowpan.h"
-#include "net/uip-netif.h"
-#include "net/mac/sicslowmac.h"
-#if UIP_CONF_ROUTER
-#include "net/routing/rimeroute.h"
-#endif /* UIP_CONF_ROUTER*/
+#include "net/uip-ds6.h"
 #endif /* WITH_UIP6 */
 
 #include "net/rime.h"
@@ -78,6 +70,21 @@
 #include "uart0.h"
 #include "ds2411.h"
 #include "ds1722.h"
+
+#if UIP_CONF_ROUTER
+
+#ifndef UIP_ROUTER_MODULE
+#ifdef UIP_CONF_ROUTER_MODULE
+#define UIP_ROUTER_MODULE UIP_CONF_ROUTER_MODULE
+#else /* UIP_CONF_ROUTER_MODULE */
+#define UIP_ROUTER_MODULE rimeroute
+#endif /* UIP_CONF_ROUTER_MODULE */
+#endif /* UIP_ROUTER_MODULE */
+
+extern const struct uip_router UIP_ROUTER_MODULE;
+
+#endif /* UIP_CONF_ROUTER */
+
 
 #ifndef WITH_UIP
 #define WITH_UIP 0
@@ -104,28 +111,7 @@ static uint8_t is_gateway;
 #include "experiment-setup.h"
 #endif
 
-#if WITH_NULLMAC
-#define MAC_DRIVER nullmac_driver
-#endif /* WITH_NULLMAC */
-
-#ifndef MAC_DRIVER
-#ifdef MAC_CONF_DRIVER
-#define MAC_DRIVER MAC_CONF_DRIVER
-#else
-#define MAC_DRIVER xmac_driver
-#endif /* MAC_CONF_DRIVER */
-#endif /* MAC_DRIVER */
-
-#ifndef MAC_CSMA
-#ifdef MAC_CONF_CSMA
-#define MAC_CSMA MAC_CONF_CSMA
-#else
-#define MAC_CSMA 1
-#endif /* MAC_CONF_CSMA */
-#endif /* MAC_CSMA */
-
-
-extern const struct mac_driver MAC_DRIVER;
+//void init_platform(void);
 
 /*---------------------------------------------------------------------------*/
 void uip_log(char *msg) { puts(msg); }
@@ -217,8 +203,17 @@ main(int argc, char **argv)
    * Hardware initialization done!
    */
 
-  random_init(ds2411_id.raw[6]);
+  /* for setting "hardcoded" IEEE 802.15.4 MAC addresses */
+#ifdef IEEE_802154_MAC_ADDRESS
+  {
+    uint8_t ieee[] = IEEE_802154_MAC_ADDRESS;
+    memcpy(ds2411_id, ieee, sizeof(uip_lladdr.addr));
+    ds2411_id[7] = node_id & 0xff;
+  }
+#endif
 
+  random_init(ds2411_id.raw[6]);
+  
   leds_off(LEDS_BLUE);
   /*
    * Initialize Contiki and our processes.
@@ -228,20 +223,35 @@ main(int argc, char **argv)
 
   ctimer_init();
 
+//  init_platform();
+
+  set_rime_addr();
+  
 #ifdef WITH_CC1100
   cc1100_radio_init();
 #else
   cc2420_radio_init();
 #endif
+  {
+    uint8_t longaddr[8];
+    uint16_t shortaddr;
+    
+    shortaddr = (rimeaddr_node_addr.u8[0] << 8) +
+      rimeaddr_node_addr.u8[1];
+    memset(longaddr, 0, sizeof(longaddr));
+    rimeaddr_copy((rimeaddr_t *)&longaddr, &rimeaddr_node_addr);
+    printf("MAC %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x ",
+           longaddr[0], longaddr[1], longaddr[2], longaddr[3],
+           longaddr[4], longaddr[5], longaddr[6], longaddr[7]);
+    
+  }
 
   printf(CONTIKI_VERSION_STRING " started. ");
-  set_rime_addr();
-  printf("MAC %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x",
-	 ds2411_id.raw[0], ds2411_id.raw[1], ds2411_id.raw[2], ds2411_id.raw[3],
-	 ds2411_id.raw[4], ds2411_id.raw[5], ds2411_id.raw[6], ds2411_id.raw[7]);
 
-  framer_set(&framer_802154);
-  
+  /*  printf("MAC %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x",
+	 ds2411_id[0], ds2411_id[1], ds2411_id[2], ds2411_id[3],
+	 ds2411_id[4], ds2411_id[5], ds2411_id[6], ds2411_id[7]);*/
+
 #if WITH_UIP6
   memcpy(&uip_lladdr.addr, ds2411_id.raw, sizeof(uip_lladdr.addr));
   /* Setup nullmac-like MAC for 802.15.4 */
@@ -250,39 +260,37 @@ main(int argc, char **argv)
 
   /* Setup X-MAC for 802.15.4 */
   queuebuf_init();
-#if MAC_CSMA
-  sicslowpan_init(csma_init(MAC_DRIVER.init(&WSN430_RADIO_DRIVER)));
-#else /* MAC_CSMA */
-  sicslowpan_init(MAC_DRIVER.init(&WSN430_RADIO_DRIVER));
-#endif /* MAC_CSMA */ 
-  printf(" %s, channel check rate %d Hz, radio channel %u\n",
-         sicslowpan_mac->name,
-         CLOCK_SECOND / (sicslowpan_mac->channel_check_interval() == 0? 1:
-                         sicslowpan_mac->channel_check_interval()),
+  NETSTACK_RDC.init();
+  NETSTACK_MAC.init();
+  NETSTACK_NETWORK.init();
+
+  printf("%s %s, channel check rate %lu Hz, radio channel %u\n",
+         NETSTACK_MAC.name, NETSTACK_RDC.name,
+         CLOCK_SECOND / (NETSTACK_RDC.channel_check_interval() == 0 ? 1:
+                         NETSTACK_RDC.channel_check_interval()),
          RF_CHANNEL);
 
   process_start(&tcpip_process, NULL);
 
   printf("Tentative link-local IPv6 address ");
   {
+    uip_ds6_addr_t *lladdr;
     int i;
+    lladdr = uip_ds6_get_link_local(-1);
     for(i = 0; i < 7; ++i) {
-      printf("%02x%02x:",
-	     uip_netif_physical_if.addresses[0].ipaddr.u8[i * 2],
-	     uip_netif_physical_if.addresses[0].ipaddr.u8[i * 2 + 1]);
+      printf("%02x%02x:", lladdr->ipaddr.u8[i * 2],
+             lladdr->ipaddr.u8[i * 2 + 1]);
     }
-    printf("%02x%02x\n",
-	   uip_netif_physical_if.addresses[0].ipaddr.u8[14],
-	   uip_netif_physical_if.addresses[0].ipaddr.u8[15]);
+    printf("%02x%02x\n", lladdr->ipaddr.u8[14], lladdr->ipaddr.u8[15]);
   }
-  
-  if(0) {
+
+  if(!UIP_CONF_IPV6_RPL) {
     uip_ipaddr_t ipaddr;
     int i;
     uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
-    uip_netif_addr_autoconf_set(&ipaddr, &uip_lladdr);
-    uip_netif_addr_add(&ipaddr, 16, 0, TENTATIVE);
-    printf("Tentative IPv6 address ");
+    uip_ds6_set_addr_iid(&ipaddr, &uip_lladdr);
+    uip_ds6_addr_add(&ipaddr, 0, ADDR_TENTATIVE);
+    printf("Tentative global IPv6 address ");
     for(i = 0; i < 7; ++i) {
       printf("%02x%02x:",
              ipaddr.u8[i * 2], ipaddr.u8[i * 2 + 1]);
@@ -291,26 +299,21 @@ main(int argc, char **argv)
            ipaddr.u8[7 * 2], ipaddr.u8[7 * 2 + 1]);
   }
 
-  
-#if UIP_CONF_ROUTER
-  uip_router_register(&rimeroute);
-#endif /* UIP_CONF_ROUTER */
 #else /* WITH_UIP6 */
-#if MAC_CSMA
-  rime_init(csma_init(MAC_DRIVER.init(&WSN430_RADIO_DRIVER)));
-#else /* MAC_CSMA */
-  rime_init(MAC_DRIVER.init(&WSN430_RADIO_DRIVER));
-#endif /* MAC_CSMA */
-  printf(" %s, channel check rate %d Hz, radio channel %u\n",
-         rime_mac->name,
-         CLOCK_SECOND / (rime_mac->channel_check_interval() == 0? 1:
-                         rime_mac->channel_check_interval()),
+
+  NETSTACK_RDC.init();
+  NETSTACK_MAC.init();
+  NETSTACK_NETWORK.init();
+
+  printf("%s %s, channel check rate %lu Hz, radio channel %u\n",
+         NETSTACK_MAC.name, NETSTACK_RDC.name,
+         CLOCK_SECOND / (NETSTACK_RDC.channel_check_interval() == 0? 1:
+                         NETSTACK_RDC.channel_check_interval()),
          RF_CHANNEL);
 #endif /* WITH_UIP6 */
 
 #if !WITH_UIP && !WITH_UIP6
   uart0_register_callback((uart0_cb_t)serial_line_input_byte);
-  //uart1_set_input(serial_line_input_byte);
   serial_line_init();
 #endif
 
@@ -357,13 +360,15 @@ main(int argc, char **argv)
   energest_init();
   ENERGEST_ON(ENERGEST_TYPE_CPU);
 
+  watchdog_start();
+
   print_processes(autostart_processes);
   autostart_start(autostart_processes);
 
   /*
    * This is the scheduler loop.
    */
-  watchdog_start();
+
   /*  watchdog_stop();*/
   while(1) {
     int r;

@@ -30,10 +30,9 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: psock.c,v 1.9 2009/07/23 16:13:48 dak664 Exp $
+ * $Id: psock.c,v 1.12 2010/06/15 14:19:22 nifi Exp $
  */
 
-#include <stdio.h>
 #include <string.h>
 
 #include "net/psock.h"
@@ -296,16 +295,15 @@ PT_THREAD(psock_readbuf(CC_REGISTER_ARG struct psock *psock))
   /* XXX: Should add buf_checkmarker() before do{} loop, if
      incoming data has been handled while waiting for a write. */
 
-  do {
-    if(psock->readlen == 0) {
-      PT_WAIT_UNTIL(&psock->psockpt, psock_newdata(psock));
-      psock->state = STATE_READ;
-      psock->readptr = (u8_t *)uip_appdata;
-      psock->readlen = uip_datalen();
-    }
-  } while(buf_bufdata(&psock->buf, psock->bufsize,
-			 &psock->readptr,
-			 &psock->readlen) != BUF_FULL);
+  if(psock->readlen == 0) {
+    PT_WAIT_UNTIL(&psock->psockpt, psock_newdata(psock));
+    psock->state = STATE_READ;
+    psock->readptr = (u8_t *)uip_appdata;
+    psock->readlen = uip_datalen();
+  }
+  buf_bufdata(&psock->buf, psock->bufsize,
+              &psock->readptr,
+              &psock->readlen);
 
   if(psock_datalen(psock) == 0) {
     psock->state = STATE_NONE;

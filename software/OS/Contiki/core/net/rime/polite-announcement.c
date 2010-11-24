@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: polite-announcement.c,v 1.10 2010/01/26 10:18:55 adamdunkels Exp $
+ * $Id: polite-announcement.c,v 1.16 2010/06/16 10:10:10 nifi Exp $
  */
 
 /**
@@ -45,6 +45,7 @@
 
 #include "contiki.h"
 
+#include "lib/list.h"
 #include "net/rime.h"
 #include "net/rime/announcement.h"
 #include "net/rime/ipolite.h"
@@ -75,7 +76,7 @@ struct announcement_msg {
 };
 
 
-struct polite_announcement_state {
+static struct polite_announcement_state {
   struct ipolite_conn c;
   struct ctimer t;
   clock_time_t interval;
@@ -102,7 +103,7 @@ send_adv(clock_time_t interval)
   packetbuf_clear();
   adata = packetbuf_dataptr();
   adata->num = 0;
-  for(a = announcement_list(); a != NULL; a = a->next) {
+  for(a = announcement_list(); a != NULL; a = list_item_next(a)) {
     adata->data[adata->num].id = a->id;
     adata->data[adata->num].value = a->value;
     adata->num++;
@@ -158,10 +159,13 @@ send_timer(void *ptr)
 }
 /*---------------------------------------------------------------------------*/
 static void
-new_announcement(uint16_t id, uint16_t val)
+new_announcement(uint16_t id, uint8_t has_value, uint16_t newval,
+    uint16_t oldval, uint8_t bump)
 {
-  c.interval = c.min_interval;
-  send_timer(&c);
+  if(newval != oldval) {
+    c.interval = c.min_interval;
+    send_timer(&c);
+  }
 }
 /*---------------------------------------------------------------------------*/
 static const struct ipolite_callbacks ipolite_callbacks =

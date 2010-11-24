@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: contiki-net.h,v 1.6 2008/10/14 09:40:56 julienabeille Exp $
+ * $Id: contiki-net.h,v 1.8 2010/03/15 16:54:35 nifi Exp $
  */
 #ifndef __CONTIKI_NET_H__
 #define __CONTIKI_NET_H__
@@ -47,7 +47,7 @@
 
 #if UIP_CONF_IPV6
 #include "net/uip-icmp6.h"
-#include "net/uip-netif.h"
+#include "net/uip-ds6.h"
 #endif /* UIP_CONF_IPV6 */
 
 #include "net/resolv.h"
@@ -55,5 +55,7 @@
 #include "net/psock.h"
 
 #include "net/rime.h"
+
+#include "net/netstack.h"
 
 #endif /* __CONTIKI_NET_H__ */

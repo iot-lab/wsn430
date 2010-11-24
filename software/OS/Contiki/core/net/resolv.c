@@ -57,7 +57,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: resolv.c,v 1.8 2010/02/15 20:49:38 dak664 Exp $
+ * $Id: resolv.c,v 1.10 2010/10/19 18:29:04 adamdunkels Exp $
  *
  */
 
@@ -70,6 +70,31 @@
 #ifndef NULL
 #define NULL (void *)0
 #endif /* NULL */
+
+#if UIP_CONF_IPV6
+
+/* Currently this implementation only supports IPv4 DNS lookups.
+   Until support for IPv6 is added, dummy functions are used to
+   enable compilation with IPv6.
+*/
+
+process_event_t resolv_event_found;
+
+PROCESS(resolv_process, "DNS resolver");
+
+void resolv_conf(const uip_ipaddr_t *dnsserver) { }
+uip_ipaddr_t *resolv_getserver(void) { return NULL; }
+uip_ipaddr_t *resolv_lookup(const char *name) { return NULL; }
+void resolv_query(const char *name) { }
+
+PROCESS_THREAD(resolv_process, ev, data)
+{
+  PROCESS_BEGIN();
+  resolv_event_found = process_alloc_event();
+  PROCESS_END();
+}
+
+#else /* UIP_CONF_IPV6 */
 
 /** \internal The maximum number of retries when asking for a name. */
 #define MAX_RETRIES 8
@@ -103,7 +128,7 @@ struct dns_answer {
   u16_t class;
   u16_t ttl[2];
   u16_t len;
-  u16_t ipaddr[2];
+  u8_t ipaddr[4];
 };
 
 struct namemap {
@@ -118,7 +143,7 @@ struct namemap {
   u8_t seqno;
   u8_t err;
   char name[32];
-  u16_t ipaddr[2];
+  uip_ipaddr_t ipaddr;
 };
 
 #ifndef UIP_CONF_RESOLV_ENTRIES
@@ -139,6 +164,8 @@ static struct etimer retry;
 process_event_t resolv_event_found;
 
 PROCESS(resolv_process, "DNS resolver");
+
+static void resolv_found(char *name, uip_ipaddr_t *ipaddr);
 
 enum {
   EVENT_NEW_SERVER=0
@@ -180,8 +207,8 @@ check_entries(void)
 {
   register struct dns_hdr *hdr;
   char *query, *nptr, *nameptr;
-  static u8_t i;
-  static u8_t n;
+  uint8_t i;
+  uint8_t n;
   register struct namemap *namemapptr;
   
   for(i = 0; i < RESOLV_ENTRIES; ++i) {
@@ -210,9 +237,9 @@ check_entries(void)
       }
       hdr = (struct dns_hdr *)uip_appdata;
       memset(hdr, 0, sizeof(struct dns_hdr));
-      hdr->id = htons(i);
+      hdr->id = uip_htons(i);
       hdr->flags1 = DNS_FLAG1_RD;
-      hdr->numquestions = HTONS(1);
+      hdr->numquestions = UIP_HTONS(1);
       query = (char *)uip_appdata + 12;
       nameptr = namemapptr->name;
       --nameptr;
@@ -254,19 +281,19 @@ newdata(void)
   register struct namemap *namemapptr;
   
   hdr = (struct dns_hdr *)uip_appdata;
-  /*  printf("ID %d\n", htons(hdr->id));
+  /*  printf("ID %d\n", uip_htons(hdr->id));
   printf("Query %d\n", hdr->flags1 & DNS_FLAG1_RESPONSE);
   printf("Error %d\n", hdr->flags2 & DNS_FLAG2_ERR_MASK);
   printf("Num questions %d, answers %d, authrr %d, extrarr %d\n",
-	 htons(hdr->numquestions),
-	 htons(hdr->numanswers),
-	 htons(hdr->numauthrr),
-	 htons(hdr->numextrarr));
+	 uip_htons(hdr->numquestions),
+	 uip_htons(hdr->numanswers),
+	 uip_htons(hdr->numauthrr),
+	 uip_htons(hdr->numextrarr));
   */
 
   /* The ID in the DNS header should be our entry into the name
      table. */
-  i = (u8_t)htons(hdr->id);
+  i = (u8_t)uip_htons(hdr->id);
   namemapptr = &names[i];
   if(i < RESOLV_ENTRIES &&
      namemapptr->state == STATE_ASKING) {
@@ -284,8 +311,8 @@ newdata(void)
 
     /* We only care about the question(s) and the answers. The authrr
        and the extrarr are simply discarded. */
-    nquestions = (u8_t)htons(hdr->numquestions);
-    nanswers = (u8_t)htons(hdr->numanswers);
+    nquestions = (u8_t)uip_htons(hdr->numquestions);
+    nanswers = (u8_t)uip_htons(hdr->numanswers);
 
     /* Skip the name in the question. XXX: This should really be
        checked agains the name in the question, to be sure that they
@@ -306,28 +333,29 @@ newdata(void)
 
       ans = (struct dns_answer *)nameptr;
       /*      printf("Answer: type %x, class %x, ttl %x, length %x\n",
-	     htons(ans->type), htons(ans->class), (htons(ans->ttl[0])
-	     << 16) | htons(ans->ttl[1]), htons(ans->len));*/
+	     uip_htons(ans->type), uip_htons(ans->class), (uip_htons(ans->ttl[0])
+	     << 16) | uip_htons(ans->ttl[1]), uip_htons(ans->len));*/
 
       /* Check for IP address type and Internet class. Others are
 	 discarded. */
-      if(ans->type == HTONS(1) &&
-	 ans->class == HTONS(1) &&
-	 ans->len == HTONS(4)) {
+      if(ans->type == UIP_HTONS(1) &&
+	 ans->class == UIP_HTONS(1) &&
+	 ans->len == UIP_HTONS(4)) {
 	/*	printf("IP address %d.%d.%d.%d\n",
-	       htons(ans->ipaddr[0]) >> 8,
-	       htons(ans->ipaddr[0]) & 0xff,
-	       htons(ans->ipaddr[1]) >> 8,
-	       htons(ans->ipaddr[1]) & 0xff);*/
+	       ans->ipaddr[0],
+	       ans->ipaddr[1],
+	       ans->ipaddr[2],
+	       ans->ipaddr[3]);*/
 	/* XXX: we should really check that this IP address is the one
 	   we want. */
-	namemapptr->ipaddr[0] = ans->ipaddr[0];
-	namemapptr->ipaddr[1] = ans->ipaddr[1];
+        for(i = 0; i < 4; i++) {
+          namemapptr->ipaddr.u8[i] = ans->ipaddr[i];
+        }
 	
-	resolv_found(namemapptr->name, namemapptr->ipaddr);
+	resolv_found(namemapptr->name, &namemapptr->ipaddr);
 	return;
       } else {
-	nameptr = nameptr + 10 + htons(ans->len);
+	nameptr = nameptr + 10 + uip_htons(ans->len);
       }
       --nanswers;
     }
@@ -363,10 +391,10 @@ PROCESS_THREAD(resolv_process, ev, data)
       if(resolv_conn != NULL) {
 	uip_udp_remove(resolv_conn);
       }
-      resolv_conn = udp_new((uip_ipaddr_t *)data, HTONS(53), NULL);
+      resolv_conn = udp_new((uip_ipaddr_t *)data, UIP_HTONS(53), NULL);
       
     } else if(ev == tcpip_event) {
-      if(uip_udp_conn->rport == HTONS(53)) {
+      if(uip_udp_conn->rport == UIP_HTONS(53)) {
 	if(uip_poll()) {
 	  check_entries();
 	}
@@ -387,7 +415,7 @@ PROCESS_THREAD(resolv_process, ev, data)
  */
 /*-----------------------------------------------------------------------------------*/
 void
-resolv_query(char *name)
+resolv_query(const char *name)
 {
   static u8_t i;
   static u8_t lseq, lseqi;
@@ -435,8 +463,8 @@ resolv_query(char *name)
  * hostnames.
  */
 /*-----------------------------------------------------------------------------------*/
-u16_t *
-resolv_lookup(char *name)
+uip_ipaddr_t *
+resolv_lookup(const char *name)
 {
   static u8_t i;
   struct namemap *nameptr;
@@ -447,7 +475,7 @@ resolv_lookup(char *name)
     nameptr = &names[i];
     if(nameptr->state == STATE_DONE &&
        strcmp(name, nameptr->name) == 0) {
-      return nameptr->ipaddr;
+      return &nameptr->ipaddr;
     }
   }
   return NULL;
@@ -496,12 +524,13 @@ resolv_conf(const uip_ipaddr_t *dnsserver)
  *
  */
 /*-----------------------------------------------------------------------------------*/
-void
-resolv_found(char *name, u16_t *ipaddr)
+static void
+resolv_found(char *name, uip_ipaddr_t *ipaddr)
 {
   process_post(PROCESS_BROADCAST, resolv_event_found, name);
 }
 /*-----------------------------------------------------------------------------------*/
+#endif /* UIP_CONF_IPV6 */
 #endif /* UIP_UDP */
 
 /** @} */
