@@ -66,11 +66,12 @@ void mac_set_data_received_handler(void (*handler)(uint16_t node, uint8_t* data,
 void mac_set_beacon_handler(void (*handler)(uint8_t id, uint16_t timestamp));
 
 /**
- * Send data to a node.
+ * Send data to a node. Maximum length is 15 bytes per send.
  * \param node the destination node address
  * \param data a pointer to the data to send
  * \param length the number of bytes to send
+ * \return 0 if send was not possible, 1 if it was
  */
-void mac_send(uint16_t node, uint8_t* data, uint16_t length);
+uint16_t mac_send(uint16_t node, uint8_t* data, uint16_t length);
 
 #endif

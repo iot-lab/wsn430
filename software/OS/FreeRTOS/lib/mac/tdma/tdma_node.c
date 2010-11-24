@@ -355,7 +355,7 @@ static void frame_received(uint8_t * data, uint16_t length, int8_t rssi,
 	uint8_t* beacon_data_ptr = frame->beacon_data;
 	uint16_t dst;
 
-	while (beacon_data_ptr < frame->raw + length + 1) {
+	while (beacon_data_ptr < frame->raw + length) {
 		// Fetch destination, type and length
 		dst = ntoh_s(beacon_data_ptr);
 		beacon_data_ptr += 2;
@@ -386,7 +386,7 @@ static void frame_received(uint8_t * data, uint16_t length, int8_t rssi,
 				break;
 			case MGT_DATA:
 				if (handler_rx) {
-					handler_rx(beacon_data_ptr, length);
+					handler_rx(beacon_data_ptr, beacon_length);
 				}
 				break;
 			}

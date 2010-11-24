@@ -50,7 +50,7 @@
 #include <timerB.h>
 
 #define MAX_PACKET_LENGTH 119
-
+#define MAX_COORD_SEND_LENGTH 15
 #define MAX_BEACON_DATA_LENGTH 55
 
 #ifndef SLOT_COUNT

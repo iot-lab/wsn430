@@ -94,6 +94,17 @@ static void vPrinterTask(void* pvParameters) {
 			last = *rx_frame;
 			printf("\n");
 
+			if (last % 4 == 0) {
+				static uint16_t length = 14;
+				printf("sending [%u] bytes\n", length);
+				mac_send(rx_node, rx_frame, length);
+
+				length ++;
+				if (length > 16) {
+					length = 1;
+				}
+			}
+
 		}
 	}
 }

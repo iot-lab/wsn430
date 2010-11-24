@@ -17,7 +17,7 @@
 /* MAC task include */
 #include "tdma_node.h"
 
-#define TX_PERIOD 32768/20
+#define TX_PERIOD 32768
 #define TX_LENGTH 32
 #define TX_BURST 1
 
@@ -136,6 +136,7 @@ static void lost(void) {
 }
 
 static void rx(uint8_t* data, uint16_t length) {
+	printf("#rx [%u] bytes\n", length);
 }
 
 int putchar(int c) {

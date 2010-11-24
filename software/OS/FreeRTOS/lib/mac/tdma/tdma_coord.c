@@ -75,7 +75,7 @@ static void frame_received(uint8_t *data, uint16_t length, int8_t rssi,
 
 static void mac_init(void);
 static void beacon_send(void);
-static void beacon_append(uint16_t dest_addr, uint8_t type, uint8_t length,
+static uint16_t beacon_append(uint16_t dest_addr, uint8_t type, uint8_t length,
 		uint8_t* data);
 static uint16_t slot_time_evt(void);
 static uint16_t block_until_event(uint16_t event);
@@ -109,8 +109,11 @@ void mac_create_task(xSemaphoreHandle xSPIMutex) {
 	beacon_handler = 0x0;
 }
 
-void mac_send(uint16_t node, uint8_t* data, uint16_t length) {
-	beacon_append(node, MGT_DATA, length, data);
+uint16_t mac_send(uint16_t node, uint8_t* data, uint16_t length) {
+	if (length > MAX_COORD_SEND_LENGTH) {
+		return 0;
+	}
+	return beacon_append(node, MGT_DATA, length, data);
 }
 
 void mac_set_node_associated_handler(void(*handler)(uint16_t node)) {
@@ -208,8 +211,13 @@ static void beacon_send(void) {
 	beacon_frame.beacon_id++;
 }
 
-static void beacon_append(uint16_t dest_addr, uint8_t type, uint8_t length,
+static uint16_t beacon_append(uint16_t dest_addr, uint8_t type, uint8_t length,
 		uint8_t* data) {
+	if (beacon_data_ptr + 3 + length > beacon_frame.beacon_data + MAX_BEACON_DATA_LENGTH) {
+		// Beacon too big
+		return 0;
+	}
+
 	hton_s(dest_addr, beacon_data_ptr);
 	beacon_data_ptr += 2;
 
@@ -218,6 +226,8 @@ static void beacon_append(uint16_t dest_addr, uint8_t type, uint8_t length,
 
 	memcpy(beacon_data_ptr, data, length);
 	beacon_data_ptr += length;
+
+	return 1;
 }
 
 static uint16_t slot_time_evt(void) {
