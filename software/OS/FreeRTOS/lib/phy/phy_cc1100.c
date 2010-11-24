@@ -62,9 +62,8 @@
 
 /* Type def */
 enum phy_state {
-	IDLE = 1, RX = 2
+	IDLE = 1, RX = 2, TX = 3
 };
-
 
 #define PHY_MAX_LENGTH 125
 #define PHY_FOOTER_LENGTH 2
@@ -85,7 +84,7 @@ static uint16_t rx_irq(void);
 static xSemaphoreHandle rx_sem, spi_mutex;
 static phy_rx_callback_t rx_cb;
 static uint8_t radio_channel, radio_power;
-static enum phy_state state;
+static volatile enum phy_state state, old_state;
 static volatile uint16_t sync_word_time;
 static uint8_t rx_data[PHY_MAX_LENGTH + PHY_FOOTER_LENGTH];
 static uint16_t rx_data_length;
@@ -139,17 +138,8 @@ void phy_rx(void) {
 	cc1100_cmd_flush_rx();
 	cc1100_cmd_flush_tx();
 
-	// Set gdo2 RXFIFO / EOP (RX)
-	cc1100_gdo2_int_disable();
+	// Set gdo2 RXFIFO
 	cc1100_cfg_gdo2(CC1100_GDOx_RX_FIFO);
-	cc1100_gdo2_int_set_rising_edge();
-	cc1100_gdo2_register_callback(rx_irq);
-
-	// Enable interrupts
-	cc1100_gdo2_int_clear();
-	cc1100_gdo2_int_enable();
-
-	cc1100_cfg_txoff_mode(CC1100_TXOFF_MODE_RX);
 
 	// Start RX
 	cc1100_cmd_rx();
@@ -159,6 +149,7 @@ void phy_rx(void) {
 
 	// Update state
 	state = RX;
+	old_state = RX;
 }
 
 void phy_idle(void) {
@@ -177,6 +168,7 @@ void phy_idle(void) {
 
 	// Update state
 	state = IDLE;
+	old_state = IDLE;
 }
 
 uint16_t phy_send(uint8_t* data, uint16_t length, uint16_t *timestamp) {
@@ -185,6 +177,8 @@ uint16_t phy_send(uint8_t* data, uint16_t length, uint16_t *timestamp) {
 	if (length > PHY_MAX_LENGTH) {
 		return 0;
 	}
+	state = TX;
+
 	tx_data = data;
 	tx_length = length;
 
@@ -196,14 +190,13 @@ uint16_t phy_send(uint8_t* data, uint16_t length, uint16_t *timestamp) {
 	cc1100_cmd_flush_tx();
 
 	// Configure gdo2 to TX FIFO
-	cc1100_gdo2_int_disable();
 	cc1100_cfg_gdo2(CC1100_GDOx_TX_FIFO);
-
-	// Start TX
-	cc1100_cmd_tx();
 
 	// Send length byte and first set
 	length = tx_length > 63 ? 63 : tx_length;
+
+	// Start TX
+	cc1100_cmd_tx();
 
 	cc1100_fifo_put(&tx_length, 1);
 	cc1100_fifo_put(tx_data, length);
@@ -220,9 +213,10 @@ uint16_t phy_send(uint8_t* data, uint16_t length, uint16_t *timestamp) {
 		}
 	}
 
-	while (cc1100_gdo0_read() || ((cc1100_status() & CC1100_STATUS_MASK)
-			== CC1100_STATUS_TX))
+	// Wait while there are bytes in TX FIFO and EOP has not happened
+	while (cc1100_status_txbytes() || cc1100_gdo0_read()) {
 		nop();
+	}
 
 	// Release semaphore
 	xSemaphoreGive(spi_mutex);
@@ -233,7 +227,6 @@ uint16_t phy_send(uint8_t* data, uint16_t length, uint16_t *timestamp) {
 	}
 
 	restore_state();
-
 	return 1;
 }
 
@@ -299,8 +292,8 @@ static void cc1100_driver_init(void) {
 	// Set channel
 	cc1100_cfg_chan(radio_channel);
 
-	// Set FIFO threshold to low
-	cc1100_cfg_fifo_thr(0);
+	// Set FIFO threshold to middle
+	cc1100_cfg_fifo_thr(7);
 
 	// Set gdo0 SYNC word detection (both RX and TX)
 	cc1100_gdo0_int_disable();
@@ -322,12 +315,13 @@ static void cc1100_driver_init(void) {
 
 static void restore_state(void) {
 	// Reset old state
-	switch (state) {
-	case IDLE:
-		phy_idle();
-		break;
+	switch (old_state) {
 	case RX:
 		phy_rx();
+		break;
+	case IDLE:
+	default:
+		phy_idle();
 		break;
 	}
 }
@@ -358,6 +352,7 @@ static void handle_received_frame(void) {
 	}
 
 	rx_data_length = rx_length;
+	
 	// Add 2 to the length for the status bytes
 	rx_length += PHY_FOOTER_LENGTH;
 	rx_ptr = rx_data;
@@ -454,18 +449,17 @@ static void handle_received_frame(void) {
 
 static uint16_t sync_irq(void) {
 	sync_word_time = TBR;
-	return 0;
-}
 
-static uint16_t rx_irq(void) {
-	portBASE_TYPE yield;
-	if (xSemaphoreGiveFromISR(rx_sem, &yield) == pdTRUE) {
+	if (state == RX) {
+		portBASE_TYPE yield;
+		if (xSemaphoreGiveFromISR(rx_sem, &yield) == pdTRUE) {
 #if configUSE_PREEMPTION
-		if (yield) {
-			portYIELD();
-		}
+			if (yield) {
+				portYIELD();
+			}
 #endif
+		}
+		return 1;
 	}
-
-	return 1;
+	return 0;
 }
