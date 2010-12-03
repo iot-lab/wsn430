@@ -33,12 +33,6 @@
  * knowledge of the CeCILL license and that you accept its terms.
  */
 
-/*
- * tdma_common.h
- *
- *  Created on: Jun 18, 2010
- *      Author: burindes
- */
 
 #ifndef TDMA_COMMON_H_
 #define TDMA_COMMON_H_

@@ -33,12 +33,6 @@
  * knowledge of the CeCILL license and that you accept its terms.
  */
 
-/*
- * tdma_table.c
- *
- *  Created on: Jun 21, 2010
- *      Author: burindes
- */
 
 #include <io.h>
 #include "tdma_common.h"
