@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SUBDIRS="01_simple_multitask 02_queue_multitask 03_semphr_synchro 04_mutex_multitask 05_network_device 06_coordinator 07_node_appli 08_sink_appli 09_adc 10_adc_sink"
+SUBDIRS="01_simple_multitask 02_queue_multitask 03_semphr_synchro 04_mutex_multitask 05_tdma_node_adc 06_tdma_sink_adc"
 
 echo $(date) > compile.log
 
