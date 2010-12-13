@@ -5,12 +5,12 @@
 
 
 #include "net/uip.h"
-#include "net/uip-netif.h"
+#include "net/uip-ds6.h"
 #include <string.h>
 
 #define UIP_IP_BUF   ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
 
-u8_t uip_buf[UIP_BUFSIZE + 2];
+uip_buf_t uip_aligned_buf;
 
 u16_t uip_len;
 
@@ -18,14 +18,14 @@ struct uip_stats uip_stat;
 
 uip_lladdr_t uip_lladdr;
 
-u16_t htons(u16_t val) { return HTONS(val);}
+u16_t uip_htons(u16_t val) { return UIP_HTONS(val);}
 
-struct uip_netif uip_netif_physical_if;
+uip_ds6_netif_t uip_ds6_if;
 
-/********** UIP_NETIF.c **********/
+/********** UIP_DS6.c **********/
 
 void
-uip_netif_addr_autoconf_set(uip_ipaddr_t *ipaddr, uip_lladdr_t *lladdr)
+uip_ds6_set_addr_iid(uip_ipaddr_t *ipaddr, uip_lladdr_t *lladdr)
 {
   /* We consider only links with IEEE EUI-64 identifier or
      IEEE 48-bit MAC addresses */
@@ -39,19 +39,33 @@ uip_netif_addr_autoconf_set(uip_ipaddr_t *ipaddr, uip_lladdr_t *lladdr)
   memcpy(ipaddr->u8 + 13, lladdr + 3, 3);
   ipaddr->u8[8] ^= 0x02;
 #else
-  /*
-    UIP_LOG("CAN NOT BUIL INTERFACE IDENTIFIER");
-    UIP_LOG("THE STACK IS GOING TO SHUT DOWN");
-    UIP_LOG("THE HOST WILL BE UNREACHABLE");
-  */
-  exit(-1);
+#error fakeuip.c cannot build interface address when UIP_LLADDR_LEN is not 6 or 8
 #endif
 }
 
-void
-uip_netif_addr_add(uip_ipaddr_t *ipaddr, u8_t length,
-		   unsigned long vlifetime, uip_netif_type type)
+/*---------------------------------------------------------------------------*/
+/*
+ * get a link local address -
+ * state = -1 => any address is ok. Otherwise state = desired state of addr.
+ * (TENTATIVE, PREFERRED, DEPRECATED)
+ */
+uip_ds6_addr_t *
+uip_ds6_get_link_local(int8_t state) {
+  uip_ds6_addr_t *locaddr;
+  for(locaddr = uip_ds6_if.addr_list;
+      locaddr < uip_ds6_if.addr_list + UIP_DS6_ADDR_NB; locaddr++) {
+    if((locaddr->isused) && (state == - 1 || locaddr->state == state)
+       && (uip_is_addr_link_local(&locaddr->ipaddr))) {
+      return locaddr;
+    }
+  }
+  return NULL;
+}
+
+uip_ds6_addr_t *
+uip_ds6_addr_add(uip_ipaddr_t *ipaddr, unsigned long vlifetime, uint8_t type)
 {
+  return NULL;
 }
 /********** UIP.c ****************/
 
@@ -104,7 +118,7 @@ upper_layer_chksum(u8_t proto)
   sum = chksum(sum, &uip_buf[UIP_IPH_LEN + UIP_LLH_LEN],
                upper_layer_len);
 
-  return (sum == 0) ? 0xffff : htons(sum);
+  return (sum == 0) ? 0xffff : uip_htons(sum);
 }
 
 /*---------------------------------------------------------------------------*/

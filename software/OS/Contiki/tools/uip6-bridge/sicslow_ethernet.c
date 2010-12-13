@@ -235,7 +235,7 @@ void mac_ethernetToLowpan(uint8_t * ethHeader)
    #endif
 
   //If not IPv6 we don't do anything
-  if (((struct uip_eth_hdr *) ethHeader)->type != HTONS(UIP_ETHTYPE_IPV6)) {
+  if (((struct uip_eth_hdr *) ethHeader)->type != UIP_HTONS(UIP_ETHTYPE_IPV6)) {
     PRINTF("eth2low: Packet is not IPv6, dropping\n");
 /*     rndis_stat.txbad++; */
     uip_len = 0;
@@ -279,18 +279,20 @@ void mac_ethernetToLowpan(uint8_t * ethHeader)
   }
 
   //Remove header from length before passing onward
-  uip_len -= UIP_LLH_LEN;
-
-  //Some IP packets have link layer in them, need to change them around!
-  if (usbstick_mode.translate) {
-/*     uint8_t transReturn = */
+  if(uip_len > UIP_LLH_LEN) {
+    uip_len -= UIP_LLH_LEN;
+    
+    //Some IP packets have link layer in them, need to change them around!
+    if (usbstick_mode.translate) {
+      /*     uint8_t transReturn = */
       mac_translateIPLinkLayer(ll_802154_type);
-    PRINTF("IPTranslation: returns %d\n", transReturn);
-  }
+      PRINTF("IPTranslation: returns %d\n", transReturn);
+    }
 
-  if (usbstick_mode.sendToRf){
-    tcpip_output(destAddrPtr);
-/* 	  rndis_stat.txok++; */
+    if (usbstick_mode.sendToRf){
+      tcpip_output(destAddrPtr);
+      /* 	  rndis_stat.txok++; */
+    }
   }
 
   uip_len = 0;
@@ -307,7 +309,7 @@ void mac_LowpanToEthernet(void)
 /*   parsed_frame = sicslowmac_get_frame(); */
 
   //Setup generic ethernet stuff
-  ETHBUF(uip_buf)->type = htons(UIP_ETHTYPE_IPV6);
+  ETHBUF(uip_buf)->type = uip_htons(UIP_ETHTYPE_IPV6);
 
   //Check for broadcast message
   if(rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &rimeaddr_null)) {
@@ -780,7 +782,7 @@ void mac_logTXtoEthernet(frame_create_params_t *p,frame_result_t *frame_result)
   sendlen = frame_result->length;
 
  //Setup generic ethernet stuff
-  ETHBUF(raw_buf)->type = htons(UIP_ETHTYPE_802154);
+  ETHBUF(raw_buf)->type = uip_htons(UIP_ETHTYPE_802154);
 
   uint64_t tempaddr;
 
@@ -843,7 +845,7 @@ void mac_802154raw(const struct mac_driver *r)
   sendlen = radio_frame_length();
 
  //Setup generic ethernet stuff
-  ETHBUF(raw_buf)->type = htons(UIP_ETHTYPE_802154);
+  ETHBUF(raw_buf)->type = uip_htons(UIP_ETHTYPE_802154);
 
 
   //Check for broadcast message

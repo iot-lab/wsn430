@@ -1336,7 +1336,7 @@ output(uip_lladdr_t *localdest)
      */
 
 
-    printf("Fragmentation sending packet len %d\n", uip_len);
+    PRINTFO("Fragmentation sending packet len %d\n", uip_len);
     
     /* Create 1st Fragment */
     PRINTFO("sicslowpan output: 1rst fragment ");

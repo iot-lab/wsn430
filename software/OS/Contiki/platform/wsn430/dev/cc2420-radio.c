@@ -218,6 +218,49 @@ static int cc2420_on(void) {
 	return 1;
 }
 /*---------------------------------------------------------------------------*/
+int cc2420_receiving_packet(void) {
+	return cc2420_io_sfd_read();
+}
+/*---------------------------------------------------------------------------*/
+static int cc2420_cca(void) {
+	int cca;
+	int radio_was_off = 0;
+
+	/* If the radio is locked by an underlying thread (because we are
+	 being invoked through an interrupt), we preted that the coast is
+	 clear (i.e., no packet is currently being transmitted by a
+	 neighbor). */
+	if (locked) {
+		return 1;
+	}
+
+	GET_LOCK();
+	if (!receive_on) {
+		radio_was_off = 1;
+		cc2420_on();
+	}
+
+	/* Make sure that the radio really got turned on. */
+	if (!receive_on) {
+		RELEASE_LOCK();
+		return 1;
+	}
+
+	BUSYWAIT_UNTIL(cc2420_get_status() & CC2420_STATUS_RSSI_VALID, RTIMER_SECOND / 100);
+
+	cca = cc2420_io_cca_read();
+
+	if (radio_was_off) {
+		cc2420_off();
+	}
+	RELEASE_LOCK();
+	return cca;
+}
+/*---------------------------------------------------------------------------*/
+static int pending_packet(void) {
+	return cc2420_io_fifop_read();
+}
+/*---------------------------------------------------------------------------*/
 static int cc2420_transmit(unsigned short payload_len) {
 
 	int i;
