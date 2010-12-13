@@ -87,17 +87,19 @@ void packet_received(uint16_t from, uint8_t* pkt, uint16_t pktLength,
 	printf("Frame received from %.4x (%d): %s\r\n", from, rssi, pkt);
 }
 
+uint16_t sending_node = 0xc858, receiving_node = 0xce1e;
+
 static void vSendingTask(void* pvParameters) {
 	uint16_t count = 0;
 	while (1) {
 		count ++;
-		if (mac_addr == 0xc858) {
+		if (mac_addr == sending_node) {
 			if (count & 1) {
 				printf("sending to 0xFFFF\n");
 				mac_send(0xffff, (uint8_t*) "Test", sizeof("Test"));
 			} else {
-				printf("sending to 0x57b5\n");
-				mac_send(0xb99e, (uint8_t*) "Test", sizeof("Test"));
+				printf("sending to 0x%.4x\n", receiving_node);
+				mac_send(receiving_node, (uint8_t*) "Test", sizeof("Test"));
 			}
 		}
 		vTaskDelay(20);

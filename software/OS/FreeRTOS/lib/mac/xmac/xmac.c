@@ -315,7 +315,7 @@ static void mac_task(void* param) {
 			frame_received.length = 0;
 			break;
 		default:
-			puts("err");
+			// Frame not for me!
 			break;
 		}
 	}
@@ -353,7 +353,7 @@ static void init() {
 	srand(mac_addr);
 
 	// start the timerB
-	timerB_start_ACLK_div(1);
+	timerB_start_ACLK_div(TIMERB_DIV_1);
 
 	keep_rx = 0;
 
