@@ -1,7 +1,7 @@
 #ifndef __PLATFORM_CONF_H__
 #define __PLATFORM_CONF_H__
 
-#define WITH_CC1100
+#define WITH_CC2420
 
 
 /* the low-level radio driver */
