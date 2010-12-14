@@ -32,5 +32,5 @@ connect: ../tapslip6
 
 bridge:
 	@sudo service radvd restart || echo radvd could not be restarted
-	sudo route add -A inet6 aaaa::/64 tap0
+	sudo route add -6 aaaa::/64 tap0
 	sudo ip -6 address add aaaa::1/64 dev tap0

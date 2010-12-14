@@ -11,10 +11,6 @@
 
 #include "platform-conf.h"
 
-#ifdef PROJECT_CONF_H
-#include "project-conf.h"
-#endif /* PROJECT_CONF_H */
-
 #ifndef NETSTACK_CONF_MAC
 #define NETSTACK_CONF_MAC     csma_driver
 #endif /* NETSTACK_CONF_MAC */
@@ -173,5 +169,8 @@
 
 
 
+#ifdef PROJECT_CONF_H
+#include PROJECT_CONF_H
+#endif /* PROJECT_CONF_H */
 
 #endif /* CONTIKI_CONF_H */

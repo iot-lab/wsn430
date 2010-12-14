@@ -46,6 +46,6 @@ You finally need to set up a global address for this interface, using the same p
 # ifconfig tap0 add 2001:0123:4567:89ab::1/64
 
 That's it! Now when a node will ask for a router, the PC will respond using this prefix and the node will get this address added to its link local one.
-You are now able to ping6 the running nodes, provided you know their IP addresses, and interact with them depending on the application they embedd.
+You are now able to ping6 the running nodes, provided you know their IP addresses, and interact with them depending on the application they embed.
 
 
