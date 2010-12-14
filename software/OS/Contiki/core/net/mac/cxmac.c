@@ -101,7 +101,7 @@ struct announcement_msg {
 struct cxmac_hdr {
   uint8_t dispatch;
   uint8_t type;
-};
+}__attribute__((packed));
 
 #define MAX_STROBE_SIZE 50
 
@@ -119,7 +119,8 @@ struct cxmac_hdr {
 
 #define DEFAULT_PERIOD (DEFAULT_OFF_TIME + DEFAULT_ON_TIME)
 
-#define WAIT_TIME_BEFORE_STROBE_ACK RTIMER_ARCH_SECOND / 1000
+// Senstools HACK: no need to wait
+#define WAIT_TIME_BEFORE_STROBE_ACK RTIMER_ARCH_SECOND / 100000
 
 /* On some platforms, we may end up with a DEFAULT_PERIOD that is 0
    which will make compilation fail due to a modulo operation in the

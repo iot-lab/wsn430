@@ -388,6 +388,7 @@ PROCESS_THREAD(cc1100_radio_process, ev, data) {
 
 		while(1) {
 			PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
+
 			// The only event we can receive is when packet RX has started
 			if (rx()) {
 				PRINTF("cc1100_process: calling receiver callback\n");

@@ -101,7 +101,7 @@ struct announcement_msg {
 struct xmac_hdr {
   uint8_t dispatch;
   uint8_t type;
-};
+}__attribute__((packed));
 
 #define MAX_STROBE_SIZE 50
 
@@ -119,7 +119,8 @@ struct xmac_hdr {
 
 #define DEFAULT_PERIOD (DEFAULT_OFF_TIME + DEFAULT_ON_TIME)
 
-#define WAIT_TIME_BEFORE_STROBE_ACK RTIMER_ARCH_SECOND / 1000
+// Senstools HACK, it doesn't work otherwise
+#define WAIT_TIME_BEFORE_STROBE_ACK RTIMER_ARCH_SECOND / 100000
 
 /* On some platforms, we may end up with a DEFAULT_PERIOD that is 0
    which will make compilation fail due to a modulo operation in the
@@ -821,7 +822,7 @@ input_packet(void)
       PRINTDEBUG("xmac: stray strobe ack\n");
     } else {
       PRINTF("xmac: unknown type %u (%u/%u)\n", hdr->type,
-             packetbuf_datalen(), len);
+             packetbuf_datalen(), packetbuf_totlen());
     }
   } else {
     PRINTF("xmac: failed to parse (%u)\n", packetbuf_totlen());
