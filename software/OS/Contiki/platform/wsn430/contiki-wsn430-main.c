@@ -131,7 +131,7 @@ set_rime_addr(void)
   memcpy(addr.u8, ds2411_id.raw, sizeof(addr.u8));
 #else
   for(i = 0; i < sizeof(rimeaddr_t); ++i) {
-    addr.u8[i] = ds2411_id.raw[6 - i];
+    addr.u8[i] = ds2411_id.raw[7 - i];
   }
 #endif
   rimeaddr_set_node_addr(&addr);

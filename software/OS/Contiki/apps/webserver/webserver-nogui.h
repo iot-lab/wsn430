@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki OS
  *
- * $Id: webserver-nogui.h,v 1.4 2008/10/14 11:07:57 adamdunkels Exp $
+ * $Id$
  *
  */
 #ifndef __WEBSERVER_NOGUI_H__

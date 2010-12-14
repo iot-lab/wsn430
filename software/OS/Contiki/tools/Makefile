@@ -1,4 +1,4 @@
-all: tunslip tapslip6 senslip senslip6
+all: tunslip tapslip6 tunslip6 senslip senslip6
 
 clean:
-	rm tunslip tapslip6 senslip senslip6
+	rm tunslip tapslip6 tunslip6 senslip senslip6

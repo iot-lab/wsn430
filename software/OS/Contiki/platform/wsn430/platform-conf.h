@@ -17,6 +17,7 @@
 /* Our clock resolution, this is the same as Unix HZ. */
 #define CLOCK_CONF_SECOND 128UL
 
+#define F_CPU 1000000
 #define BAUD2UBR(baud) ((F_CPU/baud))
 
 #define CCIF

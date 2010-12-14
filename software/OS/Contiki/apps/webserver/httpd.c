@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: httpd.c,v 1.12 2009/08/12 18:23:37 dak664 Exp $
+ * $Id$
  */
  
 #include <stdio.h>
@@ -47,7 +47,7 @@
 #include "httpd.h"
 
 #ifndef WEBSERVER_CONF_CGI_CONNS
-#define CONNS 4
+#define CONNS UIP_CONNS
 #else /* WEBSERVER_CONF_CGI_CONNS */
 #define CONNS WEBSERVER_CONF_CGI_CONNS
 #endif /* WEBSERVER_CONF_CGI_CONNS */
@@ -185,7 +185,7 @@ PT_THREAD(handle_script(struct httpd_state *s))
 static
 PT_THREAD(send_headers(struct httpd_state *s, const char *statushdr))
 {
-  char *ptr;
+  const char *ptr;
 
   PSOCK_BEGIN(&s->sout);
 
@@ -193,21 +193,22 @@ PT_THREAD(send_headers(struct httpd_state *s, const char *statushdr))
 
   ptr = strrchr(s->filename, ISO_period);
   if(ptr == NULL) {
-    SEND_STRING(&s->sout, http_content_type_binary);
+    ptr = http_content_type_binary;
   } else if(strncmp(http_html, ptr, 5) == 0 ||
 	    strncmp(http_shtml, ptr, 6) == 0) {
-    SEND_STRING(&s->sout, http_content_type_html);
+    ptr = http_content_type_html;
   } else if(strncmp(http_css, ptr, 4) == 0) {
-    SEND_STRING(&s->sout, http_content_type_css);
+    ptr = http_content_type_css;
   } else if(strncmp(http_png, ptr, 4) == 0) {
-    SEND_STRING(&s->sout, http_content_type_png);
+    ptr = http_content_type_png;
   } else if(strncmp(http_gif, ptr, 4) == 0) {
-    SEND_STRING(&s->sout, http_content_type_gif);
+    ptr = http_content_type_gif;
   } else if(strncmp(http_jpg, ptr, 4) == 0) {
-    SEND_STRING(&s->sout, http_content_type_jpg);
+    ptr = http_content_type_jpg;
   } else {
-    SEND_STRING(&s->sout, http_content_type_plain);
+    ptr = http_content_type_plain;
   }
+  SEND_STRING(&s->sout, ptr);
   PSOCK_END(&s->sout);
 }
 /*---------------------------------------------------------------------------*/
@@ -219,7 +220,8 @@ PT_THREAD(handle_output(struct httpd_state *s))
   PT_BEGIN(&s->outputpt);
  
   if(!httpd_fs_open(s->filename, &s->file)) {
-    httpd_fs_open(http_404_html, &s->file);
+    strcpy(s->filename, http_404_html);
+    httpd_fs_open(s->filename, &s->file);
     PT_WAIT_THREAD(&s->outputpt,
 		   send_headers(s,
 		   http_header_404));
@@ -229,7 +231,7 @@ PT_THREAD(handle_output(struct httpd_state *s))
     PT_WAIT_THREAD(&s->outputpt,
 		   send_headers(s,
 		   http_header_200));
-    ptr = strchr(s->filename, ISO_period);
+    ptr = strrchr(s->filename, ISO_period);
     if(ptr != NULL && strncmp(ptr, http_shtml, 6) == 0) {
       PT_INIT(&s->scriptpt);
       PT_WAIT_THREAD(&s->outputpt, handle_script(s));
@@ -262,11 +264,12 @@ PT_THREAD(handle_input(struct httpd_state *s))
     strncpy(s->filename, http_index_html, sizeof(s->filename));
   } else {
     s->inputbuf[PSOCK_DATALEN(&s->sin) - 1] = 0;
-    strncpy(s->filename, &s->inputbuf[0], sizeof(s->filename));
+    strncpy(s->filename, s->inputbuf, sizeof(s->filename));
   }
 
+  petsciiconv_topetscii(s->filename, sizeof(s->filename));
   webserver_log_file(&uip_conn->ripaddr, s->filename);
-  
+  petsciiconv_toascii(s->filename, sizeof(s->filename));
   s->state = STATE_OUTPUT;
 
   while(1) {
@@ -333,7 +336,7 @@ httpd_appcall(void *state)
 void
 httpd_init(void)
 {
-  tcp_listen(HTONS(80));
+  tcp_listen(UIP_HTONS(80));
   memb_init(&conns);
   httpd_cgi_init();
 }
@@ -359,7 +362,7 @@ httpd_sprint_ip6(uip_ip6addr_t addr, char * result)
       i += zerocnt;
       numprinted += zerocnt;
     } else {
-      result += sprintf(result, "%x", (unsigned int)(ntohs(addr.u16[i])));
+      result += sprintf(result, "%x", (unsigned int)(uip_ntohs(addr.u16[i])));
       i++;
       numprinted++;
     }
