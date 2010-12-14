@@ -1,0 +1,34 @@
+This example features two applications: "border router" and "udp", that are 
+used to demonstrate the use of IPv6 and RPL.
+
+The first found in the rpl-border-router folder will provide the RPL DAG root 
+and should be connected to a PC. It also embeds a webserver showing the list of
+connected devices and routes.
+The second provide a UDP server establishing a DAG (being as well the root) and 
+a UDP client that will join the RPL DAG and be able to communicate with the 
+border router or UDP server.
+
+This is how to run the demo:
+1) compile the border router application
+ $ cd rpl-border-router
+ $ make
+    [...]
+2) flash the border-router.wsn430 firmware to a node, and connect it to e.g. 
+ttyS0
+3) go to the tools folder of the Contiki directory, and run the tunslip6 script
+with root priviledges
+ # ./tunslip6 -B 115200 -s /dev/ttyS0 aaaa::1
+
+(look at the node address, as written in the terminal)
+
+ 4) in another terminal, go to the rpl-udp folder, and compile the application:
+ $ cd rpl-udp
+ $ make
+   [...]
+5) flash a node with the udp-client.wsn430 firmware
+
+6) in a web browser, indicate the IPv6 address of the border router node, e.g.:
+http://[aaaa::4a00:12:91b9:9e01]/
+
+7) you should see the list of the connected node, and you should be able to ping
+them with the ping6 command!
