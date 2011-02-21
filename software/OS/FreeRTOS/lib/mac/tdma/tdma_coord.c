@@ -213,7 +213,8 @@ static void beacon_send(void) {
 
 static uint16_t beacon_append(uint16_t dest_addr, uint8_t type, uint8_t length,
 		uint8_t* data) {
-	if (beacon_data_ptr + 3 + length > beacon_frame.beacon_data + MAX_BEACON_DATA_LENGTH) {
+	if (beacon_data_ptr + 3 + length > beacon_frame.beacon_data
+			+ MAX_BEACON_DATA_LENGTH) {
 		// Beacon too big
 		return 0;
 	}

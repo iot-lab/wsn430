@@ -160,6 +160,11 @@ void mac_set_data_received_handler(void(*handler)(uint8_t* data,
 }
 
 uint16_t mac_send(uint8_t* data, uint16_t length) {
+	// we need to have a dedicated frame,
+	// and static so it is not taken from the stack
+	// let's hope it is not called concurrently...
+	static frame_t frame_to_send;
+
 	// Routine checks
 	if (state != STATE_ASSOCIATED) {
 		return 0;
@@ -170,21 +175,19 @@ uint16_t mac_send(uint8_t* data, uint16_t length) {
 	}
 
 	// Prepare data frame
-	hton_s(mac_addr, data_frame.srcAddr);
-	hton_s(coordAddr, data_frame.dstAddr);
-	data_frame.type = FRAME_TYPE_DATA;
-	memcpy(data_frame.data, data, length);
-	data_frame.length = FRAME_HEADER_LENGTH + length;
+	hton_s(mac_addr, frame_to_send.srcAddr);
+	hton_s(coordAddr, frame_to_send.dstAddr);
+	frame_to_send.type = FRAME_TYPE_DATA;
+	memcpy(frame_to_send.data, data, length);
+	frame_to_send.length = FRAME_HEADER_LENGTH + length;
 
 	// Put frame in queue
-	if (xQueueSendToBack(tx_queue, &data_frame, 0) == pdTRUE) {
+	if (xQueueSendToBack(tx_queue, &frame_to_send, 0) == pdTRUE) {
 		return 1;
 	}
 
 	return 0;
 }
-static volatile uint16_t t0, t1[2], t2[2], t4;
-static volatile uint16_t ti;
 static void vMacTask(void* pvParameters) {
 	mac_init();
 
@@ -256,9 +259,7 @@ static void vMacTask(void* pvParameters) {
 				block_until_event(EVENT_SLOT_TIME);
 
 				// Send all data we have while we have time
-				ti = 0;
 				while (data_send()) {
-					ti++;
 					int16_t time_to_max;
 					// Get next slot time
 					time_to_max = (beacon_time + (slot_dedicated + 1)
@@ -464,10 +465,8 @@ static uint16_t data_send(void) {
 		// No frame to send
 		return 0;
 	}
-	t1[ti] = t;
 
 	phy_send(data_frame.raw, data_frame.length, 0);
-	t2[ti] = TBR;
 	return 1;
 }
 
