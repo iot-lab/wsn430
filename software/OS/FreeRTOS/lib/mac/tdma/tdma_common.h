@@ -48,7 +48,7 @@
 #define MAX_BEACON_DATA_LENGTH 55
 
 #ifndef SLOT_COUNT
-#define SLOT_COUNT 9 // For 8 nodes!, total period = 10 slots
+#define SLOT_COUNT 5 // For (SLOT_COUNT-1) nodes!, total period = (SLOT_COUNT+1) slots
 #endif
 
 #ifndef SLOT_TIME_MS
@@ -56,7 +56,7 @@
 #endif
 
 #ifndef BEACON_LOSS_MAX
-#define BEACON_LOSS_MAX 3
+#define BEACON_LOSS_MAX 10
 #endif
 
 #ifndef RADIO_CHANNEL

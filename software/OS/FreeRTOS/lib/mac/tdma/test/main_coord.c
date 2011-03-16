@@ -86,25 +86,7 @@ static void vPrinterTask(void* pvParameters) {
 
 	while (1) {
 		if (xQueueReceive(rx_queue, &rx_frame, portMAX_DELAY) == pdTRUE) {
-			printf("r%u", rx_frame[0]);
-				uint8_t missed = rx_frame[0] - last - 1;
-			if (missed) {
-				printf("\t[-%u]", missed);
-			}
-			last = *rx_frame;
-			printf("\n");
-
-			if (last % 4 == 0) {
-				static uint16_t length = 14;
-				printf("sending [%u] bytes\n", length);
-				mac_send(rx_node, rx_frame, length);
-
-				length ++;
-				if (length > 16) {
-					length = 1;
-				}
-			}
-
+			printf("r%u\n", rx_frame[0]);
 		}
 	}
 }
@@ -128,5 +110,4 @@ static void new_data(uint16_t node, uint8_t* data, uint16_t length) {
 	xQueueSendToBack(rx_queue, data, 0);
 }
 static void beacon_tx(uint8_t id, uint16_t timestamp) {
-	putchar('b');
 }

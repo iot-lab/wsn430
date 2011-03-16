@@ -259,26 +259,38 @@ static void vMacTask(void* pvParameters) {
 				block_until_event(EVENT_SLOT_TIME);
 
 				// Send all data we have while we have time
-				while (data_send()) {
+
+				while (xQueueReceive(tx_queue, &data_frame, 0) == pdTRUE) {
+					// There is a frame to send, check time
+
 					int16_t time_to_max;
+
 					// Get next slot time
 					time_to_max = (beacon_time + (slot_dedicated + 1)
 							* TIME_SLOT);
-					// Remove interpacket and max pkt duration
-					time_to_max -= (phy_get_max_tx_duration()
-							+ TIME_INTERPACKET);
+					// Remove interpacket and estimate pkt duration
+					time_to_max -= phy_get_estimate_tx_duration(
+							data_frame.length) + TIME_INTERPACKET;
 					// Remove actual time
 					time_to_max -= timerB_time();
 
+					// Check not too late
 					if (time_to_max > 0) {
+						// Send frame
+						phy_send(data_frame.raw, data_frame.length, 0);
+
+						// Wait interpacket
 						interpacket_wait();
 						block_until_event(EVENT_TIMEOUT);
 					} else {
-						// Too late for sending the next
+						// Too late, put the frame back in queue
+						xQueueSendToFront(tx_queue, &data_frame, 0);
+						// Stop the loop
 						break;
 					}
-
 				}
+				phy_idle();
+
 			} else {
 				phy_idle();
 				beacon_loss++;
@@ -456,18 +468,6 @@ static void attach_send(void) {
 	phy_send(data_frame.raw, FRAME_HEADER_LENGTH + 1, 0);
 
 	data_frame.length = 0;
-}
-
-static uint16_t data_send(void) {
-	uint16_t t = TBR;
-	// Try to get a frame to send
-	if (xQueueReceive(tx_queue, &data_frame, 0) != pdTRUE) {
-		// No frame to send
-		return 0;
-	}
-
-	phy_send(data_frame.raw, data_frame.length, 0);
-	return 1;
 }
 
 static void interpacket_wait(void) {

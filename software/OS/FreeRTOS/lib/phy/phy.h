@@ -38,6 +38,10 @@
 #define PHY_H_
 
 /**
+ * The maximum length a packet can be, when calling the phy_send method.
+ */
+#define PHY_MAX_LENGTH 125
+/**
  * Callback function prototype for received frames
  * \param data pointer to the received data
  * \param length number of data bytes received
@@ -47,9 +51,9 @@
 typedef void (*phy_rx_callback_t)(uint8_t * data, uint16_t length, int8_t rssi,
 		uint16_t time);
 
-enum phy_tx_power {
-	PHY_TX_20dBm, PHY_TX_10dBm, PHY_TX_5dBm, PHY_TX_0dBm
-};
+typedef enum phy_tx_power {
+	PHY_TX_m20dBm, PHY_TX_m10dBm, PHY_TX_m5dBm, PHY_TX_0dBm
+} phy_tx_power_t;
 
 /**
  * Initialize the PHY layer.
@@ -58,7 +62,7 @@ enum phy_tx_power {
  * \param power the TX power to use.
  */
 void phy_init(xSemaphoreHandle spi_m, phy_rx_callback_t callback,
-		uint8_t channel, enum phy_tx_power power);
+		uint8_t channel, phy_tx_power_t power);
 /**
  * Enter RX at the PHY layer. The PHY RX callback will be called upon frame RX
  */
@@ -89,5 +93,7 @@ uint16_t phy_send_cca(uint8_t* data, uint16_t length, uint16_t *timestamp);
  * Get the maximum TX duration
  */
 uint16_t phy_get_max_tx_duration(void);
+
+uint16_t phy_get_estimate_tx_duration(uint8_t length);
 
 #endif /* PHY_H_ */

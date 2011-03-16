@@ -33,7 +33,6 @@
  * knowledge of the CeCILL license and that you accept its terms.
  */
 
-
 /* Global includes */
 #include <io.h>
 #include <stdlib.h>
@@ -99,13 +98,13 @@ void phy_init(xSemaphoreHandle spi_m, phy_rx_callback_t callback,
 	case PHY_TX_0dBm:
 		radio_power = 31;
 		break;
-	case PHY_TX_5dBm:
+	case PHY_TX_m5dBm:
 		radio_power = 19;
 		break;
-	case PHY_TX_10dBm:
+	case PHY_TX_m10dBm:
 		radio_power = 11;
 		break;
-	case PHY_TX_20dBm:
+	case PHY_TX_m20dBm:
 		radio_power = 4;
 		break;
 	default:
@@ -265,6 +264,24 @@ uint16_t phy_send_cca(uint8_t* data, uint16_t length, uint16_t *timestamp) {
 
 uint16_t phy_get_max_tx_duration(void) {
 	return TX_MAX_DURATION;
+}
+
+uint16_t phy_get_estimate_tx_duration(uint8_t length) {
+	uint16_t duration;
+#define OVERHEAD 8 // Add 4 preamble, 1 sync word, 1 length, 2 CRC
+	// Compute real length
+	length += OVERHEAD;
+
+	// TX MAX DURATION corresponds to a frame a 125 payload bytes,
+	// hence 134 real bytes
+	duration = (TX_MAX_DURATION * length) / (PHY_MAX_LENGTH + OVERHEAD);
+
+	if (duration < (TX_MAX_DURATION / 8)) {
+		duration = TX_MAX_DURATION / 8;
+	} else if (duration > TX_MAX_DURATION) {
+		duration = TX_MAX_DURATION;
+	}
+	return duration;
 }
 
 static void cc2420_task(void* param) {

@@ -17,8 +17,8 @@
 /* MAC task include */
 #include "tdma_node.h"
 
-#define TX_PERIOD 32768
-#define TX_LENGTH 32
+#define TX_PERIOD 32768/50
+#define TX_LENGTH 20
 #define TX_BURST 1
 
 /* Hardware initialization */
@@ -124,7 +124,6 @@ static uint16_t send_time(void) {
 }
 
 static void beacon(uint8_t id, uint16_t timestamp) {
-	putchar('b');
 }
 
 static void associated(void) {
@@ -136,7 +135,6 @@ static void lost(void) {
 }
 
 static void rx(uint8_t* data, uint16_t length) {
-	printf("#rx [%u] bytes\n", length);
 }
 
 int putchar(int c) {
