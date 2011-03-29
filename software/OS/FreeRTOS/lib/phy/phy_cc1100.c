@@ -49,7 +49,6 @@
 #include "phy.h"
 
 /* Drivers Include */
-#include "phy_cc1100_regs.h"
 #include "cc1100.h"
 #include "spi1.h"
 #include "timerB.h"
@@ -65,8 +64,11 @@
 enum phy_state {
 	IDLE = 1, RX = 2, TX = 3
 };
-#define TX_MAX_DURATION 190
+
+#define PHY_MAX_LENGTH 125
 #define PHY_FOOTER_LENGTH 2
+
+#define TX_MAX_DURATION 190
 
 /* Function Prototypes */
 static void cc1100_task(void* param);
@@ -76,6 +78,7 @@ static void restore_state(void);
 
 /* CC1100 callback functions */
 static uint16_t sync_irq(void);
+static uint16_t rx_irq(void);
 
 /* Static variables */
 static xSemaphoreHandle rx_sem, spi_mutex;
@@ -94,26 +97,21 @@ void phy_init(xSemaphoreHandle spi_m, phy_rx_callback_t callback,
 	// Store the callback
 	rx_cb = callback;
 
-	// Store the channel, 802.15.4 like, i.e. between 11 and 26
-	if (channel < 11)
-		channel = 11;
-	else if (channel > 26)
-		channel = 26;
-	// Store
-	radio_channel = ((channel - 11) * 3);
+	// Store the channel
+	radio_channel = channel;
 
 	// Store the TX power
 	switch (power) {
 	case PHY_TX_0dBm:
 		radio_power = 0xC2;
 		break;
-	case PHY_TX_m5dBm:
+	case PHY_TX_5dBm:
 		radio_power = 0x67;
 		break;
-	case PHY_TX_m10dBm:
+	case PHY_TX_10dBm:
 		radio_power = 0x27;
 		break;
-	case PHY_TX_m20dBm:
+	case PHY_TX_20dBm:
 		radio_power = 0x0F;
 		break;
 	default:
@@ -244,10 +242,12 @@ uint16_t phy_get_estimate_tx_duration(uint8_t length) {
 #define OVERHEAD 9 // Add 4 preamble, 2 sync word, 1 length, 2 CRC
 	uint16_t duration;
 	length += OVERHEAD;
-
+	uint16_t length16 = length;
+	
 	// TX MAX DURATION corresponds to a frame a 125 payload bytes,
 	// hence 134 real bytes
-	duration = (TX_MAX_DURATION * length) / (PHY_MAX_LENGTH + OVERHEAD);
+	
+	duration = (TX_MAX_DURATION * length16) / (PHY_MAX_LENGTH +OVERHEAD);
 
 	if (duration < (TX_MAX_DURATION / 8)) {
 		duration = TX_MAX_DURATION / 8;
@@ -256,7 +256,7 @@ uint16_t phy_get_estimate_tx_duration(uint8_t length) {
 	}
 	return duration;
 }
-
+	
 static void cc1100_task(void* param) {
 	// Initialize the radio
 	cc1100_driver_init();
@@ -273,7 +273,6 @@ static void cc1100_task(void* param) {
 }
 
 static void cc1100_driver_init(void) {
-	uint16_t i;
 	// Take the SPI mutex before any radio access
 	xSemaphoreTake(spi_mutex, portMAX_DELAY);
 
@@ -281,27 +280,52 @@ static void cc1100_driver_init(void) {
 	cc1100_init();
 	cc1100_cmd_idle();
 
-	// configure the radio behavior, defined in cc1100_regs
-	for (i = 0; i < sizeof(cc1100_regs); i += 2) {
-		cc1100_write_reg(cc1100_regs[i], cc1100_regs[i + 1]);
-	}
+	// configure the radio behavior
+	cc1100_cfg_append_status(CC1100_APPEND_STATUS_ENABLE);
+	cc1100_cfg_crc_autoflush(CC1100_CRC_AUTOFLUSH_DISABLE);
+	cc1100_cfg_white_data(CC1100_DATA_WHITENING_ENABLE);
+	cc1100_cfg_crc_en(CC1100_CRC_CALCULATION_ENABLE);
+	cc1100_cfg_freq_if(0x06);
+	cc1100_cfg_fs_autocal(CC1100_AUTOCAL_NEVER);
+	cc1100_cfg_mod_format(CC1100_MODULATION_MSK);
+	cc1100_cfg_sync_mode(CC1100_SYNCMODE_30_32);
+	cc1100_cfg_manchester_en(CC1100_MANCHESTER_DISABLE);
+
+	// set channel bandwidth (500 kHz)
+	cc1100_cfg_chanbw_e(0);
+	cc1100_cfg_chanbw_m(2);
+
+	// set channel spacing 200kHz
+	cc1100_cfg_chanspc_e(0x2);
+	cc1100_cfg_chanspc_m(0xE5);
+
+	// set data rate (0xD/0x2F is 250kbps)
+	cc1100_cfg_drate_e(0x0D);
+	cc1100_cfg_drate_m(0x2F);
+
+	// go to idle after RX and TX
+	cc1100_cfg_rxoff_mode(CC1100_RXOFF_MODE_IDLE);
+	cc1100_cfg_txoff_mode(CC1100_TXOFF_MODE_IDLE);
 
 	// Set channel
 	cc1100_cfg_chan(radio_channel);
 
-	// Configure TX power
-	cc1100_cfg_patable(&radio_power, 1);
+	// Set FIFO threshold to middle
+	cc1100_cfg_fifo_thr(7);
 
 	// Set gdo0 SYNC word detection (both RX and TX)
 	cc1100_gdo0_int_disable();
 	cc1100_cfg_gdo0(CC1100_GDOx_SYNC_WORD);
 	cc1100_gdo0_int_set_rising_edge();
 	cc1100_gdo0_register_callback(sync_irq);
-	cc1100_gdo0_int_clear();
 	cc1100_gdo0_int_enable();
 
 	// Calibrate a first time
 	cc1100_cmd_calibrate();
+
+	// Configure TX power
+	cc1100_cfg_patable(&radio_power, 1);
+	cc1100_cfg_pa_power(0);
 
 	// Release mutex
 	xSemaphoreGive(spi_mutex);
@@ -346,7 +370,7 @@ static void handle_received_frame(void) {
 	}
 
 	rx_data_length = rx_length;
-
+	
 	// Add 2 to the length for the status bytes
 	rx_length += PHY_FOOTER_LENGTH;
 	rx_ptr = rx_data;

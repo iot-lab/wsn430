@@ -64,7 +64,7 @@
 #define PRINTF(...)
 #endif
 
-#define LEDS 1
+#define LEDS 0
 
 /* Function Prototypes */
 static void vMacTask(void* pvParameters);
@@ -270,7 +270,10 @@ static void vMacTask(void* pvParameters) {
 							* TIME_SLOT);
 					// Remove interpacket and estimate pkt duration
 					time_to_max -= phy_get_estimate_tx_duration(
-							data_frame.length) + TIME_INTERPACKET;
+						data_frame.length) + TIME_INTERPACKET;
+					
+					//time_to_max -= phy_get_max_tx_duration() + TIME_INTERPACKET;	
+					
 					// Remove actual time
 					time_to_max -= timerB_time();
 

@@ -65,7 +65,7 @@
 #define PRINTF(...)
 #endif
 
-#define LEDS 1
+#define LEDS 0
 
 /* Function Prototypes */
 static void vMacTask(void* pvParameters);
