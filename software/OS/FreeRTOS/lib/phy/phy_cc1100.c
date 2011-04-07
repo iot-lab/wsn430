@@ -105,13 +105,13 @@ void phy_init(xSemaphoreHandle spi_m, phy_rx_callback_t callback,
 	case PHY_TX_0dBm:
 		radio_power = 0xC2;
 		break;
-	case PHY_TX_5dBm:
+	case PHY_TX_m5dBm:
 		radio_power = 0x67;
 		break;
-	case PHY_TX_10dBm:
+	case PHY_TX_m10dBm:
 		radio_power = 0x27;
 		break;
-	case PHY_TX_20dBm:
+	case PHY_TX_m20dBm:
 		radio_power = 0x0F;
 		break;
 	default:
