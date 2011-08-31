@@ -35,7 +35,7 @@
  */
 /**
  * \file
- *         CC1100 driver
+ *         CC2420 driver
  * \author
  *         Clément Burin des Roziers <clement.burin-des-roziers@inrialpes.fr>
  * 
@@ -124,7 +124,7 @@ const struct radio_driver cc2420_radio_driver = { cc2420_radio_init,
 
 // Helpful Functions
 /**
- * Callback function for the CC1100 driver, called with FIFO threshold or EOP
+ * Callback function for the CC2420 driver, called with FIFO threshold or EOP
  * \return 1 to wake the CPU up
  */
 static uint16_t irq_rx(void);
@@ -288,7 +288,7 @@ static int cc2420_transmit(unsigned short payload_len) {
 
 #if WITH_SEND_CCA
 	cc2420_cmd_rx();
-	BUSYWAIT_UNTIL(cc2420_get_status() & CC2420_STATUS_TX_ACTIVE, RTIMER_SECOND / 10);
+	BUSYWAIT_UNTIL(cc2420_get_status() & CC2420_STATUS_RSSI_VALID, RTIMER_SECOND / 10);
 	cc2420_cmd_txoncca();
 #else /* WITH_SEND_CCA */
 	cc2420_cmd_tx();
