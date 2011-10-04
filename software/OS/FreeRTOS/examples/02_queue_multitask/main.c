@@ -36,18 +36,18 @@ int main( void )
 {
     /* Setup the hardware. */
     prvSetupHardware();
-    
+
     /* Create the Queue for communication between the tasks */
     xQueue = xQueueCreate( 5, sizeof(uint8_t) );
-    
+
     /* Add the two tasks to the scheduler */
     xTaskCreate(vPrintTask, (const signed char*) "Print", configMINIMAL_STACK_SIZE, NULL, 1, NULL );
     xTaskCreate(vTempTask, (const signed char*) "Temperature", configMINIMAL_STACK_SIZE, NULL, 1, NULL );
-    
-    
+
+
     /* Start the scheduler. */
     vTaskStartScheduler();
-    
+
     /* As the scheduler has been started we should never get here! */
     return 0;
 }
@@ -59,10 +59,10 @@ static void prvSetupHardware( void )
 {
     /* Stop the watchdog timer. */
     WDTCTL = WDTPW + WDTHOLD;
-    
+
     /* Setup MCLK 8MHz and SMCLK 1MHz */
     set_mcu_speed_xt2_mclk_8MHz_smclk_1MHz();
-    
+
     /* Enable Interrupts */
     eint();
 }
@@ -77,10 +77,10 @@ static void vPrintTask(void* pvParameters)
 {
     uint8_t temp_meas;
     uint16_t samplecount = 0;
-    
-    /* Initialize the uart port */   
+
+    /* Initialize the uart port */
     uart0_init(UART0_CONFIG_1MHZ_115200);
-    
+
     /* Infinite loop */
     while (1)
     {
@@ -103,24 +103,24 @@ static void vTempTask(void* pvParameters)
 {
     uint8_t msb;
     uint16_t xLastWakeTime = xTaskGetTickCount();
-    
+
     /* The sample period is 1000 ticks, about 1s */
     const uint16_t xWakePeriod = 1000;
-    
+
     /* Initialize the temperature sensor */
     ds1722_init();
     ds1722_set_res(8);
     ds1722_sample_cont();
-    
+
     /* Infinite loop */
     while(1)
     {
         /* Read the sensor */
         msb = ds1722_read_MSB();
-        
+
         /* Put the read value on the queue */
         xQueueSendToBack(xQueue, &msb, 0);
-        
+
         /* Block until xWakePeriod(=1000) ticks since previous call */
         vTaskDelayUntil(&xLastWakeTime, xWakePeriod);
     }

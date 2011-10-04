@@ -11,7 +11,7 @@ do
 	cd $i
 	echo $i >> ../compile.log
 	make clean
-	make 2>> ../compile.log
+	make $1 2>> ../compile.log
 	if [ $? -eq 0 ]; then
 		echo " SUCCESS" >> ../compile.log
 	else

@@ -37,16 +37,16 @@ int main( void )
 {
     /* Setup the hardware. */
     prvSetupHardware();
-    
+
     /* Create the Semaphore for synchronization between UART and LED task */
     vSemaphoreCreateBinary( xSemaphore)
-    
+
     /* Add the only task to the scheduler */
     xTaskCreate(vLEDTask, (const signed char*) "LED", configMINIMAL_STACK_SIZE, NULL, 1, NULL );
-    
+
     /* Start the scheduler. */
     vTaskStartScheduler();
-    
+
     /* As the scheduler has been started we should never get here! */
     return 0;
 }
@@ -58,15 +58,15 @@ static void prvSetupHardware( void )
 {
     /* Stop the watchdog timer. */
     WDTCTL = WDTPW + WDTHOLD;
-    
+
     /* Setup MCLK 8MHz and SMCLK 1MHz */
     set_mcu_speed_xt2_mclk_8MHz_smclk_1MHz();
-    
+
     /* Configure the UART module for serial communication */
     uart0_init(UART0_CONFIG_1MHZ_115200);
     uart0_register_callback(rx_char_cb);
     printf("type any char to update the LEDs\r\n");
-    
+
     /* Enable Interrupts */
     eint();
 }
@@ -79,10 +79,10 @@ static void prvSetupHardware( void )
 static void vLEDTask(void* pvParameters)
 {
     uint16_t leds_state = 0;
-    
+
     /* Initialize the LEDs */
     LEDS_INIT();
-    
+
     /* Infinite loop */
     while(1)
     {
@@ -105,7 +105,7 @@ static uint16_t rx_char_cb(uint8_t c)
     static portBASE_TYPE xHigherPriorityTaskWoken;
     /* Give the semaphore */
     xSemaphoreGiveFromISR(xSemaphore, &xHigherPriorityTaskWoken);
-    
+
     if (xHigherPriorityTaskWoken)
     {
         return 1;

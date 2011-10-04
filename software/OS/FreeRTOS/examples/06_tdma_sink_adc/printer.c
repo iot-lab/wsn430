@@ -28,6 +28,9 @@ static void new_node(uint16_t node);
 static void new_data(uint16_t node, uint8_t* data, uint16_t length);
 static uint32_t inline adc_to_mv(uint16_t raw);
 
+static void beacon_sink(uint8_t id, uint16_t timestamp);
+
+
 /* Local Variables */
 static xQueueHandle xDataQueue;
 
@@ -46,6 +49,8 @@ static void vPrinterTask(void* pvParameters) {
 	// Start MAC layer
 	mac_set_node_associated_handler(new_node);
 	mac_set_data_received_handler(new_data);
+	mac_set_beacon_handler(beacon_sink);
+
 
 	LED_GREEN_OFF();
 	for (;;) {
@@ -80,3 +85,8 @@ static void new_data(uint16_t node, uint8_t* data, uint16_t length) {
 	adc->node = node; // Huge Hack :)
 	xQueueSendToBack(xDataQueue, adc, 0);
 }
+
+
+static void beacon_sink(uint8_t id, uint16_t timestamp) {
+}
+

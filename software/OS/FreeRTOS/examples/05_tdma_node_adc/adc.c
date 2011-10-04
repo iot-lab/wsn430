@@ -36,6 +36,9 @@ static void lost(void);
 static void tx_ready(void);
 static uint16_t measure_time(void);
 
+static void beacon_node(uint8_t id, uint16_t time);
+
+
 /* Local Variables */
 static xQueueHandle xDataQueue;
 static uint16_t *ADC12MEMx = (uint16_t*) ADC12MEM;
@@ -64,12 +67,14 @@ static void vADCTask(void* pvParameters) {
 	mac_send_command(MAC_ASSOCIATE);
 	mac_set_event_handler(MAC_ASSOCIATED, associated);
 	mac_set_event_handler(MAC_LOST, lost);
+	mac_set_beacon_handler(beacon_node);
 
 	LED_GREEN_OFF();
 	for (;;) {
 		if (xQueueReceive(xDataQueue, &event, portMAX_DELAY) == pdTRUE) {
 			switch (event) {
 			case ASSOCIATED:
+				vADCInit();
 				data_frame.length = 0;
 				break;
 			case MEASURE:
@@ -206,3 +211,9 @@ interrupt(ADC12_VECTOR) adc12irq(void) {
 	}
 
 }
+
+
+
+static void beacon_node(uint8_t id, uint16_t time) {
+}
+
