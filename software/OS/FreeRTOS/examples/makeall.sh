@@ -4,19 +4,19 @@ SUBDIRS="01_simple_multitask 02_queue_multitask 03_semphr_synchro 04_mutex_multi
 
 echo $(date) > compile.log
 
-ok=1
+ok=0
 
 for i in $SUBDIRS
 do
 	cd $i
 	echo $i >> ../compile.log
-	make clean
+	make $1 clean
 	make $1 2>> ../compile.log
 	if [ $? -eq 0 ]; then
-		echo " SUCCESS" >> ../compile.log
+		echo " SUCCESS $i" >> ../compile.log
 	else
-		echo " ERROR" >> ../compile.log
-		ok=0
+		echo " ERROR $i" >> ../compile.log
+		ok=1
 	fi
 	cd - > /dev/null
 done
@@ -24,14 +24,18 @@ done
 for i in $SUBDIRS
 do
 	cd $i
-	make clean
+	make $1 clean
 	cd - > /dev/null
 done
 
 cat compile.log
 
-if [ $ok -eq 1 ]; then
-	exit 0
+if [[ $ok -eq 0 ]];
+then
+	echo -e "\\033[1;32m All compilations succeded\\033[0m"
+
 else
-	exit 1
+	echo -e "\\033[1;31m Compilation error\\033[0m"
+
 fi
+exit $ok

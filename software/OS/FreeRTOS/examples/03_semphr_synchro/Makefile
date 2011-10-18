@@ -8,8 +8,7 @@ SOURCE_PATH = $(FREERTOS_PATH)/Source
 PORT_PATH = $(FREERTOS_PATH)/Source/portable/GCC/MSP430F449
 
 
-NAME    = adc_node
-TARGETS = $(NAME)_$(DRIVER).elf $(NAME)_$(DRIVER).hex
+NAMES    = semphr_synchro
 
 
 INCLUDES  = -I. -I$(WSN430_DRIVERS_PATH) -I$(SOURCE_PATH)/include
@@ -21,8 +20,8 @@ SRC += $(SOURCE_PATH)/queue.c
 SRC += $(SOURCE_PATH)/portable/MemMang/heap_1.c
 SRC += $(PORT_PATH)/port.c
 SRC += $(WSN430_DRIVERS_PATH)/clock.c
+
 SRC += $(WSN430_DRIVERS_PATH)/uart0.c
-SRC += $(WSN430_DRIVERS_PATH)/spi1.c
 
 
 
