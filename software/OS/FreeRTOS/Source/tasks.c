@@ -417,7 +417,8 @@ tskTCB * pxNewTCB;
 		#if( portSTACK_GROWTH < 0 )
 		{
 			pxTopOfStack = pxNewTCB->pxStack + ( usStackDepth - 1 );
-			pxTopOfStack = ( portSTACK_TYPE * ) ( ( ( unsigned long ) pxTopOfStack ) & ( ( unsigned long ) ~portBYTE_ALIGNMENT_MASK  ) );
+			//pxTopOfStack = ( portSTACK_TYPE * ) ( ( ( unsigned long ) pxTopOfStack ) & ( ( unsigned long ) ~portBYTE_ALIGNMENT_MASK  ) );
+			pxTopOfStack = ( portSTACK_TYPE * ) ( ( (unsigned int) pxTopOfStack ) & ( (unsigned int)  ~portBYTE_ALIGNMENT_MASK  ) );
 		}
 		#else
 		{

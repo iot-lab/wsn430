@@ -36,4 +36,6 @@
 #ifndef TDMA_USERCONFIG_H_
 #define TDMA_USERCONFIG_H_
 
+#warning "Using default tdma_userconfig.h"
+
 #endif

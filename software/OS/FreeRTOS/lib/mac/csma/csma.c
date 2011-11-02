@@ -45,8 +45,8 @@
 #include "semphr.h"
 
 /* Project Includes */
-#include "mac.h"
 #include "phy.h"
+#include "mac.h"
 #include "leds.h"
 
 /* Drivers Include */

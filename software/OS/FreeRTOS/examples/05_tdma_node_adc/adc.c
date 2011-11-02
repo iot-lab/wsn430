@@ -33,7 +33,7 @@ static void vADCTask(void* pvParameters);
 static void vADCInit(void);
 static void associated(void);
 static void lost(void);
-static void tx_ready(void);
+/* static void tx_ready(void); */ /* unused */
 static uint16_t measure_time(void);
 
 static void beacon_node(uint8_t id, uint16_t time);

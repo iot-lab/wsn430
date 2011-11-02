@@ -1,8 +1,8 @@
 ifndef FREERTOS_PATH
-	$(error Please set environment variable FREERTOS_PATH to the FreeRTOS folder)
+$(error Please set environment variable FREERTOS_PATH to the FreeRTOS folder)
 endif
 ifndef WSN430_DRIVERS_PATH
-	$(error Please set environment variable WSN430_DRIVERS_PATH to the drivers folder)
+$(error Please set environment variable WSN430_DRIVERS_PATH to the drivers folder)
 endif
 SOURCE_PATH = $(FREERTOS_PATH)/Source
 PORT_PATH = $(FREERTOS_PATH)/Source/portable/GCC/MSP430F449
@@ -40,5 +40,5 @@ SRC += $(WSN430_DRIVERS_PATH)/ds2411.c
 
 
 
--include ../Makefile.common
+-include $(WSN430_DRIVERS_PATH)/Makefile.common
 

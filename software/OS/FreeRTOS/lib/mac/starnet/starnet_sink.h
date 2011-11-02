@@ -36,38 +36,41 @@
 #ifndef _MAC_H
 #define _MAC_H
 
-#ifndef MAC_TX_POWER
-#define MAC_TX_POWER PHY_TX_m10dBm
-#endif
-
-#define MAC_BROADCAST_ADDR 0xFFFF
-#define MAC_TX_QUEUE_LENGTH 6
-
-
-
-typedef void (*mac_rx_callback_t)(uint16_t src_addr, uint8_t* data,
-		uint16_t length, int8_t rssi);
-
 /**
- * This node address
+ * Maximum packet size. Should not exceed 60.
  */
-extern uint16_t mac_addr;
+#define MAX_PACKET_LENGTH 48
 
 /**
  * Initialize and create the MAC task.
- * \param spi_m the radio spi mutex.
- * \param cb the packet received callback.
- * \param channel the radio channel to use.
+ * \param xSPIMutex mutex handle for preventing SPI access confusion
+ * \param usPriority priority the task should run at
  */
-void mac_init(xSemaphoreHandle xSPIMutex, mac_rx_callback_t rx_cb, uint8_t channel);
+void vCreateMacTask(xSemaphoreHandle xSPIMutex, uint16_t usPriority);
 
 /**
- * Send a packet to a node.
- * \param dest_addr the destination node address
- * \param data a pointer to the data to send
- * \param length the number of bytes to send
+ * Function to get the list of nodes.
+ * \param nodeList pointer that will point to the list
+ * \return the number of attached nodes
+ */
+uint16_t xGetAttachedNodes(uint8_t** nodeList);
+
+/**
+ * Request the MAC sublayer to send a packet to a node
+ * \param dstAddr packet destination node address
+ * \param pktLength the size of the packet
+ * \param pkt a pointer to the packet
  * \return 1 if the packet will be sent, 0 if it won't
  */
-uint16_t mac_send(uint16_t dest_addr, uint8_t* data, uint16_t length);
+uint16_t xSendPacketTo(uint8_t dstAddr, uint16_t pktLength, uint8_t* pkt);
+
+/**
+ * Function that should be provided outside of the 'mac' module.
+ * It will be called when a packet is received.
+ * \param srcAddr packet source node address
+ * \param pktLength length of the packet
+ * \param pkt pointer to the packet
+ */
+extern void vPacketReceivedFrom(uint8_t srcAddr, uint16_t pktLength, uint8_t* pkt);
 
 #endif

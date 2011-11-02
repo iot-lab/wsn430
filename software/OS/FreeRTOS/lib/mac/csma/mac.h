@@ -37,7 +37,7 @@
 #define _MAC_H
 
 #ifndef MAC_TX_POWER
-#define MAC_TX_POWER PHY_TX_10dBm
+#define MAC_TX_POWER PHY_TX_m10dBm
 #endif
 
 

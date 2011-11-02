@@ -81,7 +81,7 @@ static void beacon_search(uint16_t timeout);
 static void slot_wait(uint16_t slot);
 static void attach_send(void);
 
-static uint16_t data_send(void);
+/* static uint16_t data_send(void); */ /* unused */
 static void interpacket_wait(void);
 
 static uint16_t beacon_time_evt(void);

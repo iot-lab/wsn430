@@ -82,7 +82,6 @@ static void vPrinterTask(void* pvParameters) {
 	mac_set_data_received_handler(new_data);
 	mac_set_beacon_handler(beacon_tx);
 
-	uint8_t last = 0;
 
 	while (1) {
 		if (xQueueReceive(rx_queue, &rx_frame, portMAX_DELAY) == pdTRUE) {

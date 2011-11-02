@@ -78,7 +78,7 @@ static void restore_state(void);
 
 /* CC1100 callback functions */
 static uint16_t sync_irq(void);
-static uint16_t rx_irq(void);
+/* static uint16_t rx_irq(void); */     /* unused */
 
 /* Static variables */
 static xSemaphoreHandle rx_sem, spi_mutex;
