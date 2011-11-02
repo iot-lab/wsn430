@@ -14,8 +14,6 @@ SRC_mutex_multitask_cc1100 = $(WSN430_DRIVERS_PATH)/cc1100.c
 
 
 INCLUDES  = -I. -I$(WSN430_DRIVERS_PATH) -I$(SOURCE_PATH)/include
-INCLUDES += -I$(FREERTOS_PATH)/lib/mac/tdma
-INCLUDES += -I$(FREERTOS_PATH)/lib/phy
 
 SRC  = main.c radioTask.c
 SRC += $(SOURCE_PATH)/tasks.c
