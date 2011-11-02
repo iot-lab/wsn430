@@ -1,0 +1,7 @@
+TDMA OS-Free Implementation (cc1100 only)
+
+
+The TDMA defines the network as one coordinator node, and several end nodes. Time is divided in slots, managed by the coordinator.
+Slots may be allocated to the nodes by the coordinator, thus they will use this defined time duration to send packets to the coordinator.
+
+This type of network is useful to handle a large number of nodes (>10) while offering an interesting throughput from the nodes to the coordinator.

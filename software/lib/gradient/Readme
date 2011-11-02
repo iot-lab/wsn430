@@ -1,0 +1,11 @@
+This wireless network application is divided in three parts :
+     * The sink which sends periodical beacon and collect data from the network
+     * The anchors which are relaying data 
+     * The mobile nodes, which are collecting data (or whatever you want) and sending them for the sink
+
+To run your application you should :
+     * Change the hello_t structure in gradient.h to add your data
+     * Add the behaviour of the mobile node in the function uint16_t send_packet() in the file mobile.c
+     * Add the behaviour of the sink in the function void process_report(report_t * report) in the file sink.c
+
+You should not have to modify the anchors, they are only relaying data.
