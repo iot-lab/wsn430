@@ -10,14 +10,14 @@ SRC = main.c \
       $(WSN430_DRIVERS_PATH)/spi1.c \
       $(WSN430_DRIVERS_PATH)/timerA.c \
       $(WSN430_DRIVERS_PATH)/timerB.c \
-      $(SENSTOOLS_LIB_PATH)/mac/csma_cc1100.c \
-      $(SENSTOOLS_LIB_PATH)/net/route.c
+      $(WSN430_LIB_PATH)/mac/csma_cc1100.c \
+      $(WSN430_LIB_PATH)/net/route.c
 
 OBJECTS = $(SRC:.c=.o)
 
 INCLUDES = -I$(WSN430_DRIVERS_PATH) \
-           -I$(SENSTOOLS_LIB_PATH)/mac \
-           -I$(SENSTOOLS_LIB_PATH)/net
+           -I$(WSN430_LIB_PATH)/mac \
+           -I$(WSN430_LIB_PATH)/net
 
 CFLAGS   = -mmcu=${CPU} -Wall ${INCLUDES} -g -O2
 

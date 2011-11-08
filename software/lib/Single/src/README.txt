@@ -24,5 +24,5 @@ http://senstools.gforge.inria.fr/doku.php?id=lib:mac
    Last version used: v1.0
 
 Update variable in the Makefile:
-SENSTOOLS_LIB_PATH = ...
+WSN430_LIB_PATH = ...
 ======================================================================

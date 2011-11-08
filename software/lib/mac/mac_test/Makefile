@@ -1,8 +1,8 @@
 ifndef WSN430_DRIVERS_PATH
 $(error Please set environment variable WSN430_DRIVERS_PATH to the drivers folder)
 endif
-ifndef SENSTOOLS_LIB_PATH
-$(error Please set environment variable SENSTOOLS_LIB_PATH to the OS free library folder containing phy and mac folders)
+ifndef WSN430_LIB_PATH
+$(error Please set environment variable WSN430_LIB_PATH to the OS free library folder containing phy and mac folders)
 endif
 
 
@@ -10,12 +10,12 @@ NAMES  = xmac
 NAMES += csma_cc1100
 NAMES += csma_cc2420
 
-SRC_xmac         = $(SENSTOOLS_LIB_PATH)/mac/xmac.c
+SRC_xmac         = $(WSN430_LIB_PATH)/mac/xmac.c
 SRC_xmac        += $(WSN430_DRIVERS_PATH)/cc1100.c
-SRC_csma_cc1100  = $(SENSTOOLS_LIB_PATH)/mac/csma_cc1100.c
+SRC_csma_cc1100  = $(WSN430_LIB_PATH)/mac/csma_cc1100.c
 SRC_csma_cc1100 += $(WSN430_DRIVERS_PATH)/cc1100.c
 
-SRC_csma_cc2420  = $(SENSTOOLS_LIB_PATH)/mac/csma_cc2420.c
+SRC_csma_cc2420  = $(WSN430_LIB_PATH)/mac/csma_cc2420.c
 SRC_csma_cc2420 += $(WSN430_DRIVERS_PATH)/cc2420.c
 
 
@@ -30,7 +30,7 @@ SRC += $(WSN430_DRIVERS_PATH)/timerA.c
 
 
 INCLUDES  = -I$(WSN430_DRIVERS_PATH)
-INCLUDES += -I$(SENSTOOLS_LIB_PATH)/mac
+INCLUDES += -I$(WSN430_LIB_PATH)/mac
 
 
 -include $(WSN430_DRIVERS_PATH)/Makefile.common

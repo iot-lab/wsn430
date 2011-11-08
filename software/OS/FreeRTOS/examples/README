@@ -4,7 +4,7 @@ Refer to http://www.senslab.info for mode information.
 In order to compile these examples, you should set two environment variables:
 - FREERTOS_PATH should point to the FreeRTOS folder (containing the Source, lib, kernel and examples folders) (it should be parent folder)
 - WSN430_DRIVERS_PATH should point to the WSN430 drivers folder
-- SENSTOOLS_LIB_PATH should point to the WSN430 OS free library folder (containing phy and mac folders)
+- WSN430_LIB_PATH should point to the WSN430 OS free library folder (containing phy and mac folders)
 
 (archives available on the senslab.info website)
 
