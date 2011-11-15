@@ -24,6 +24,12 @@ CONTIKI_TARGET_SOURCEFILES += $(MSP430) \
 CONTIKI_SOURCEFILES        += $(CONTIKI_TARGET_SOURCEFILES)
 
 
+ifdef SMALL
+	CFLAGS += -ffunction-sections
+	LDFLAGS += -Wl,--gc-sections,--undefined=_reset_vector_,--undefined=InterruptVectors,--undefined=_copy_data_init__,--undefined=_clear_bss_init__,--undefined=_end_of_init_
+endif # SMALL
+
+
 ### Compiler definitions
 CC       = msp430-gcc
 LD       = msp430-gcc
