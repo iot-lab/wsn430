@@ -41,7 +41,6 @@
 #include "contiki.h"
 #include "net/rime/trickle.h"
 
-//~ #include "dev/button-sensor.h"
 
 #include "dev/leds.h"
 
@@ -51,31 +50,32 @@ extern process_event_t serial_line_event_message;
 PROCESS(example_trickle_process, "Trickle example");
 AUTOSTART_PROCESSES(&example_trickle_process);
 /*---------------------------------------------------------------------------*/
-static void
-trickle_recv(struct trickle_conn *c)
+static void trickle_recv(struct trickle_conn *c)
 {
-  printf("%d.%d: trickle message received '%s'\n",
-	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-	 (char *)packetbuf_dataptr());
+	printf("%d.%d: trickle message received '%.*s'\n",
+	       rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	       packetbuf_datalen(), (char *)packetbuf_dataptr());
 }
-const static struct trickle_callbacks trickle_call = {trickle_recv};
+const static struct trickle_callbacks trickle_call = { trickle_recv };
+
 static struct trickle_conn trickle;
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(example_trickle_process, ev, data)
 {
-  PROCESS_EXITHANDLER(trickle_close(&trickle);)
-  PROCESS_BEGIN();
+	PROCESS_EXITHANDLER(trickle_close(&trickle));
+	PROCESS_BEGIN();
 
-  trickle_open(&trickle, CLOCK_SECOND, 128, &trickle_call);
-  //~ button_sensor.activate();
+	trickle_open(&trickle, CLOCK_SECOND, 128, &trickle_call);
 
-  while(1) {
-    PROCESS_WAIT_EVENT_UNTIL(ev == serial_line_event_message);
-    printf("UART: sent\n");
-    packetbuf_copyfrom("Hello, world", 13);
-    trickle_send(&trickle);
+	printf("Write a character on serial link to send message\n");
+	while (1) {
+		PROCESS_WAIT_EVENT_UNTIL(ev == serial_line_event_message);
 
-  }
-  PROCESS_END();
+		printf("UART: sent\n");
+		packetbuf_copyfrom("Hello, world", 13);
+		trickle_send(&trickle);
+	}
+	PROCESS_END();
 }
+
 /*---------------------------------------------------------------------------*/

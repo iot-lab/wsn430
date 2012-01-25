@@ -45,47 +45,58 @@
 
 #include <stdio.h>
 #include <string.h>
+
+#include "common-config.h"
+
 /*---------------------------------------------------------------------------*/
 PROCESS(example_abc_process, "ABC example");
 AUTOSTART_PROCESSES(&example_abc_process);
 /*---------------------------------------------------------------------------*/
-static void
-abc_recv(struct abc_conn *c)
+static void abc_recv(struct abc_conn *c)
 {
-  ((char*)packetbuf_dataptr())[packetbuf_datalen()] = 0;
-  printf("abc message received (%d): '%s'\n",packetbuf_datalen(), (char *)packetbuf_dataptr());
+	((char *)packetbuf_dataptr())[packetbuf_datalen()] = 0;
+	printf("abc message received (%d): '%.*s'\n", packetbuf_datalen(),
+	       packetbuf_datalen(), (char *)packetbuf_dataptr());
 }
-static const struct abc_callbacks abc_call = {abc_recv};
+static const struct abc_callbacks abc_call = { abc_recv };
+
 static struct abc_conn abc;
 
-char text[] = "Hello World, sent by the ABC module, part of the Rime communication stack, I need a longer text so I'll just write something";
+char text[] = "Hello World, sent by the ABC module, part of the Rimer "
+	      "communication stack, I need a longer text so I'll just "
+	      "write something";
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(example_abc_process, ev, data)
 {
-  static struct etimer et;
+	static struct etimer et;
+	static int len = 10; /* default 10, max ?? (un peu plus que 116 je crois) */ /* TODO */
 
-  PROCESS_EXITHANDLER(abc_close(&abc);)
+	PROCESS_EXITHANDLER(abc_close(&abc));
+	PROCESS_BEGIN();
 
-  PROCESS_BEGIN();
+	abc_open(&abc, 128, &abc_call);
 
-  abc_open(&abc, 128, &abc_call);
+	/* Receiver node does nothing else than listening */
+	if (rimeaddr_node_addr.u8[0] == ref_node_rime_addr[0]
+		&& rimeaddr_node_addr.u8[1] == ref_node_rime_addr[1]) {
+		printf("Receiver node listening\n");
+		PROCESS_WAIT_EVENT_UNTIL(0);
+	}
 
-  etimer_set(&et, 1.5 * CLOCK_SECOND);
-  static int len = 10;
-  while(1) {
 
-    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
-    
-    if (rimeaddr_node_addr.u8[0] == 107 &&
-        rimeaddr_node_addr.u8[1] == 179) {
-      packetbuf_copyfrom(text, len);
-      abc_send(&abc);
-      printf("abc message sent [%i bytes]\n", len);
-    }
-    etimer_reset(&et);
-    
-  }
+	etimer_set(&et, 1.5 * CLOCK_SECOND);
+	while (1) {
 
-  PROCESS_END();
+		PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
+
+		packetbuf_copyfrom(text, len);
+		abc_send(&abc);
+		printf("abc message sent [%i bytes]\n", len);
+
+		etimer_reset(&et);
+	}
+
+	PROCESS_END();
 }
+
 /*---------------------------------------------------------------------------*/

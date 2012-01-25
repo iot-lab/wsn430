@@ -41,20 +41,19 @@
 #include "contiki.h"
 #include "net/rime/rucb.h"
 
-//~ #include "dev/button-sensor.h"
-
 #include "dev/leds.h"
 
-#include "cfs/cfs.h"
 #include "lib/print-stats.h"
 #include "sys/profile.h"
 
 #include <stdio.h>
 
+#include "common-config.h"
+
 #if CONTIKI_TARGET_NETSIM
 #include "ether.h"
 #include "node.h"
-#endif /* CONTIKI_TARGET_NETSIM */
+#endif	/* CONTIKI_TARGET_NETSIM */
 
 #define FILESIZE 40000
 
@@ -68,86 +67,92 @@ extern process_event_t serial_line_event_message;
 PROCESS(example_rucb_process, "Rucb example");
 AUTOSTART_PROCESSES(&example_rucb_process);
 /*---------------------------------------------------------------------------*/
-static void
-write_chunk(struct rucb_conn *c, int offset, int flag,
-	    char *data, int datalen)
+static void write_chunk(struct rucb_conn *c, int offset, int flag, char *data,
+		int datalen)
 {
+	printf("received %d; %d\n", offset, datalen);
+
 #if CONTIKI_TARGET_NETSIM
-  {
-    char buf[100];
-    printf("received %d; %d\n", offset, datalen);
-    sprintf(buf, "%d%%", (100 * (offset + datalen)) / FILESIZE);
-    ether_set_text(buf);
-  }
-#endif /* CONTIKI_TARGET_NETSIM */
+	{
+		char buf[100];
+		sprintf(buf, "%d%%", (100 * (offset + datalen)) / FILESIZE);
+		ether_set_text(buf);
+	}
+#endif	/* CONTIKI_TARGET_NETSIM */
 
 }
-static int
-read_chunk(struct rucb_conn *c, int offset, char *to, int maxsize)
+
+static int read_chunk(struct rucb_conn *c, int offset, char *to, int maxsize)
 {
-  int size;
-  size = maxsize;
-  if(bytecount + maxsize >= FILESIZE) {
-    size = FILESIZE - bytecount;
-  }
-  bytecount += size;
+	int size;
+	size = maxsize;
+	if (bytecount + maxsize >= FILESIZE) {
+		size = FILESIZE - bytecount;
+	}
+	bytecount += size;
 
-  if(bytecount == FILESIZE) {
-    printf("Completion time %lu / %u\n", (unsigned long)clock_time() - start_time, CLOCK_SECOND);
-    /*     profile_aggregates_print(); */
-/*     profile_print_stats(); */
-    print_stats();
-  }
+	if (bytecount == FILESIZE) {
+		printf("Completion time %lu / %lu\n",
+				(unsigned long)clock_time() - start_time, CLOCK_SECOND);
+		/* profile_aggregates_print(); */
+		/* profile_print_stats(); */
+		print_stats();
+	}
 
-  /*  printf("bytecount %lu\n", bytecount);*/
-  return size;
+	/*  printf("bytecount %lu\n", bytecount); */
+	return size;
 }
-const static struct rucb_callbacks rucb_call = {write_chunk, read_chunk,
-						NULL};
+
+const static struct rucb_callbacks rucb_call = {
+	write_chunk, read_chunk, NULL };
+
 static struct rucb_conn rucb;
 /*---------------------------------------------------------------------------*/
-//~ #include "node-id.h"
 
 PROCESS_THREAD(example_rucb_process, ev, data)
 {
-  PROCESS_EXITHANDLER(rucb_close(&rucb);)
-  PROCESS_BEGIN();
+	PROCESS_EXITHANDLER(rucb_close(&rucb));
+	PROCESS_BEGIN();
 
-  PROCESS_PAUSE();
+	rimeaddr_t recv;
 
-  
-  rucb_open(&rucb, 128, &rucb_call);
-  //~ button_sensor.activate();
+	PROCESS_PAUSE();
+	rucb_open(&rucb, 128, &rucb_call);
+	PROCESS_PAUSE();
 
-  PROCESS_PAUSE();
 
-  if(rimeaddr_node_addr.u8[0] == 51 &&
-      rimeaddr_node_addr.u8[1] == 0) {
-    rimeaddr_t recv;
+	/* Receiver node does nothing else than listening */
+	if (rimeaddr_node_addr.u8[0] == ref_node_rime_addr[0]
+			&& rimeaddr_node_addr.u8[1] == ref_node_rime_addr[1]) {
+		printf("Receiver node listening\n");
+		PROCESS_WAIT_EVENT_UNTIL(0);
+	}
 
-    recv.u8[0] = 52;
-    recv.u8[1] = 0;
-    start_time = clock_time();
 
-    /*printf("%u.%u: sending rucb to address %u.%u at time %u\n",
-        rimeaddr_node_addr.u8[0],
-        rimeaddr_node_addr.u8[1],
-        recv.u8[0],
-        recv.u8[1],
-        start_time);*/
+	recv.u8[0] = ref_node_rime_addr[0];
+	recv.u8[1] = ref_node_rime_addr[1];
+	start_time = clock_time();
 
-    rucb_send(&rucb, &recv);
+	printf("%u.%u: sending rucb to address %u.%u at time %lu\n",
+			rimeaddr_node_addr.u8[0],
+			rimeaddr_node_addr.u8[1],
+			recv.u8[0],
+			recv.u8[1],
+			start_time);
+
+	rucb_send(&rucb, &recv);
 #if CONTIKI_TARGET_NETSIM
-    ether_send_done();
-#endif /* CONTIKI_TARGET_NETSIM */
-  }
+	ether_send_done();
+#endif	/* CONTIKI_TARGET_NETSIM */
 
-  while(1) {
 
-    PROCESS_WAIT_EVENT_UNTIL(ev == serial_line_event_message);
-    /*rucb_stop(&rucb);*/
+	while (1) {
 
-  }
-  PROCESS_END();
+		PROCESS_WAIT_EVENT_UNTIL(ev == serial_line_event_message);
+		/*rucb_stop(&rucb); */
+
+	}
+	PROCESS_END();
 }
+
 /*---------------------------------------------------------------------------*/

@@ -42,11 +42,13 @@
 #include "net/rime.h"
 #include "net/rime/mesh.h"
 
-//~ #include "dev/button-sensor.h"
 
 #include "dev/leds.h"
 
 #include <stdio.h>
+
+
+#include "common-config.h"
 
 static struct mesh_conn mesh;
 extern process_event_t serial_line_event_message;
@@ -54,59 +56,67 @@ extern process_event_t serial_line_event_message;
 PROCESS(example_mesh_process, "Mesh example");
 AUTOSTART_PROCESSES(&example_mesh_process);
 /*---------------------------------------------------------------------------*/
-static void
-sent(struct mesh_conn *c)
+static void sent(struct mesh_conn *c)
 {
-  printf("packet sent\n");
-}
-static void
-timedout(struct mesh_conn *c)
-{
-  printf("packet timedout\n");
-}
-static void
-recv(struct mesh_conn *c, rimeaddr_t *from, uint8_t hops)
-{
-  printf("Data received from %d.%d: %.*s (%d)\n",
-	 from->u8[0], from->u8[1],
-	 packetbuf_datalen(), (char *)packetbuf_dataptr(), packetbuf_datalen());
-
-  packetbuf_copyfrom("Hopp", 4);
-  mesh_send(&mesh, from);
+	printf("packet sent\n");
 }
 
-const static struct mesh_callbacks callbacks = {recv, sent, timedout};
+static void timedout(struct mesh_conn *c)
+{
+	printf("packet timedout\n");
+}
+
+static void recv(struct mesh_conn *c, const rimeaddr_t *from, uint8_t hops)
+{
+	printf("Data received from %d.%d: %.*s (%d)\n",
+			from->u8[0], from->u8[1],
+			packetbuf_datalen(), (char *)packetbuf_dataptr(),
+			packetbuf_datalen());
+
+	if (rimeaddr_node_addr.u8[0] == ref_node_rime_addr[0]
+		&& rimeaddr_node_addr.u8[1] == ref_node_rime_addr[1]) {
+		/* Receiver node replies */
+		packetbuf_copyfrom("Hopp", 4);
+		mesh_send(&mesh, from);
+	}
+
+}
+
+const static struct mesh_callbacks callbacks = { recv, sent, timedout };
+
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(example_mesh_process, ev, data)
 {
-  PROCESS_EXITHANDLER(mesh_close(&mesh);)
-  PROCESS_BEGIN();
+	PROCESS_EXITHANDLER(mesh_close(&mesh));
+	PROCESS_BEGIN();
 
-  mesh_open(&mesh, 128, &callbacks);
+	mesh_open(&mesh, 128, &callbacks);
 
-  //~ button_sensor.activate();
 
-  while(1) {
-    rimeaddr_t addr;
-    static struct etimer et;
+	/* Receiver node does nothing else than listening */
+	if (rimeaddr_node_addr.u8[0] == ref_node_rime_addr[0]
+		&& rimeaddr_node_addr.u8[1] == ref_node_rime_addr[1]) {
+		printf("Receiver node listening\n");
+		PROCESS_WAIT_EVENT_UNTIL(0);
+	}
 
-    /*    etimer_set(&et, CLOCK_SECOND * 4);*/
-    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et) ||
-			     (ev == serial_line_event_message));
+	printf("Write a character on serial link to send message\n");
+	while (1) {
+		rimeaddr_t addr;
+		static struct etimer et;
 
-    
-    printf("Send\n");
+		/* etimer_set(&et, CLOCK_SECOND * 4); */
+		PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et) ||
+				(ev == serial_line_event_message));
 
-    /*
-     * Send a message containing "Hej" (3 characters) to node number
-     * 6.
-     */
-    
-    packetbuf_copyfrom("Hej", 3);
-    addr.u8[0] = 1;
-    addr.u8[1] = 27;
-    mesh_send(&mesh, &addr);
-  }
-  PROCESS_END();
+		/* Send a message containing "Hej" (3 characters) to ref node */
+		printf("Send\n");
+		packetbuf_copyfrom("Hej", 3);
+		addr.u8[0] = 1;
+		addr.u8[1] = 27;
+		mesh_send(&mesh, &addr);
+	}
+	PROCESS_END();
 }
+
 /*---------------------------------------------------------------------------*/

@@ -46,8 +46,9 @@
 #include "lib/list.h"
 #include "lib/memb.h"
 
-//~ #include "dev/button-sensor.h"
 #include "dev/leds.h"
+
+#include "common-config.h"
 
 #define MAX_RETRANSMISSIONS 4
 #define NUM_HISTORY_ENTRIES 4
@@ -61,106 +62,116 @@ AUTOSTART_PROCESSES(&test_runicast_process);
  * Detects duplicate callbacks at receiving nodes.
  * Duplicates appear when ack messages are lost. */
 struct history_entry {
-  struct history_entry *next;
-  rimeaddr_t addr;
-  uint8_t seq;
+	struct history_entry *next;
+	rimeaddr_t addr;
+	uint8_t seq;
 };
 LIST(history_table);
 MEMB(history_mem, struct history_entry, NUM_HISTORY_ENTRIES);
 /*---------------------------------------------------------------------------*/
-static void
-recv_runicast(struct runicast_conn *c, rimeaddr_t *from, uint8_t seqno)
+static void recv_runicast(struct runicast_conn *c, const rimeaddr_t *from, uint8_t seqno)
 {
-  /* OPTIONAL: Sender history */
-  struct history_entry *e = NULL;
-  for(e = list_head(history_table); e != NULL; e = e->next) {
-    if (rimeaddr_cmp(&e->addr, from)) {
-      break;
-    }
-  }
-  if (e == NULL) {
-    /* Create new history entry */
-    e = memb_alloc(&history_mem);
-    if(e == NULL) {
-      e = list_chop(history_table); /* Remove oldest at full history */
-    }
-    rimeaddr_copy(&e->addr, from);
-    e->seq = seqno;
-    list_push(history_table, e);
-  } else {
-    /* Detect duplicate callback */
-    if (e->seq == seqno) {
-      printf("runicast message received from %d.%d, seqno %d (DUPLICATE)\n",
-         from->u8[0], from->u8[1], seqno);
-      return;
-    }
-    /* Update existing history entry */
-    e->seq = seqno;
-  }
+	/* OPTIONAL: Sender history */
+	{
+		struct history_entry *e = NULL;
+		for (e = list_head(history_table); e != NULL; e = e->next) {
+			if (rimeaddr_cmp(&e->addr, from)) {
+				break;
+			}
+		}
 
-  printf("runicast message received from %d.%d, seqno %d\n",
-	 from->u8[0], from->u8[1], seqno);
+		if (e == NULL) {
+			/* Create new history entry */
+			e = memb_alloc(&history_mem);
+			if (e == NULL) {
+				/* Remove oldest at full history */
+				e = list_chop(history_table);	
+			}
+			rimeaddr_copy(&e->addr, from);
+			e->seq = seqno;
+			list_push(history_table, e);
+		} else {
+			/* Detect duplicate callback */
+			if (e->seq == seqno) {
+				printf ("runicast message received from %d.%d,"
+						"seqno %d (DUPLICATE)\n",
+						from->u8[0], from->u8[1], seqno);
+				return;
+			}
+			/* Update existing history entry */
+			e->seq = seqno;
+		}
+	}
+
+
+
+
+	printf("runicast message received from %d.%d, seqno %d\n",
+			from->u8[0], from->u8[1], seqno);
 }
-static void
-sent_runicast(struct runicast_conn *c, rimeaddr_t *to, uint8_t retransmissions)
+
+static void sent_runicast(struct runicast_conn *c, const rimeaddr_t *to,
+		uint8_t retransmissions)
 {
-  printf("runicast message sent to %d.%d, retransmissions %d\n",
-	 to->u8[0], to->u8[1], retransmissions);
+	printf("runicast message sent to %d.%d, retransmissions %d\n",
+			to->u8[0], to->u8[1], retransmissions);
 }
-static void
-timedout_runicast(struct runicast_conn *c, rimeaddr_t *to, uint8_t retransmissions)
+
+static void timedout_runicast(struct runicast_conn *c, const rimeaddr_t *to,
+		uint8_t retransmissions)
 {
-  printf("runicast message timed out when sending to %d.%d, retransmissions %d\n",
-	 to->u8[0], to->u8[1], retransmissions);
+	printf("runicast message timed out when sending to %d.%d,"
+			"retransmissions %d\n",
+			to->u8[0], to->u8[1], retransmissions);
 }
-static const struct runicast_callbacks runicast_callbacks = {recv_runicast,
-						   sent_runicast,
-						   timedout_runicast};
+
+static const struct runicast_callbacks runicast_callbacks = { recv_runicast,
+	sent_runicast,
+	timedout_runicast
+};
+
 static struct runicast_conn runicast;
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(test_runicast_process, ev, data)
 {
-  PROCESS_EXITHANDLER(runicast_close(&runicast);)
+	PROCESS_EXITHANDLER(runicast_close(&runicast));
 
-  PROCESS_BEGIN();
+	PROCESS_BEGIN();
 
-  runicast_open(&runicast, 128, &runicast_callbacks);
+	runicast_open(&runicast, 128, &runicast_callbacks);
 
-  /* OPTIONAL: Sender history */
-  list_init(history_table);
-  memb_init(&history_mem);
+	/* OPTIONAL: Sender history */
+	list_init(history_table);
+	memb_init(&history_mem);
 
-  /* Receiver node: do nothing */
-  if(rimeaddr_node_addr.u8[0] == 1 &&
-      rimeaddr_node_addr.u8[1] == 0) {
-    PROCESS_WAIT_EVENT_UNTIL(0);
-  }
+	/* Receiver node does nothing else than listening */
+	if (rimeaddr_node_addr.u8[0] == ref_node_rime_addr[0]
+			&& rimeaddr_node_addr.u8[1] == ref_node_rime_addr[1]) {
+		printf("Receiver node listening\n");
+		PROCESS_WAIT_EVENT_UNTIL(0);
+	}
 
-  while(1) {
-    static struct etimer et;
+	while (1) {
+		static struct etimer et;
+		rimeaddr_t recv;
 
-    etimer_set(&et, 10*CLOCK_SECOND);
-    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
+		etimer_set(&et, 10 * CLOCK_SECOND);
+		PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
 
-    if(!runicast_is_transmitting(&runicast)) {
-      rimeaddr_t recv;
+		if (runicast_is_transmitting(&runicast))
+			continue;
 
-      packetbuf_copyfrom("Hello", 5);
-      recv.u8[0] = 1;
-      recv.u8[1] = 27;
+		packetbuf_copyfrom("Hello", 5);
+		recv.u8[0] = ref_node_rime_addr[0];
+		recv.u8[1] = ref_node_rime_addr[1];
 
-    if (rimeaddr_node_addr.u8[0] != 1 || rimeaddr_node_addr.u8[1] != 27) {
-      printf("%u.%u: sending runicast to address %u.%u\n",
-          rimeaddr_node_addr.u8[0],
-          rimeaddr_node_addr.u8[1],
-          recv.u8[0],
-          recv.u8[1]);
-
-      runicast_send(&runicast, &recv, MAX_RETRANSMISSIONS);
-    }
-    }
-  }
-
-  PROCESS_END();
+		printf ("%u.%u: sending runicast to address %u.%u\n",
+				rimeaddr_node_addr.u8[0],
+				rimeaddr_node_addr.u8[1],
+				recv.u8[0], recv.u8[1]);
+		runicast_send(&runicast, &recv, MAX_RETRANSMISSIONS);
+	}
+	PROCESS_END();
 }
+
 /*---------------------------------------------------------------------------*/

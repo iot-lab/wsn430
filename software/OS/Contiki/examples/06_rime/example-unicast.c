@@ -41,60 +41,71 @@
 #include "contiki.h"
 #include "net/rime.h"
 
-//~ #include "dev/button-sensor.h"
 
 #include "dev/leds.h"
 
 #include <stdio.h>
 
+#include "common-config.h"
+
 /*---------------------------------------------------------------------------*/
-PROCESS(example_unicast_process, "Example unicast")
-;
+PROCESS(example_unicast_process, "Example unicast");
 AUTOSTART_PROCESSES(&example_unicast_process);
 /*---------------------------------------------------------------------------*/
-static void recv_uc(struct unicast_conn *c, const rimeaddr_t *from) {
-	printf("unicast message received from %d.%d: %s", from->u8[0], from->u8[1],
-			(char*) packetbuf_dataptr());
-	printf("\n");
+static void recv_uc(struct unicast_conn *c, const rimeaddr_t * from)
+{
+	printf("unicast message received from %d.%d: %.*s\n",
+			from->u8[0], from->u8[1],
+			packetbuf_datalen(), (char *)packetbuf_dataptr());
 }
 static const struct unicast_callbacks unicast_callbacks = { recv_uc };
+
 static struct unicast_conn uc;
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(example_unicast_process, ev, data) {
-	PROCESS_EXITHANDLER(unicast_close(&uc);)
+PROCESS_THREAD(example_unicast_process, ev, data)
+{
+	static int i = 0;
+	static struct etimer et;
 
+	PROCESS_EXITHANDLER(unicast_close(&uc));
 	PROCESS_BEGIN();
 
-		unicast_open(&uc, 128, &unicast_callbacks);
+	unicast_open(&uc, 128, &unicast_callbacks);
 
-		printf("rimeaddr_node_addr = [%u, %u]\n", rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
+	printf("rimeaddr_node_addr = [%u, %u]\n", rimeaddr_node_addr.u8[0],
+	       rimeaddr_node_addr.u8[1]);
 
-		static int i = 0;
-		static struct etimer et;
 
-		etimer_set(&et, 1*CLOCK_SECOND);
-
-		while(1) {
-			rimeaddr_t addr;
-
-			PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
-
-			char msg[64]; int len;
-			len = sprintf(msg, "hello world #%u", i) + 1 ;
-			i++;
-
-			packetbuf_copyfrom(msg, len);
-			addr.u8[0] = 182;
-			addr.u8[1] = 206;
-			if (rimeaddr_node_addr.u8[0] == 107 && rimeaddr_node_addr.u8[1] == 179) {
-				unicast_send(&uc, &addr);
-				printf("unicast message sent [%i bytes]\n", len);
-			}
-
-			etimer_reset(&et);
-
-		}
-
-		PROCESS_END();
+	/* Receiver node does nothing else than listening */
+	if (rimeaddr_node_addr.u8[0] == ref_node_rime_addr[0]
+		&& rimeaddr_node_addr.u8[1] == ref_node_rime_addr[1]) {
+		printf("Receiver node listening\n");
+		PROCESS_WAIT_EVENT_UNTIL(0);
 	}
-	/*---------------------------------------------------------------------------*/
+
+	printf("Write a character on serial link to send message\n");
+	etimer_set(&et, 1 * CLOCK_SECOND);
+	while (1) {
+		char msg[64];
+		int len;
+		rimeaddr_t addr;
+
+
+		PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
+
+		len = 1 + sprintf(msg, "hello world #%u", i);
+		i++;
+
+		packetbuf_copyfrom(msg, len);
+		addr.u8[0] = ref_node_rime_addr[0];
+		addr.u8[1] = ref_node_rime_addr[1];
+
+		unicast_send(&uc, &addr);
+		printf("unicast message sent [%i bytes]\n", len);
+
+		etimer_reset(&et);
+	}
+	PROCESS_END();
+}
+
+/*---------------------------------------------------------------------------*/
