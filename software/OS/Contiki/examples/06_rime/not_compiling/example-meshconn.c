@@ -91,9 +91,8 @@ const static struct meshconn_callbacks callbacks = { connected,
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(test_meshconn_process, ev, data)
 {
-	PROCESS_EXITHANDLER(meshconn_close(&meshconn);
-	    )
-	    PROCESS_BEGIN();
+	PROCESS_EXITHANDLER(meshconn_close(&meshconn));
+	PROCESS_BEGIN();
 
 	meshconn_open(&meshconn, 128, &callbacks);
 

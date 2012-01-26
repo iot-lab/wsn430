@@ -143,9 +143,8 @@ static struct rudolph2_conn rudolph2;
 PROCESS_THREAD(example_rudolph2_process, ev, data)
 {
 	static int fd;
-	PROCESS_EXITHANDLER(rudolph2_close(&rudolph2);
-	    )
-	    PROCESS_BEGIN();
+	PROCESS_EXITHANDLER(rudolph2_close(&rudolph2));
+	PROCESS_BEGIN();
 
 	PROCESS_PAUSE();
 

@@ -1,0 +1,3 @@
+These examples are not compiling because of missing dependencies.
+They are let here for as example of the usage of Rime communication schemes.
+But they are not reimplemented to work, and may never be.

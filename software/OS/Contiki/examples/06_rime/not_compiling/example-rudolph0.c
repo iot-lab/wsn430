@@ -122,10 +122,8 @@ PROCESS_THREAD(example_rudolph0_process, ev, data)
 {
 	static int fd;
 
-	PROCESS_EXITHANDLER(rudolph0_close(&rudolph0);
-	    )
-
-	    PROCESS_BEGIN();
+	PROCESS_EXITHANDLER(rudolph0_close(&rudolph0));
+	PROCESS_BEGIN();
 
 	PROCESS_PAUSE();
 

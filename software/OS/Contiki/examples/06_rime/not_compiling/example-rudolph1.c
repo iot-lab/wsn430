@@ -155,9 +155,8 @@ PROCESS_THREAD(example_rudolph1_process, ev, data)
 {
 	static int fd;
 	static struct rtimer t;
-	PROCESS_EXITHANDLER(rudolph1_close(&rudolph1);
-	    )
-	    PROCESS_BEGIN();
+	PROCESS_EXITHANDLER(rudolph1_close(&rudolph1));
+	PROCESS_BEGIN();
 
 	PROCESS_PAUSE();
 
