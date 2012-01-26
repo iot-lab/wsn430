@@ -1,15 +1,15 @@
 Rime Communication Stack examples
 =================================
 
-
 Examples configuration
 ----------------------
 
 
-The different Rime examples implement different Rime communication schemes.
+The Rime examples implement different Rime communication schemes.
 
-In order to run some examples, the sender/receiver node Rime mac address must
-be configured in the "common-config.h" file.
+In order to run some examples, the Rime mac address of the receiver node must be
+configured in the "common-config.h" file. See directly in the file to know how
+to configure it.
 
 
 
