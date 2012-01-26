@@ -28,76 +28,99 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-collect.c,v 1.8 2009/03/12 21:58:21 adamdunkels Exp $
+ * $Id: example-meshconn.c,v 1.2 2009/03/12 21:58:21 adamdunkels Exp $
  */
 
 /**
  * \file
- *         Example of how the collect primitive works.
+ *         A brief description of what this file is.
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
 
 #include "contiki.h"
-#include "lib/random.h"
 #include "net/rime.h"
-#include "net/rime/collect.h"
+//#include "net/rime/meshconn.h"
+
 #include "dev/leds.h"
 
 #include <stdio.h>
 
-static struct collect_conn tc;
+static struct meshconn_conn meshconn;
 extern process_event_t serial_line_event_message;
 /*---------------------------------------------------------------------------*/
-PROCESS(example_collect_process, "Test collect process");
-AUTOSTART_PROCESSES(&example_collect_process);
+PROCESS(test_meshconn_process, "Meshconnconn test");
+AUTOSTART_PROCESSES(&test_meshconn_process);
 /*---------------------------------------------------------------------------*/
-static void recv(const rimeaddr_t * originator, uint8_t seqno, uint8_t hops)
+static void connected(struct meshconn_conn *c)
 {
-	printf("Sink got message from %d.%d, seqno %d, hops %d: len %d '%s'\n",
-	       originator->u8[0], originator->u8[1],
-	       seqno, hops, packetbuf_datalen(), (char *)packetbuf_dataptr());
-
+	printf("connected\n");
 }
 
-/*---------------------------------------------------------------------------*/
-static const struct collect_callbacks callbacks = { recv };
-
-/*---------------------------------------------------------------------------*/
-PROCESS_THREAD(example_collect_process, ev, data)
+static void closed(struct meshconn_conn *c)
 {
-	PROCESS_BEGIN();
+	printf("closed\n");
+}
 
-	collect_open(&tc, 128, 1, &callbacks);
+static void reset(struct meshconn_conn *c)
+{
+	printf("reset\n");
+}
+
+static void timedout(struct meshconn_conn *c)
+{
+	printf("timedout\n");
+}
+
+static void recv(struct meshconn_conn *c)
+{
+	printf("Data received from %.*s (%d)\n",
+	       packetbuf_datalen(), (char *)packetbuf_dataptr(),
+	       packetbuf_datalen());
+
+	/*  meshconn_send(&meshconn, from); */
+}
+
+const static struct meshconn_callbacks callbacks = { connected,
+	recv,
+	closed,
+	timedout,
+	reset
+};
+
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(test_meshconn_process, ev, data)
+{
+	PROCESS_EXITHANDLER(meshconn_close(&meshconn);
+	    )
+	    PROCESS_BEGIN();
+
+	meshconn_open(&meshconn, 128, &callbacks);
+
+	/* button_sensor.activate(); */
 
 	while (1) {
+		rimeaddr_t addr;
 		static struct etimer et;
 
-		/* Send a packet every 16 seconds; first wait 8 seconds, than a
-		   random time between 0 and 8 seconds. */
+		etimer_set(&et, CLOCK_SECOND * 4);
+		PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et) ||
+					 (ev == serial_line_event_message));
 
-		etimer_set(&et,
-			   CLOCK_SECOND * 16 +
-			   random_rand() % (CLOCK_SECOND * 16));
-		PROCESS_WAIT_EVENT();
+		printf("Send\n");
 
-		if (etimer_expired(&et)) {
-			while (tc.sending) {
-				PROCESS_PAUSE();
-			}
-			printf("Sending\n");
-			packetbuf_clear();
-			packetbuf_set_datalen(sprintf(packetbuf_dataptr(),
-						      "%s", "Hello") + 1);
-			collect_send(&tc, 4);
-		}
+		/*
+		 * Send a message containing "Hej" (3 characters) to node number
+		 * 6.
+		 */
 
-		if (ev == serial_line_event_message) {
-			printf("I am sink\n");
-			collect_set_sink(&tc, 1);
-		}
+		addr.u8[0] = 53;
+		addr.u8[1] = 0;
+		meshconn_connect(&meshconn, addr);
+
+		packetbuf_copyfrom("Hej", 3);
+		meshconn_send(&meshconn, &addr);
 	}
-
 	PROCESS_END();
 }
 
