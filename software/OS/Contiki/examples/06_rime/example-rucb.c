@@ -122,15 +122,15 @@ PROCESS_THREAD(example_rucb_process, ev, data)
 
 
 	/* Receiver node does nothing else than listening */
-	if (rimeaddr_node_addr.u8[0] == ref_node_rime_addr[0]
-			&& rimeaddr_node_addr.u8[1] == ref_node_rime_addr[1]) {
+	if (rimeaddr_node_addr.u8[0] == receiver_node_rime_addr[0]
+			&& rimeaddr_node_addr.u8[1] == receiver_node_rime_addr[1]) {
 		printf("Receiver node listening\n");
 		PROCESS_WAIT_EVENT_UNTIL(0);
 	}
 
 
-	recv.u8[0] = ref_node_rime_addr[0];
-	recv.u8[1] = ref_node_rime_addr[1];
+	recv.u8[0] = receiver_node_rime_addr[0];
+	recv.u8[1] = receiver_node_rime_addr[1];
 	start_time = clock_time();
 
 	printf("%u.%u: sending rucb to address %u.%u at time %lu\n",

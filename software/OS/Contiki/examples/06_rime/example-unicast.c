@@ -77,8 +77,8 @@ PROCESS_THREAD(example_unicast_process, ev, data)
 
 
 	/* Receiver node does nothing else than listening */
-	if (rimeaddr_node_addr.u8[0] == ref_node_rime_addr[0]
-		&& rimeaddr_node_addr.u8[1] == ref_node_rime_addr[1]) {
+	if (rimeaddr_node_addr.u8[0] == receiver_node_rime_addr[0]
+		&& rimeaddr_node_addr.u8[1] == receiver_node_rime_addr[1]) {
 		printf("Receiver node listening\n");
 		PROCESS_WAIT_EVENT_UNTIL(0);
 	}
@@ -97,8 +97,8 @@ PROCESS_THREAD(example_unicast_process, ev, data)
 		i++;
 
 		packetbuf_copyfrom(msg, len);
-		addr.u8[0] = ref_node_rime_addr[0];
-		addr.u8[1] = ref_node_rime_addr[1];
+		addr.u8[0] = receiver_node_rime_addr[0];
+		addr.u8[1] = receiver_node_rime_addr[1];
 
 		unicast_send(&uc, &addr);
 		printf("unicast message sent [%i bytes]\n", len);

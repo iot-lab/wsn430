@@ -73,8 +73,8 @@ static void recv(struct mesh_conn *c, const rimeaddr_t *from, uint8_t hops)
 			packetbuf_datalen(), (char *)packetbuf_dataptr(),
 			packetbuf_datalen());
 
-	if (rimeaddr_node_addr.u8[0] == ref_node_rime_addr[0]
-		&& rimeaddr_node_addr.u8[1] == ref_node_rime_addr[1]) {
+	if (rimeaddr_node_addr.u8[0] == receiver_node_rime_addr[0]
+		&& rimeaddr_node_addr.u8[1] == receiver_node_rime_addr[1]) {
 		/* Receiver node replies */
 		packetbuf_copyfrom("Hopp", 4);
 		mesh_send(&mesh, from);
@@ -94,8 +94,8 @@ PROCESS_THREAD(example_mesh_process, ev, data)
 
 
 	/* Receiver node does nothing else than listening */
-	if (rimeaddr_node_addr.u8[0] == ref_node_rime_addr[0]
-		&& rimeaddr_node_addr.u8[1] == ref_node_rime_addr[1]) {
+	if (rimeaddr_node_addr.u8[0] == receiver_node_rime_addr[0]
+		&& rimeaddr_node_addr.u8[1] == receiver_node_rime_addr[1]) {
 		printf("Receiver node listening\n");
 		PROCESS_WAIT_EVENT_UNTIL(0);
 	}

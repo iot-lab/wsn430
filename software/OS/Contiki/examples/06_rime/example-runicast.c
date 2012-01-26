@@ -145,8 +145,8 @@ PROCESS_THREAD(test_runicast_process, ev, data)
 	memb_init(&history_mem);
 
 	/* Receiver node does nothing else than listening */
-	if (rimeaddr_node_addr.u8[0] == ref_node_rime_addr[0]
-			&& rimeaddr_node_addr.u8[1] == ref_node_rime_addr[1]) {
+	if (rimeaddr_node_addr.u8[0] == receiver_node_rime_addr[0]
+			&& rimeaddr_node_addr.u8[1] == receiver_node_rime_addr[1]) {
 		printf("Receiver node listening\n");
 		PROCESS_WAIT_EVENT_UNTIL(0);
 	}
@@ -162,8 +162,8 @@ PROCESS_THREAD(test_runicast_process, ev, data)
 			continue;
 
 		packetbuf_copyfrom("Hello", 5);
-		recv.u8[0] = ref_node_rime_addr[0];
-		recv.u8[1] = ref_node_rime_addr[1];
+		recv.u8[0] = receiver_node_rime_addr[0];
+		recv.u8[1] = receiver_node_rime_addr[1];
 
 		printf ("%u.%u: sending runicast to address %u.%u\n",
 				rimeaddr_node_addr.u8[0],

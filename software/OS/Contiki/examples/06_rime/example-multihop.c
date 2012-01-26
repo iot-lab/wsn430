@@ -225,8 +225,8 @@ PROCESS_THREAD(example_multihop_process, ev, data)
 	announcement_set_value(&example_announcement, 0);
 
 	/* Receiver node does nothing else than listening */
-	if (rimeaddr_node_addr.u8[0] == ref_node_rime_addr[0]
-		&& rimeaddr_node_addr.u8[1] == ref_node_rime_addr[1]) {
+	if (rimeaddr_node_addr.u8[0] == receiver_node_rime_addr[0]
+		&& rimeaddr_node_addr.u8[1] == receiver_node_rime_addr[1]) {
 		printf("Receiver node listening\n");
 		PROCESS_WAIT_EVENT_UNTIL(0);
 	}
@@ -241,8 +241,8 @@ PROCESS_THREAD(example_multihop_process, ev, data)
 		printf("UART, send\n");
 		packetbuf_copyfrom("Hello", 6);
 		/* Set the Rime address of the final receiver */
-		to.u8[0] = ref_node_rime_addr[0];
-		to.u8[1] = ref_node_rime_addr[1];
+		to.u8[0] = receiver_node_rime_addr[0];
+		to.u8[1] = receiver_node_rime_addr[1];
 
 		multihop_send(&multihop, &to);
 	}
