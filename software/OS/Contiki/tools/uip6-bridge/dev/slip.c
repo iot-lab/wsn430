@@ -40,7 +40,9 @@
 
 #include "net/uip.h"
 #include "net/uip-fw.h"
-#define BUF ((struct uip_tcpip_hdr *)&uip_buf[UIP_LLH_LEN])
+// no need to do a memmove in slip.c
+//#define BUF ((struct uip_tcpip_hdr *)&uip_buf[UIP_LLH_LEN])
+#define BUF (struct uip_tcpip_hdr *)uip_buf
 
 #include "dev/slip.h"
 
@@ -184,7 +186,7 @@ slip_poll_handler(uint8_t *outbuf, uint16_t blen)
       return 0;
     }
   } else if(rxbuf[begin] == '?') {
-    int i, j;
+    int j;
     char* hexchar = "0123456789abcdef";
     if(begin < end && (end - begin) >= 2
        && rxbuf[begin + 1] == 'M') {

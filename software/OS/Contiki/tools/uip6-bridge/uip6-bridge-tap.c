@@ -105,8 +105,8 @@ tcpip_input(void)
 static void
 slip_tcpip_input(void)
 {
-  /* TODO Should fix this in slip configuration */
-  memmove(uip_buf, &uip_buf[UIP_LLH_LEN], uip_len);
+  // BUF changed to uip_buf in slip.c no need to memmove
+  // memmove(uip_buf, &uip_buf[UIP_LLH_LEN], uip_len);
   mac_ethernetToLowpan(uip_buf);
 }
 /*---------------------------------------------------------------------------*/
