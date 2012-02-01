@@ -16,7 +16,7 @@ endif
 PROJECTDIRS = dev
 PROJECT_SOURCEFILES = fakeuip.c sicslow_ethernet.c
 
-all:	uip6-bridge-tap.wsn430
+all:	uip6-bridge-tap.wsn430 uip6-bridge-tap.ihex
 
 include $(CONTIKI)/Makefile.include
 
