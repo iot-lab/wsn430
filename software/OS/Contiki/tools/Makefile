@@ -1,4 +1,7 @@
 all: tunslip tapslip6 tunslip6 senslip senslip6
 
+%: src/%.c
+	$(CC) $? -o $@
+
 clean:
-	rm tunslip tapslip6 tunslip6 senslip senslip6
+	rm -f tunslip tapslip6 tunslip6 senslip senslip6
