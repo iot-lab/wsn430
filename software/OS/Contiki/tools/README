@@ -34,21 +34,53 @@ http://en.wikipedia.org/wiki/TUN/TAP
 
 
 
+
 Senslab adapted tools
 ---------------------
 
-senslip
-senslip6
-tap6-start.sh
+### Usage
+
+#### Serial Link
+
+As these tools are using the node serial link by connecting to experiment:30000+node_id, 
+you need to quit all the connections to the node serial link like the netcats,
+listener to all nodes, disable the connection to this node in automation tools.
+
+
+#### Execution right
+
+The tools must be run as root
+
+
+### TUN
+
+The senslip and senslip6 are used to dialog with a node implementing a server listenig on a SLIP ip stack.
+
++ senslip  <=> tunslip  using nc experiment 30000 + node_id instead of /dev/ttyUSB
++ senslip6 <=> tunslip6 using nc experiment 30000 + node_id instead of /dev/ttyUSB
+
+
+### TAP
+
+The tap6-start.sh script must be used with the uip6-bridge firwmare.
+
+It allows to listen and send packets on the Radio interface at OSI Layer 2: data link layer.
+For the OS, it is as if the tap0 interface created was the radio interface of the senslab node.
+
++ tap6-start.sh <=> tapslip6 using nc experiment 30000 + node_id instead of /dev/ttyUSB
+
+
+
+### Node Firmware
+
+uip6-bridge forward packets directly from the serial link to the radio chip and vice-versa.
+It must be used with the tap6-start.sh script
+
 
 Original Contiki tools
 ----------------------
-tunslip
-tunslip6
-tapslip6
+tunslip  <=> senslip
+tunslip6 <=> senslip6
+tapslip6 <=> tap6-start.sh
 
 
-
-Node Firmware
--------------
-uip6-bridge
