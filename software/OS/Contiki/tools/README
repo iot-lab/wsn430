@@ -1,0 +1,54 @@
+Contiki-tools
+=============
+
+These tools allow you to interract with a node by creating an
+IP tunnel over serial link using SLIP (Serial Line Internet Protocol).
+
+There are tools made for:
++ senslab platform to connect to the nodes through on your virtual machine 
++ tools done to connect to the node when it is plugged to a personnal
+  computer over serial link.
+
+The first ones are basically adaptations of the contiki tools which uses a
+tcp connection to experiment handler instead of opening the /dev/ttyS0 file.
+
+
+http://en.wikipedia.org/wiki/TUN/TAP
+> "In computer networking, TUN and TAP are virtual network kernel devices.
+> They are network devices that are supported entirely in software,
+> which is different from ordinary network devices that are backed up by
+> hardware network adapters.
+>
+> TAP (as in network tap) simulates an Ethernet device and it operates with
+> layer 2 packets such as Ethernet frames.
+> TUN (as in network TUNnel) simulates a network layer device and it operates
+> with layer 3 packets such as IP packets.
+>
+> TAP is used to create a network bridge, while TUN is used with routing.
+>
+> Packets sent by an operating system via a TUN/TAP device are delivered to a
+> user-space program that attaches itself to the device. A user-space program
+> may also pass packets into a TUN/TAP device. In this case TUN/TAP device
+> delivers (or "injects") these packets to the operating system network stack
+> thus emulating their reception from an external source." 
+
+
+
+Senslab adapted tools
+---------------------
+
+senslip
+senslip6
+tap6-start.sh
+
+Original Contiki tools
+----------------------
+tunslip
+tunslip6
+tapslip6
+
+
+
+Node Firmware
+-------------
+uip6-bridge
