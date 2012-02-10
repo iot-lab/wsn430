@@ -13,13 +13,17 @@ This is how to run the demo:
  $ cd rpl-border-router
  $ make
     [...]
+
 2) flash the border-router.wsn430 firmware to a node, and connect it to e.g. 
 ttyS0
+
 3) go to the tools folder of the Contiki directory, and run the tunslip6 script
 with root priviledges
- # ./tunslip6 -B 115200 -s /dev/ttyS0 aaaa::1
+
+ # ./tunslip6 -a experiment -p 30000+<NODE_ID> aaaa::1/64
 
 (look at the node address, as written in the terminal)
+
 
  4) in another terminal, go to the rpl-udp folder, and compile the application:
  $ cd rpl-udp
