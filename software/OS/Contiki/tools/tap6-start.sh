@@ -15,7 +15,6 @@ control_c()
 	exit 0
 }
 
-
 # get the node ID from command line
 get_args()
 {
@@ -40,7 +39,6 @@ check_root()
 		echo "This script must be run as root" 1>&2
 		exit 1
 	fi
-
 }
 check_connectivity()
 {
@@ -57,11 +55,9 @@ check_connectivity()
 		exit 1
 	fi
 
-
 	# Test if the connection to the node is already used
 	# If a process is already connected to this node, netcat connects but quits directly
 	# if the connection succeed, the netcat will quit after 2 seconds
-
 	echo -n .
 	(echo "" | nc experiment ${PORT} -q 2) &> /dev/null &
 	PID=$!
@@ -80,13 +76,8 @@ check_connectivity()
 
 		exit 1
 	fi
-
 	echo
 }
-
-
-
-
 
 
 
@@ -103,7 +94,7 @@ set -ve
 sysctl -x net.ipv6.conf.all.forwarding=1
 
 # create the tunnel over serial link on /dev/tap0
-./senslip6 -n ${NODE} | tee tap.log &
+./sentapslip6 -n ${NODE} | tee tap.log &
 SENSLIP_PID=$!
 sleep 1
 

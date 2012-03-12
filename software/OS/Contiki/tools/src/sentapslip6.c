@@ -29,7 +29,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: tapslip6.c,v 1.3 2009/11/03 14:00:28 nvt-se Exp $
+ * $Id: sentapslip6.c,v 1.3 2009/11/03 14:00:28 nvt-se Exp $
  *
  */
 
@@ -53,6 +53,8 @@
 
 #include <err.h>
 
+#include <netdb.h>
+
 in_addr_t giaddr;
 in_addr_t netaddr;
 in_addr_t circuit_addr;
@@ -64,7 +66,7 @@ void write_to_serial(int outfd, void *inbuf, int len);
 //#define PROGRESS(s) fprintf(stderr, s)
 #define PROGRESS(s) do { } while (0)
 
-#define USAGE_STRING "usage: tapslip6 [-B baudrate] [-s siodev] [-t tundev] ipaddress netmask"
+#define USAGE_STRING "usage: sentapslip6 [-n node] [-t tundev]"
 
 char tundev[32] = { "tap0" };
 
@@ -117,13 +119,12 @@ is_sensible_string(const unsigned char *s, int len)
 }
 
 
-
 /*
  * Read from serial, when we have a packet write it to tun. No output
  * buffering, input buffered by stdio.
  */
 void
-serial_to_tun(FILE *inslip, int outfd)
+serial_to_tun(int slipfd, int outfd)
 {
   static union {
     unsigned char inbuf[2000];
@@ -131,11 +132,17 @@ serial_to_tun(FILE *inslip, int outfd)
   static int inbufptr = 0;
 
   int ret;
-  unsigned char c;
+  unsigned char c, old_c = 0;
 
 #ifdef linux
-  ret = fread(&c, 1, 1, inslip);
-  if(ret == -1 || ret == 0) err(1, "serial_to_tun: read");
+  if (old_c) {
+	  ret = 1;
+	  c = old_c;
+	  old_c = 0;
+  } else {
+	  ret = read(slipfd, &c, 1);
+  }
+  if(ret == -1 || ret == 0) err(1, "serial_to_tun: read 1");
   goto after_fread;
 #endif
 
@@ -143,15 +150,23 @@ serial_to_tun(FILE *inslip, int outfd)
   if(inbufptr >= sizeof(uip.inbuf)) {
      inbufptr = 0;
   }
-  ret = fread(&c, 1, 1, inslip);
+  //ret = fread(&c, 1, 1, slipfd);
+  if (old_c) {
+    ret = 1;
+    c = old_c;
+    old_c = 0;
+} else {
+    ret = read(slipfd, &c, 1);
+}
 #ifdef linux
  after_fread:
 #endif
   if(ret == -1) {
-    err(1, "serial_to_tun: read");
+    return;
+    err(1, "serial_to_tun: read 2");
   }
   if(ret == 0) {
-    clearerr(inslip);
+    //clearerr(slipfd);
     return;
     fprintf(stderr, "serial_to_tun: EOF\n");
     exit(1);
@@ -195,10 +210,10 @@ serial_to_tun(FILE *inslip, int outfd)
     break;
 
   case SLIP_ESC:
-    if(fread(&c, 1, 1, inslip) != 1) {
-      clearerr(inslip);
+    if(read(slipfd, &c, 1) != 1) {
+      //clearerr(slipfd);
       /* Put ESC back and give up! */
-      ungetc(SLIP_ESC, inslip);
+      old_c = SLIP_ESC;
       return;
     }
 
@@ -228,7 +243,6 @@ slip_send(int fd, unsigned char c)
 {
   if (slip_end >= sizeof(slip_buf))
     err(1, "slip_send overflow");
-
   slip_buf[slip_end] = c;
   slip_end++;
 }
@@ -247,7 +261,8 @@ slip_flushbuf(int fd)
   if (slip_empty())
     return;
 
-  n = write(fd, slip_buf + slip_begin, (slip_end - slip_begin));
+  //n = write(fd, slip_buf + slip_begin, (slip_end - slip_begin));
+  n = send(fd, slip_buf + slip_begin, (slip_end - slip_begin), 0);
 
   if(n == -1 && errno != EAGAIN) {
     err(1, "slip_flushbuf write failed");
@@ -274,7 +289,7 @@ write_to_serial(int outfd, void *inbuf, int len)
    * really necessary.
    */
   /* slip_send(outfd, SLIP_END); */
-  /*  printf("writing packet to serial!!! %d\n", len);*/
+   /* printf("writing packet to serial!!! %d\n", len); */
   for(i = 0; i < len; i++) {
     switch(p[i]) {
     case SLIP_END:
@@ -289,6 +304,7 @@ write_to_serial(int outfd, void *inbuf, int len)
       slip_send(outfd, p[i]);
       break;
     }
+
   }
   slip_send(outfd, SLIP_END);
   PROGRESS("t");
@@ -311,53 +327,6 @@ tun_to_serial(int infd, int outfd)
   write_to_serial(outfd, uip.inbuf, size);
 }
 
-#ifndef BAUDRATE
-#define BAUDRATE B115200
-#endif
-speed_t b_rate = BAUDRATE;
-
-void
-stty_telos(int fd)
-{
-  struct termios tty;
-  speed_t speed = b_rate;
-  int i;
-
-  if(tcflush(fd, TCIOFLUSH) == -1) err(1, "tcflush");
-
-  if(tcgetattr(fd, &tty) == -1) err(1, "tcgetattr");
-
-  cfmakeraw(&tty);
-
-  /* Nonblocking read. */
-  tty.c_cc[VTIME] = 0;
-  tty.c_cc[VMIN] = 0;
-  tty.c_cflag &= ~CRTSCTS;
-  tty.c_cflag &= ~HUPCL;
-  tty.c_cflag &= ~CLOCAL;
-
-  cfsetispeed(&tty, speed);
-  cfsetospeed(&tty, speed);
-
-  if(tcsetattr(fd, TCSAFLUSH, &tty) == -1) err(1, "tcsetattr");
-
-#if 1
-  /* Nonblocking read and write. */
-  /* if(fcntl(fd, F_SETFL, O_NONBLOCK) == -1) err(1, "fcntl"); */
-
-  tty.c_cflag |= CLOCAL;
-  if(tcsetattr(fd, TCSAFLUSH, &tty) == -1) err(1, "tcsetattr");
-
-  i = TIOCM_DTR;
-  if(ioctl(fd, TIOCMBIS, &i) == -1) err(1, "ioctl");
-#endif
-
-  usleep(10*1000);		/* Wait for hardware 10ms. */
-
-  /* Flush input and output buffers. */
-  if(tcflush(fd, TCIOFLUSH) == -1) err(1, "tcflush");
-}
-
 int
 devopen(const char *dev, int flags)
 {
@@ -365,6 +334,53 @@ devopen(const char *dev, int flags)
   strcpy(t, "/dev/");
   strcat(t, dev);
   return open(t, flags);
+}
+
+unsigned long name_resolve(char *host_name)
+{
+  struct in_addr addr;
+  struct hostent *host_ent;
+
+  if((addr.s_addr=inet_addr(host_name))==(unsigned)-1) {
+    host_ent=gethostbyname(host_name);
+    if(host_ent==NULL) return(-1);
+    memcpy(host_ent->h_addr, (char *)&addr.s_addr, host_ent->h_length);
+    }
+  return (addr.s_addr);
+}
+
+int
+tcpopen(char* server, int port)
+{
+  int fd;
+  int flags;
+  struct sockaddr_in sin;
+
+  // Create the socket
+  fd = socket(AF_INET, SOCK_STREAM, 0);
+
+  // Set it non blocking
+  flags = fcntl(fd, F_GETFL, 0);
+  fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+
+  // prepare the remote address
+  memset(&sin, 0, sizeof(struct sockaddr_in));
+  sin.sin_family = AF_INET;
+  sin.sin_port = htons(port);
+
+  struct hostent *he;
+  he = gethostbyname(server);
+  if (he == NULL) {
+    herror("tcpopen, error resolving hostname");
+    exit(1);
+  }
+
+  memcpy(&sin.sin_addr, he->h_addr_list[0], he->h_length);
+
+  // Connect to the server
+  connect(fd, (struct sockaddr *)&sin, sizeof(sin));
+
+  return fd;
 }
 
 #ifdef linux
@@ -406,8 +422,8 @@ tun_alloc(char *dev)
 }
 #endif
 
-const char *ipaddr;
-const char *netmask;
+const char *ipaddr = "127.0.0.1";
+const char *netmask = "255.0.0.0";
 
 void
 cleanup(void)
@@ -483,26 +499,13 @@ main(int argc, char **argv)
   int tunfd, slipfd, maxfd;
   int ret;
   fd_set rset, wset;
-  FILE *inslip;
-  const char *siodev = NULL;
-  int baudrate = -2;
+
+  int node = 1;
   request_mac = 1;
   setvbuf(stdout, NULL, _IOLBF, 0); /* Line buffered output. */
 
-  while((c = getopt(argc, argv, "B:D:hs:t:")) != -1) {
+  while((c = getopt(argc, argv, "n:h:t:")) != -1) {
     switch (c) {
-    case 'B':
-      baudrate = atoi(optarg);
-      break;
-
-    case 's':
-      if(strncmp("/dev/", optarg, 5) == 0) {
-	siodev = optarg + 5;
-      } else {
-	siodev = optarg;
-      }
-      break;
-
     case 't':
       if(strncmp("/dev/", optarg, 5) == 0) {
 	strcpy(tundev, optarg + 5);
@@ -510,7 +513,10 @@ main(int argc, char **argv)
 	strcpy(tundev, optarg);
       }
       break;
-
+    case 'n':
+	node = atoi(optarg);
+	fprintf(stderr, "Using node : %i\n", node);
+	break;
     case '?':
     case 'h':
     default:
@@ -521,63 +527,22 @@ main(int argc, char **argv)
   argc -= (optind - 1);
   argv += (optind - 1);
 
-  if(argc != 3 && argc != 4) {
+  if(argc != 1) {
     errx(1, USAGE_STRING);
   }
-  ipaddr = argv[1];
-  netmask = argv[2];
+
   circuit_addr = inet_addr(ipaddr);
   netaddr = inet_addr(ipaddr) & inet_addr(netmask);
 
-  switch(baudrate) {
-  case -2:
-    break;			/* Use default. */
-  case 9600:
-    b_rate = B9600;
-    break;
-  case 19200:
-    b_rate = B19200;
-    break;
-  case 38400:
-    b_rate = B38400;
-    break;
-  case 57600:
-    b_rate = B57600;
-    break;
-  case 115200:
-    b_rate = B115200;
-    break;
-  default:
-    err(1, "unknown baudrate %d", baudrate);
-    break;
-  }
-
-
-  if(siodev != NULL) {
-      slipfd = devopen(siodev, O_RDWR | O_NONBLOCK);
+  if(node != 0) {
+      slipfd = tcpopen("experiment", 30000 + node);
       if(slipfd == -1) {
-	err(1, "can't open siodev ``/dev/%s''", siodev);
+	err(1, "can't open TCP to node %i", node);
       }
-  } else {
-    static const char *siodevs[] = {
-      "ttyUSB0", "cuaU0", "ucom0" /* linux, fbsd6, fbsd5 */
-    };
-    int i;
-    for(i = 0; i < 3; i++) {
-      siodev = siodevs[i];
-      slipfd = devopen(siodev, O_RDWR | O_NONBLOCK);
-      if (slipfd != -1)
-	break;
-    }
-    if(slipfd == -1) {
-      err(1, "can't open siodev");
-    }
   }
-  fprintf(stderr, "slip started on ``/dev/%s''\n", siodev);
-  stty_telos(slipfd);
+
+  fprintf(stderr, "slip started on node %i\n", node);
   slip_send(slipfd, SLIP_END);
-  inslip = fdopen(slipfd, "r");
-  if(inslip == NULL) err(1, "main: fdopen");
 
   tunfd = tun_alloc(tundev);
   printf("opening: %s", tundev);
@@ -633,7 +598,7 @@ main(int argc, char **argv)
       err(1, "select");
     } else if(ret > 0) {
       if(FD_ISSET(slipfd, &rset)) {
-        serial_to_tun(inslip, tunfd);
+        serial_to_tun(slipfd, tunfd);
       }
 
       if(FD_ISSET(slipfd, &wset)) {

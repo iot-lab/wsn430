@@ -1,7 +1,7 @@
-all: tunslip tapslip6 tunslip6 senslip senslip6
+all: tunslip tapslip6 tunslip6 senslip sentapslip6
 
 %: src/%.c
-	$(CC) $? -o $@
+	$(CC) $? -Wall -Wextra -o $@
 
 clean:
-	rm -f tunslip tapslip6 tunslip6 senslip senslip6
+	rm -f tunslip tapslip6 tunslip6 senslip sentapslip6

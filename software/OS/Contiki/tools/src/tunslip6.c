@@ -38,6 +38,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include <time.h>
+#include <sys/time.h>
 #include <sys/types.h>
 
 #include <unistd.h>
@@ -96,16 +97,15 @@ ssystem(const char *fmt, ...)
 
 
 /* get sockaddr, IPv4 or IPv6: */
-void *
-get_in_addr(struct sockaddr *sa)
+void * get_in_addr(struct sockaddr *sa)
 {
   if(sa->sa_family == AF_INET) {
     return &(((struct sockaddr_in*)sa)->sin_addr);
   }
   return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
-void
-stamptime(void)
+
+void stamptime(void)
 {
   static long startsecs=0,startmsecs=0;
   long secs,msecs;
@@ -113,7 +113,7 @@ stamptime(void)
   time_t t;
   struct tm *tmp;
   char timec[20];
- 
+
   gettimeofday(&tv, NULL) ;
   msecs=tv.tv_usec/1000;
   secs=tv.tv_sec;
@@ -157,8 +157,9 @@ serial_to_tun(FILE *inslip, int outfd)
   static union {
     unsigned char inbuf[2000];
   } uip;
-  static int inbufptr = 0;
-  int ret,i;
+  static unsigned int inbufptr = 0;
+  int ret;
+  unsigned int i;
   unsigned char c;
 
 #ifdef linux
@@ -189,13 +190,13 @@ serial_to_tun(FILE *inslip, int outfd)
   case SLIP_END:
     if(inbufptr > 0) {
       if(uip.inbuf[0] == '!') {
-	if(uip.inbuf[1] == 'M') {
+	if (uip.inbuf[1] == 'M') {
 	  /* Read gateway MAC address and autoconfigure tap0 interface */
 	  char macs[24];
 	  int i, pos;
 	  for(i = 0, pos = 0; i < 16; i++) {
 	    macs[pos++] = uip.inbuf[2 + i];
-	    if((i & 1) == 1 && i < 14) {
+	    if ((i & 1) == 1 && i < 14) {
 	      macs[pos++] = ':';
 	    }
 	  }
@@ -221,7 +222,7 @@ serial_to_tun(FILE *inslip, int outfd)
           if(timestamp) stamptime();
           fprintf(stderr,"*** Address:%s => %02x%02x:%02x%02x:%02x%02x:%02x%02x\n",
  //         printf("*** Address:%s => %02x%02x:%02x%02x:%02x%02x:%02x%02x\n",
-		 ipaddr, 
+		 ipaddr,
 		 addr.s6_addr[0], addr.s6_addr[1],
 		 addr.s6_addr[2], addr.s6_addr[3],
 		 addr.s6_addr[4], addr.s6_addr[5],
@@ -234,7 +235,7 @@ serial_to_tun(FILE *inslip, int outfd)
 	  slip_send(slipfd, SLIP_END);
         }
 #define DEBUG_LINE_MARKER '\r'
-      } else if(uip.inbuf[0] == DEBUG_LINE_MARKER) {    
+      } else if(uip.inbuf[0] == DEBUG_LINE_MARKER) {
 	fwrite(uip.inbuf + 1, inbufptr - 1, 1, stdout);
       } else if(is_sensible_string(uip.inbuf, inbufptr)) {
         if(verbose==1) {   /* strings already echoed below for verbose>1 */
@@ -302,7 +303,7 @@ serial_to_tun(FILE *inslip, int outfd)
         if(c=='\n') if(timestamp) stamptime();
       }
     }
-    
+
     break;
   }
 
@@ -310,14 +311,15 @@ serial_to_tun(FILE *inslip, int outfd)
 }
 
 unsigned char slip_buf[2000];
-int slip_end, slip_begin;
+unsigned int slip_end, slip_begin;
 
 void
 slip_send(int fd, unsigned char c)
 {
-  if(slip_end >= sizeof(slip_buf)) {
+  (void)fd;
+  if (slip_end >= sizeof(slip_buf))
     err(1, "slip_send overflow");
-  }
+
   slip_buf[slip_end] = c;
   slip_end++;
 }
@@ -332,10 +334,9 @@ void
 slip_flushbuf(int fd)
 {
   int n;
-  
-  if(slip_empty()) {
+
+  if (slip_empty())
     return;
-  }
 
   n = write(fd, slip_buf + slip_begin, (slip_end - slip_begin));
 
@@ -540,6 +541,7 @@ static int got_sigalarm;
 void
 sigalarm(int signo)
 {
+  (void) signo;
   got_sigalarm = 1;
   return;
 }
@@ -641,7 +643,7 @@ main(int argc, char **argv)
     case 'T':
       tap = 1;
       break;
- 
+
     case '?':
     case 'h':
     default:
@@ -820,7 +822,7 @@ exit(1);
 
     FD_SET(slipfd, &rset);	/* Read from slip ASAP! */
     if(slipfd > maxfd) maxfd = slipfd;
-    
+
     /* We only have one packet at a time queued for slip output. */
     if(slip_empty()) {
       FD_SET(tunfd, &rset);
@@ -834,12 +836,12 @@ exit(1);
       if(FD_ISSET(slipfd, &rset)) {
         serial_to_tun(inslip, tunfd);
       }
-      
+
       if(FD_ISSET(slipfd, &wset)) {
 	slip_flushbuf(slipfd);
 	sigalarm_reset();
       }
- 
+
       /* Optional delay between outgoing packets */
       /* Base delay times number of 6lowpan fragments to be sent */
       if(delaymsec) {
@@ -850,12 +852,16 @@ exit(1);
        if(dmsec<0) delaymsec=0;
        if(dmsec>delaymsec) delaymsec=0;
       }
+
       if(delaymsec==0) {
-        int size;
+        //int size;
+
         if(slip_empty() && FD_ISSET(tunfd, &rset)) {
-          size=tun_to_serial(tunfd, slipfd);
+          //size = tun_to_serial(tunfd, slipfd);
+          tun_to_serial(tunfd, slipfd);
           slip_flushbuf(slipfd);
           sigalarm_reset();
+
           if(basedelay) {
             struct timeval tv;
             gettimeofday(&tv, NULL) ;

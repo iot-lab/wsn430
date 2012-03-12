@@ -4,83 +4,43 @@ Contiki-tools
 These tools allow you to interract with a node by creating an
 IP tunnel over serial link using SLIP (Serial Line Internet Protocol).
 
-There are tools made for:
-+ senslab platform to connect to the nodes through on your virtual machine 
-+ tools done to connect to the node when it is plugged to a personnal
-  computer over serial link.
+There are the original contiki tools and adapted version to allow usage on the
+virtual machine and connection to 'experiment' server instead of using a
+/dev/ttySO file for the serial link.
 
-The first ones are basically adaptations of the contiki tools which uses a
-tcp connection to experiment handler instead of opening the /dev/ttyS0 file.
+When there ise a senslab specific version, it's name is prefixed by 'sen'.
 
 
-http://en.wikipedia.org/wiki/TUN/TAP
-> "In computer networking, TUN and TAP are virtual network kernel devices.
-> They are network devices that are supported entirely in software,
-> which is different from ordinary network devices that are backed up by
-> hardware network adapters.
->
-> TAP (as in network tap) simulates an Ethernet device and it operates with
-> layer 2 packets such as Ethernet frames.
-> TUN (as in network TUNnel) simulates a network layer device and it operates
-> with layer 3 packets such as IP packets.
->
-> TAP is used to create a network bridge, while TUN is used with routing.
->
-> Packets sent by an operating system via a TUN/TAP device are delivered to a
-> user-space program that attaches itself to the device. A user-space program
-> may also pass packets into a TUN/TAP device. In this case TUN/TAP device
-> delivers (or "injects") these packets to the operating system network stack
-> thus emulating their reception from an external source." 
-
-
-
-
-Senslab adapted tools
----------------------
-
-### Usage
-
-#### Serial Link
-
-As these tools are using the node serial link by connecting to experiment:30000+node_id, 
-you need to quit all the connections to the node serial link like the netcats,
-listener to all nodes, disable the connection to this node in automation tools.
-
-
-#### Execution right
+Usage
+=====
 
 The tools must be run as root
 
 
-### TUN
+Serial Link connection
+----------------------
 
-The senslip and senslip6 are used to dialog with a node implementing a server listenig on a SLIP ip stack.
+The tools use the node serial link, by connecting to experiment:30000+node_id.
+So you need to quit all the connections to the node like the netcats, listener
+to all nodes, maybe an automation tool.
 
-+ senslip  <=> tunslip  using nc experiment 30000 + node_id instead of /dev/ttyUSB
-+ senslip6 <=> tunslip6 using nc experiment 30000 + node_id instead of /dev/ttyUSB
 
+Tools
+=====
 
-### TAP
+TUN
+---
 
-The tap6-start.sh script must be used with the uip6-bridge firwmare.
+tunslip/senslip and tunslip6 are used with a 'border-router' application.
+The virtual machine will be the "default" route for the sensor network.
+
+TAP
+---
+
+tapslip6/sentapslip6 and the 'tap6-start.sh' are used with the 'uip6-bridge'
+application, when radio networking traffic sniffing/injection is wanted.
 
 It allows to listen and send packets on the Radio interface at OSI Layer 2: data link layer.
 For the OS, it is as if the tap0 interface created was the radio interface of the senslab node.
-
-+ tap6-start.sh <=> tapslip6 using nc experiment 30000 + node_id instead of /dev/ttyUSB
-
-
-
-### Node Firmware
-
-uip6-bridge forward packets directly from the serial link to the radio chip and vice-versa.
-It must be used with the tap6-start.sh script
-
-
-Original Contiki tools
-----------------------
-tunslip  <=> senslip
-tunslip6 <=> senslip6
-tapslip6 <=> tap6-start.sh
 
 

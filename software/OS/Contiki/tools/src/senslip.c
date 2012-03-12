@@ -845,7 +845,8 @@ void ifconf(const char *tundev, const char *ipaddr, const char *netmask) {
 }
 
 #define USAGE_STRING "usage: senslip [-n node] [-t tundev]"
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
 	int c;
 	int tunfd, slipfd, maxfd;
 	int ret;
