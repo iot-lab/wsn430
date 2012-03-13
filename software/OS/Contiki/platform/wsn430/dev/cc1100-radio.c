@@ -88,7 +88,7 @@ static int cc1100_send(const void *data, unsigned short len);
 static int cc1100_receiving_packet(void);
 static int pending_packet(void);
 static int cc1100_cca(void);
-static int detected_energy(void);
+// static int detected_energy(void);
 
 const struct radio_driver cc1100_radio_driver = { cc1100_radio_init,
 		cc1100_prepare, cc1100_transmit, cc1100_send, cc1100_read, cc1100_cca,

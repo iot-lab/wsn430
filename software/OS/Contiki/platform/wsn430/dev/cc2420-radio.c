@@ -116,7 +116,7 @@ static int cc2420_send(const void *data, unsigned short len);
 static int cc2420_receiving_packet(void);
 static int pending_packet(void);
 static int cc2420_cca(void);
-static int detected_energy(void);
+// static int detected_energy(void);
 
 const struct radio_driver cc2420_radio_driver = { cc2420_radio_init,
 		cc2420_prepare, cc2420_transmit, cc2420_send, cc2420_read, cc2420_cca,
