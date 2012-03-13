@@ -14,8 +14,7 @@ This is how to run the demo:
  $ make
     [...]
 
-2) flash the border-router.wsn430 firmware to a node, and connect it to e.g. 
-ttyS0
+2) flash the border-router.wsn430 firmware to a node
 
 3) go to the tools folder of the Contiki directory, and run the tunslip6 script
 with root priviledges
@@ -29,7 +28,7 @@ with root priviledges
  $ cd rpl-udp
  $ make
    [...]
-5) flash a node with the udp-client.wsn430 firmware
+5) flash a node with the rpl-udp-client.wsn430 firmware
 
 6) in a web browser, indicate the IPv6 address of the border router node, e.g.:
 http://[aaaa::4a00:12:91b9:9e01]/
