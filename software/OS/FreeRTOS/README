@@ -1,0 +1,31 @@
+Readme
+======
+
+Last Update: March 13th, 2012
+Driver version: v2012-03-13
+
+
+
+Description
+-----------
+
+This archive is the Full FreeRTOS port for WSN430 which contains the sources of
+the kernel, plus a set of examples and communication libraries for wireless
+applications.
+
+The FREERTOS_PATH environment variable should be set to point at the downloaded
+FreeRTOS folder. It requires the WSN430 drivers.
+
+
+
+Changelog
+---------
+
+FreeRTOS-WSN430 v2012-03-13, CHANGELOG:
+	o Added Readme and version in file
+WSN430-FreeRTOS v2011-11-10, CHANGELOG:
+	o Refactoring
+	o Added Documentation
+	o Added compatibility with new Makefile system from WSN430 drivers v1.8
+	o Compatibility with gcc-uniarch
+
