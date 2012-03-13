@@ -1,33 +1,53 @@
-Contiki is an open source, highly portable, multi-tasking operating
-system for memory-constrained networked embedded systems written by
-Adam Dunkels at the Networked Embedded Systems group at the Swedish
-Institute of Computer Science.
+Readme
+======
 
-Contiki is designed for embedded systems with small amounts of
-memory. A typical Contiki configuration is 2 kilobytes of RAM and 40
-kilobytes of ROM. Contiki consists of an event-driven kernel on top of
-which application programs are dynamically loaded and unloaded at
-runtime. Contiki processes use light-weight protothreads that provide
-a linear, thread-like programming style on top of the event-driven
-kernel. Contiki also supports per-process optional preemptive
-multi-threading, interprocess communication using message passing
-through events, as well as an optional GUI subsystem with either
-direct graphic support for locally connected terminals or networked
-virtual display with VNC or over Telnet.
+Last Update: March 13th, 2012
+Driver version: v2012-03-13
 
-Contiki contains two communication stacks: uIP and Rime. uIP is a
-small RFC-compliant TCP/IP stack that makes it possible for Contiki to
-communicate over the Internet. Rime is a lightweight communication
-stack designed for low-power radios. Rime provides a wide range of
-communication primitives, from best-effort local area broadcast, to
-reliable multi-hop bulk data flooding.
 
-Contiki runs on a variety of platform ranging from embedded
-microcontrollers such as the MSP430 and the AVR to old
-homecomputers. Code footprint is on the order of kilobytes and memory
-usage can be configured to be as low as tens of bytes.
 
-Contiki is written in the C programming language and is freely
-available as open source under a BSD-style license. More information
-about Contiki can be found at the Contiki home page:
-http://www.sics.se/contiki/
+Description
+-----------
+
+This archive containes the last official Contiki release which has been
+completely ported to the WSN430 hardware platform.
+
+
+
+Usage
+-----
+
+In order to compile Contiki examples for the WSN430 platform, you must set the
+environment variable WSN430_DRIVERS_PATH to point the wsn430 drivers folder.
+You can download the drivers archive from [www.senslab.info].
+
+Define the RADIO=WITH_CC1100 or RADIO=WITH_CC2420 variable in
+platform/wsn430/Makefile.wsn430 to choose between the WSN430v13 or WSN430v14
+hardware version respectively.
+
+Every modification from the official Contiki release has been done by
+Clément Burin des Roziers <clement.burin-des-roziers@inrialpes.fr> and support
+is now done by Gaëtan Harter <gaetan.harter@inria.fr>.
+
+Some documentation may be found on [www.senslab.info].
+
+
+
+
+contiki-wsn430 v2012-03-13, CHANGELOG:
+	o Added Readme and version in file
+	o Refactoring, removed some warnings
+	o Moved Radio configuration to Makefile.msp430 to be able to put a message at compile time
+	o Added mspgcc-uniarch support
+	o Added .ihex generation by default
+	o Documentation on Contiki Tools with Virtual Machine
+	o cc2420-radio.c: changed wait condition on busy wait for TX with SEND_CCA + 2 typos (BUG correction)
+contiki-wsn430-v2.0.tar.gz, CHANGELOG
+	o ported to Contiki 2.5rc1
+	o the WSN430 platform (both v1.3 and 1.4) work with CXMAC RDC and RPL/IPv6,
+	o main changes in the network stack organization.
+contiki-wsn430-v1.3.tar.gz, CHANGELOG:
+	o updated to Contiki_2.4
+	o added wsn430v14 support with cc2420 radio chip
+	o added tools to run SLIP from Senslab Virtual Machines
+
