@@ -292,7 +292,8 @@ relay_dhcp_to_client(int slipfd)
   }
  done:
   if (op == DHCP_OPTION_END) {
-    *t++ = op; *p++;
+    *t++ = op;
+    *p++;
   }
 
   optlen = t - pkt.m.options;
@@ -458,7 +459,7 @@ serial_to_tun(FILE *inslip, int outfd)
     unsigned char inbuf[2000];
     struct ip iphdr;
   } uip;
-  static int inbufptr = 0;
+  static unsigned int inbufptr = 0;
 
   int ret;
   unsigned char c;
@@ -496,7 +497,7 @@ serial_to_tun(FILE *inslip, int outfd)
 #define DEBUG_LINE_MARKER '\r'
       int ecode;
       ecode = check_ip(&uip.iphdr, inbufptr);
-      if(ecode < 0 && inbufptr == 8 && strncmp(uip.inbuf, "=IPA", 4) == 0) {
+      if(ecode < 0 && inbufptr == 8 && strncmp((char *)uip.inbuf, "=IPA", 4) == 0) {
 	static struct in_addr ipa;
 
 	inbufptr = 0;
@@ -585,11 +586,12 @@ serial_to_tun(FILE *inslip, int outfd)
 }
 
 unsigned char slip_buf[2000];
-int slip_end, slip_begin;
+unsigned int slip_end, slip_begin;
 
 void
 slip_send(int fd, unsigned char c)
 {
+  (void) fd;
   if (slip_end >= sizeof(slip_buf))
     err(1, "slip_send overflow");
   slip_buf[slip_end] = c;
@@ -822,6 +824,7 @@ static int got_sigalarm;
 void
 sigalarm(int signo)
 {
+  (void) signo;
   got_sigalarm = 1;
   return;
 }
@@ -964,7 +967,7 @@ main(int argc, char **argv)
       *strchr(dhcp_server, ':') = '\0';
     }
     a = inet_addr(dhcp_server);
-    if(a == -1) {
+    if((int) a == -1) {
       err(1, "illegal dhcp-server address");
     }
 #ifndef linux

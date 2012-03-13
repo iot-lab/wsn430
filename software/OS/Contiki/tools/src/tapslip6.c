@@ -89,6 +89,7 @@ ssystem(const char *fmt, ...)
 #define SLIP_ESC_END 0334
 #define SLIP_ESC_ESC 0335
 
+/*
 static void
 print_packet(u_int8_t *p, int len) {
   int i;
@@ -101,6 +102,7 @@ print_packet(u_int8_t *p, int len) {
   }
   printf("\n");
 }
+*/
 
 int
 is_sensible_string(const unsigned char *s, int len)
@@ -128,7 +130,7 @@ serial_to_tun(FILE *inslip, int outfd)
   static union {
     unsigned char inbuf[2000];
   } uip;
-  static int inbufptr = 0;
+  static unsigned int inbufptr = 0;
 
   int ret;
   unsigned char c;
@@ -220,12 +222,13 @@ serial_to_tun(FILE *inslip, int outfd)
 }
 
 unsigned char slip_buf[2000];
-int slip_end, slip_begin;
+unsigned int slip_end, slip_begin;
 
 
 void
 slip_send(int fd, unsigned char c)
 {
+  (void) fd;
   if (slip_end >= sizeof(slip_buf))
     err(1, "slip_send overflow");
 
@@ -265,7 +268,7 @@ void
 write_to_serial(int outfd, void *inbuf, int len)
 {
   u_int8_t *p = inbuf;
-  int i, ecode;
+  int i;
 
   /*  printf("Got packet of length %d - write SLIP\n", len);*/
   /*  print_packet(p, len);*/
@@ -436,6 +439,7 @@ static int request_mac;
 void
 sigalarm(int signo)
 {
+  (void) signo;
   got_sigalarm = 1;
   return;
 }
