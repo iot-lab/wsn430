@@ -32,11 +32,12 @@
  */
 #include <io.h>
 #include <signal.h>
-#include <sys/unistd.h>
-#include "msp430.h"
+// #include <sys/unistd.h>
+// #include "msp430.h"
 #include "msp430def.h"
 #include "dev/watchdog.h"
 #include "net/uip.h"
+
 
 /*---------------------------------------------------------------------------*/
 #if defined(__MSP430__) && defined(__GNUC__) && MSP430_MEMCPY_WORKAROUND
