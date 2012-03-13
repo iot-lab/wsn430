@@ -1,0 +1,31 @@
+Readme
+======
+
+Last Update: March 13th, 2012
+Driver version: v2012-03-13
+
+
+
+Description
+-----------
+
+The pack of libraries gives a good starting point for writing networking applications. As a part of them or simply as an examples to develop completely new things.
+
+It requires the WSN430 drivers (Requires the Makefile.common file from driver version ≥ 1.8, it can just be copied from the last version if needed)
+
+The WSN430_LIB_PATH environment variable must be set to point at the downloaded library folder.
+
+
+
+
+Changelog
+---------
+
+WSN430-lib v2012-03-13, CHANGELOG:
+	o Added Readme and version in file
+WSN430-lib v2011-11-10, CHANGELOG:
+	o Refactoring
+	o Added Documentation
+	o Added support for the new Makefile system from WSN430 drivers v1.8
+	o Compatibility with gcc-uniarch
+
