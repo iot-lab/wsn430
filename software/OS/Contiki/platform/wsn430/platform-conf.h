@@ -1,8 +1,7 @@
 #ifndef __PLATFORM_CONF_H__
 #define __PLATFORM_CONF_H__
 
-#define WITH_CC2420
-
+/* define RADIO=WITH_CCXXXX in platform/wsn430/Makefile.wsn430 or application Makefile */
 
 /* the low-level radio driver */
 #ifdef WITH_CC1100

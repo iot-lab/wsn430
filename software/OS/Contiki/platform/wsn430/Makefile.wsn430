@@ -7,6 +7,16 @@ ARCH = msp430.c uart0.c spi1.c ds2411.c ds1722.c m25p80.c xmem.c leds_arch.c led
 
 #ext-sensor.c irq.c \
 
+#RADIO=WITH_CC1100
+#RADIO=WITH_CC2420
+
+ifndef RADIO
+$(info Radio not defined in platform/wsn430/Makefile.wsn430, using radio 'cc1100')
+RADIO=WITH_CC1100
+endif
+
+CFLAGS+= -D$(RADIO)
+
 CONTIKI_TARGET_DIRS = . dev apps net
 APPDIRS += $(WSN430_DRIVERS_PATH)
 
