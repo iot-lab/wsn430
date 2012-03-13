@@ -16,8 +16,8 @@ extern process_event_t serial_line_event_message;
 PROCESS(example_netflood_process, "NetFlood example");
 AUTOSTART_PROCESSES(&example_netflood_process);
 /*---------------------------------------------------------------------------*/
-static int netflood_recv(struct netflood_conn *c, rimeaddr_t * from,
-			 rimeaddr_t * originator, uint8_t seqno, uint8_t hops);
+static int netflood_recv(struct netflood_conn *c, const rimeaddr_t * from,
+			 const rimeaddr_t * originator, uint8_t seqno, uint8_t hops);
 static void netflood_sent(struct netflood_conn *c);
 static void netflood_dropped(struct netflood_conn *c);
 /*---------------------------------------------------------------------------*/
@@ -48,8 +48,8 @@ PROCESS_THREAD(example_netflood_process, ev, data)
 
 /*---------------------------------------------------------------------------*/
 
-static int netflood_recv(struct netflood_conn *c, rimeaddr_t * from,
-			 rimeaddr_t * originator, uint8_t seqno, uint8_t hops)
+static int netflood_recv(struct netflood_conn *c, const rimeaddr_t * from,
+			 const rimeaddr_t * originator, uint8_t seqno, uint8_t hops)
 {
 	printf
 	    ("NetFlood packet received from %u.%u through %u.%u, seqno=%u, hops=%u\n",
