@@ -48,7 +48,7 @@ uiplib_ipaddrconv(const char *addrstr, uip_ipaddr_t *ipaddr)
 #if UIP_CONF_IPV6
   uint16_t value;
   int tmp, len, zero;
-  char c;
+  char c = '\0';
 
   value = 0;
   zero = -1;

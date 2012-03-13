@@ -241,6 +241,7 @@ register_encounter(rimeaddr_t *neighbor, clock_time_t time)
   }
 }
 /*---------------------------------------------------------------------------*/
+#if WITH_ENCOUNTER_OPTIMIZATION
 static void
 turn_radio_on_callback(void *packet)
 {
@@ -252,6 +253,7 @@ turn_radio_on_callback(void *packet)
 
   /*  printf("enc\n");*/
 }
+#endif
 /*---------------------------------------------------------------------------*/
 static void
 stream_off(void *dummy)
@@ -271,7 +273,9 @@ stream_off(void *dummy)
 static void
 turn_radio_on_for_neighbor(rimeaddr_t *neighbor, struct queue_list_item *i)
 {
+#if WITH_ENCOUNTER_OPTIMIZATION
   struct encounter *e;
+#endif
 
 #if WITH_STREAMING
   if(packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) ==
@@ -380,11 +384,13 @@ remove_queued_packet(struct queue_list_item *i, uint8_t tx_ok)
   mac_call_sent_callback(sent, ptr, status, num_transmissions);
 }
 /*---------------------------------------------------------------------------*/
+#if WITH_PENDING_BROADCAST
 static void
 remove_queued_broadcast_packet_callback(void *item)
 {
   remove_queued_packet(item, 1);
 }
+#endif
 /*---------------------------------------------------------------------------*/
 static void
 remove_queued_old_packet_callback(void *item)
@@ -507,7 +513,9 @@ static int
 dutycycle(void *ptr)
 {
   struct ctimer *t = ptr;
+#if WITH_PENDING_BROADCAST
   struct queue_list_item *p;
+#endif
 	
   PT_BEGIN(&dutycycle_pt);
 
