@@ -2,7 +2,7 @@ Readme
 ======
 
 Last Update: March 13th, 2012
-Driver version: v2012-03-13
+Driver version: v2012-03-21
 
 
 
@@ -34,6 +34,8 @@ Some documentation may be found on [www.senslab.info].
 
 
 
+contiki-wsn430 v2012-03-21, CHANGELOG:
+	o Adding missing file 'Makefile.wsn430' in platform
 contiki-wsn430 v2012-03-13, CHANGELOG:
 	o Added Readme and version in file
 	o Refactoring, removed some warnings
