@@ -1,0 +1,10 @@
+*.hex
+*.elf
+*.o
+*.ihex
+*.wsn430
+*.a
+*.map
+obj_wsn430
+*~
+*.swp
