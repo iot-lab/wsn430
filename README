@@ -1,0 +1,25 @@
+Senslab Git repository
+======================
+
+To give an easier access to the code updates and last versions,
+in addition to the releases archives that can be found on senslab.info website,
+you can find the up to date code for Senslab in this git repository:
+
+
+All the history of the former svn repository has been kept in the git repository
+for the included files.
+
+
+Contributing
+============
+
+The repository is read only, but you can send patches on
+senslab-users mailing-list to fix bugs or suggest improvement.
+Just remember to tell on which commit they are based.
+
+
+Branches
+========
+
+master: all the code
+release: follows master but contains files to build the release archives
