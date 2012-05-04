@@ -4,6 +4,7 @@
 *.ihex
 *.wsn430
 *.a
+*.d
 *.map
 obj_wsn430
 *~
