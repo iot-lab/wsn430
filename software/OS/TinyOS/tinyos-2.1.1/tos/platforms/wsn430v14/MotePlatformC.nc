@@ -1,9 +1,11 @@
+// Modified 06/03/2012 by LASLA Noureddine (lnoureddine4@gmail.com)
+
 module MotePlatformC {
 	provides interface Init;
 }
 implementation {
 	command error_t Init.init() {
-		// reset all of the ports to be input and using i/o functionality
+
 		atomic
 		{
 			// disable interrupts
@@ -22,32 +24,34 @@ implementation {
 			P5SEL = 0;
 			P6SEL = 0;
 
-			P1DIR = 0xff;
-			P1OUT = 0x00;
+			P1OUT &= ~(0x08);
+			P1OUT &= ~(0x10);
+			P1OUT &= ~(0x40);
 
-			P2DIR = 0xfc;
-			P2OUT = 0x00;
+			//RESET
+			P1DIR |= 0x80;
+			//CCA   SFD  FIFOP  FIFO
+			P1DIR &= ~(0x40 | 0x20 | 0x10 | 0x08);
 
-			P3DIR = 0x0f;
+			P2OUT = 0x30;
+			P2DIR = 0x7b;
+
 			P3OUT = 0x00;
+			//VERGEN
+			P3DIR |= 0x01;
 
-			P4DIR = 0xff;
-			P4OUT = 0x14;
+			P4OUT = 0xdd;
+			P4DIR = 0xfd;
 
-			P5DIR = 0xfb;
-			P5OUT = 0x01;
+			P5OUT = 0xff;
+			P5DIR = 0xff;
 
-			P6DIR = 0xff;
 			P6OUT = 0x00;
+			P6DIR = 0xff;
 
-			// the commands above take care of the pin directions
-			// there is no longer a need for explicit set pin
-			// directions using the TOSH_SET/CLR macros
-
-		}//atomic
-		
-		
-		
+			P1IE = 0;
+			P2IE = 0;
+		}
 		return SUCCESS;
 	}
 }

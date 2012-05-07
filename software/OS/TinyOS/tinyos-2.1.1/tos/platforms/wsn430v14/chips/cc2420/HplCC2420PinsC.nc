@@ -48,7 +48,7 @@ configuration HplCC2420PinsC {
   provides interface GeneralIO as RSTN;
   provides interface GeneralIO as SFD;
   provides interface GeneralIO as VREN;
-  
+
 }
 
 implementation {
@@ -69,7 +69,7 @@ implementation {
   RSTNM -> GeneralIOC.Port17;
   SFDM -> GeneralIOC.Port15;
   VRENM -> GeneralIOC.Port30;
-  
+
   CCA = CCAM;
   CSN = CSNM;
   FIFO = FIFOM;
@@ -77,5 +77,5 @@ implementation {
   RSTN = RSTNM;
   SFD = SFDM;
   VREN = VRENM;
-  
+
 }

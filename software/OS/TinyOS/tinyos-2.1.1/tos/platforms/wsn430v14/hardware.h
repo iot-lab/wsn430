@@ -1,6 +1,7 @@
 /**
  * Modified by Guillaume Schreiner - LSIIT.
  */
+// Modified 06/03/2012 by LASLA Noureddine (lnoureddine4@gmail.com)
 
 #ifndef _H_hardware_h
 #define _H_hardware_h
@@ -23,20 +24,20 @@ TOSH_ASSIGN_PIN(YELLOW_LED, 5, 6);
 
 TOSH_ASSIGN_PIN(RADIO_CSN,       4, 2);
 TOSH_ASSIGN_PIN(RADIO_VREF,      3, 0);
-TOSH_ASSIGN_PIN(RADIO_RESET,     4, 6);
+TOSH_ASSIGN_PIN(RADIO_RESET,     1, 7);
 
 TOSH_ASSIGN_PIN(RADIO_FIFOP,     1, 4);
 TOSH_ASSIGN_PIN(RADIO_SFD,       1, 5);
 TOSH_ASSIGN_PIN(RADIO_GIO0,      1, 3);
 TOSH_ASSIGN_PIN(RADIO_FIFO,      1, 3);
-TOSH_ASSIGN_PIN(RADIO_GIO1,      1, 4);
+TOSH_ASSIGN_PIN(RADIO_GIO1,      1, 6);
 TOSH_ASSIGN_PIN(RADIO_CCA,       1, 6);
 
 TOSH_ASSIGN_PIN(CC_FIFOP,        1, 4);
 TOSH_ASSIGN_PIN(CC_FIFO,         1, 3);
 TOSH_ASSIGN_PIN(CC_SFD,          1, 5);
 TOSH_ASSIGN_PIN(CC_VREN,         3, 0);
-TOSH_ASSIGN_PIN(CC_RSTN,         4, 6);
+TOSH_ASSIGN_PIN(CC_RSTN,         1, 7);
 
 // ADC lines on the testpoints
 TOSH_ASSIGN_PIN(ADC0, 6, 0);

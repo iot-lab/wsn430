@@ -41,7 +41,7 @@
 
 
 configuration HplCC2420InterruptsC {
-    
+
   provides interface GpioCapture as CaptureSFD;
   provides interface GpioInterrupt as InterruptCCA;
   provides interface GpioInterrupt as InterruptFIFOP;
@@ -62,7 +62,7 @@ implementation {
   components new Msp430InterruptC() as InterruptFIFOPC;
   InterruptCCAC.HplInterrupt -> HplMsp430InterruptC.Port16;
   InterruptFIFOPC.HplInterrupt -> HplMsp430InterruptC.Port14;
-  
+
   CaptureSFD = CaptureSFDC.Capture;
   InterruptCCA = InterruptCCAC.Interrupt;
   InterruptFIFOP = InterruptFIFOPC.Interrupt;
