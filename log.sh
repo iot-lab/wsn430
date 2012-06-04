@@ -24,6 +24,10 @@ trap control_c SIGINT
 
 function connection_status()
 {
+	#   Lines received
+	# experiment.lille.senslab.info [192.168.1.110] 30001 (?) open
+	# experiment.lille.senslab.info [192.168.1.110] 30256 (?) : Connection refused
+	# DNS fwd/rev mismatch: experiment.lille.senslab.info != srveh
 	while read line;
 	do
 		match=$(echo $line | grep -e "^experiment.[a-z]*.senslab.info")
@@ -59,6 +63,19 @@ function connection_status()
 # value2 = temp;
 
 
+
+# the flow is
+#
+#  Normal output   (STDOUT) -> (STDERR)
+#         -> (STDOUT) prefixed with node number -> (STDERR)                          -> (STDOUT)
+#  Connection info (STDERR) -> (STDOUT) connection_status: echo ID OK/KO
+#         -> (STDERR)                           -> (STDOUT) keep 256 lines and sort  -> (STDERR)
+#
+# Finally there is:
+#  STDOUT -> netcat normal output
+#  STDERR -> connection information in order
+#
+
 for i in $(seq 1 $NODE_NUM)
 do
 	# $! is the PID of the last "job" forked
@@ -68,6 +85,9 @@ do
 
 	pid_array[$i]=$!
 done 3>&1 1>&2- 2>&3- | head -n $NODE_NUM | sort -n 3>&1 1>&2- 2>&3-
+
+
+
 
 
 # main() loop
