@@ -1,2 +1,5 @@
-Each simple project is maintained on different branches
-My goal is just to have backup for many simple repositories
+Aggregate log senslab
+=====================
+
+Aggregate the output of all the senslab nodes to standard output.
+It reads the log line by line.
