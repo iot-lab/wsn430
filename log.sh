@@ -61,7 +61,7 @@ function start_advanced_logs()
 }
 
 
-# format the logs and the connexion informations
+# format the logs and the connexion informations sorted by node number
 function start_log()
 {
 	# Swap STDOUT and STDERR
