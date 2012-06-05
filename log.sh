@@ -1,29 +1,81 @@
 #! /bin/bash
 
+
+# Configuration
+# Default configuration should be enough
 SERVER='experiment'
 BASE_PORT='40000'
 NODE_NUM='256'
 
-tested_nodes=0
 
+#
+# Basic functions:
+#
+# Simple functions to aggregate and prefix the log lines with node id
+#
 
-started_netcat_array=()
-for i in $(seq 1 $NODE_NUM)
-do
-	started_netcat_array[$i]=''
-done
-
-# run if user hits control-c
-control_c()
+function start_formatted_logs()
 {
-	echo -e "\nExit script" 1>&2
-	exit 0
+	# 'while read' is required here too, instead the lines get mixed up
+	run_background_netcats 2> /dev/null | while read line; do echo "$line"; done
 }
-# trap keyboard interrupt (control-c)
-trap control_c SIGINT
+
+# Start all the connections to the nodes in background
+function run_background_netcats()
+{
+	for i in $(seq 1 $NODE_NUM)
+	do
+		netcat_prefixed $i &
+	done
+}
+
+# $1: node number
+function netcat_prefixed()
+{
+	node=$1
+	nc -v $SERVER $(( $BASE_PORT + $node)) |
+	while read line
+	do
+		echo "[$(printf %03d $node)] $line"
+	done
+}
 
 
-function connection_status()
+
+
+#
+# Advanced functions:
+#
+# More complex functions that analyse the connection informations and
+# format the output to tell to which nodes we were able to connect.
+#
+
+
+# Output logs from nodes in format "[NODE_ID] node_output_line" on STDOUT
+# Output connexion information in format "(NODE_ID) Connexion_info" on STDERR
+function start_advanced_logs()
+{
+	echo Connecting... >&2
+	# 'while read' is required here too, instead the lines get mixed up
+	start_log | while read line; do echo "$line"; done
+}
+
+
+# format the logs and the connexion informations
+function start_log()
+{
+	# Swap STDOUT and STDERR
+	# ( proc1 3>&1 1>&2- 2>&3- ) | proc2
+	{
+		{
+			run_background_netcats  3>&1 1>&2- 2>&3- ;
+		} | nodes_connection_status | head -n $NODE_NUM | sort ;
+	} 3>&1 1>&2- 2>&3-
+}
+
+
+# Interpret and format connection information received from verbose netcat
+function nodes_connection_status()
 {
 	#   Lines received
 	# experiment.lille.senslab.info [192.168.1.110] 40001 (?) open
@@ -44,39 +96,25 @@ function connection_status()
 }
 
 
-# You can use the following trick to swap stdout and stderr.
-# Then you just use the regular pipe functionality.
-#
-# ( proc1 3>&1 1>&2- 2>&3- ) | proc2
 
 
-function prefixed_lines_netcat()
+# Simple script that only aggregates the serial port and prefix them with "[NODE_ID] "
+#   start_formatted_logs
+
+# Advanced script that format the connection information
+start_advanced_logs
+
+
+
+
+
+# Block until SIGINT == Ctrl+C
+
+control_c()
 {
-	node=$1
-	nc -v $SERVER $(( $BASE_PORT + $node)) |
-	while read line
-	do
-		echo "[$(printf %03d $node)] $line"
-	done
-
+	echo -e "\nExit script" 1>&2
+	exit 0
 }
-
-function run_netcats_v2()
-{
-	for i in $(seq 1 $NODE_NUM)
-	do
-		prefixed_lines_netcat $i &
-	done
-}
-
-function start_log()
-{
-	echo Connecting... >&2
-	{ run_netcats_v2  3>&1 1>&2- 2>&3- | connection_status | head -n $NODE_NUM | sort ;} 3>&1 1>&2- 2>&3-
-}
-
-start_log | while read line; do echo "$line"; done
-
-# main() loop
-while true; do read x; done
+trap control_c SIGINT
+while true; do read DUMMY; done
 
