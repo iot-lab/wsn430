@@ -1,5 +1,0 @@
-Aggregate log senslab
-=====================
-
-Aggregate the output of all the senslab nodes to standard output.
-It reads the log line by line and prefix the lines with node number.
