@@ -14,10 +14,10 @@ cat << EOF
 # add the following lines to your ~/.bashrc file
 
 # Senslab variables
-export FIT_ECO=${FIT_ECO}
-export WSN430_DRIVERS_PATH=\${FIT_ECO}/software/drivers/wsn430
-export WSN430_LIB_PATH=\${FIT_ECO}/software/lib
-export FREERTOS_PATH=\${FIT_ECO}/software/OS/FreeRTOS
-export CONTIKI_PATH=\${FIT_ECO}/software/OS/Contiki
+export FIT_ECO="${FIT_ECO}"
+export WSN430_DRIVERS_PATH="\${FIT_ECO}/software/drivers/wsn430"
+export WSN430_LIB_PATH="\${FIT_ECO}/software/lib"
+export FREERTOS_PATH="\${FIT_ECO}/software/OS/FreeRTOS"
+export CONTIKI_PATH="\${FIT_ECO}/software/OS/Contiki"
 EOF
 
