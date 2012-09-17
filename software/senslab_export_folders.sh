@@ -3,6 +3,7 @@
 # Generate export variables for .bashrc.
 # It exports all the variable required to compile programs for senslab
 
+cd $(dirname $0)
 
 
 #  FIT_ECO=$(git rev-parse --show-toplevel)
@@ -21,3 +22,4 @@ export FREERTOS_PATH="\${FIT_ECO}/software/OS/FreeRTOS"
 export CONTIKI_PATH="\${FIT_ECO}/software/OS/Contiki"
 EOF
 
+cd - > /dev/null

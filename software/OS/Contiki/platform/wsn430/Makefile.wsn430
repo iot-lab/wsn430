@@ -11,7 +11,7 @@ ARCH = msp430.c uart0.c spi1.c ds2411.c ds1722.c m25p80.c xmem.c leds_arch.c led
 #RADIO=WITH_CC2420
 
 ifndef RADIO
-$(info Radio not defined in platform/wsn430/Makefile.wsn430, using radio 'cc1100')
+$(info Radio not defined in firmware Makefile or platform/wsn430/Makefile.wsn430, using radio 'cc1100')
 RADIO=WITH_CC1100
 endif
 
