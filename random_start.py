@@ -10,20 +10,24 @@ import os
 import array
 import time
 
+import requests
+
 
 import random
 
 from pprint import pprint
 
-STATES = ["Alive", "Suspected"]
+URL = "https://portal.senslab.info"
+USERNAME="harter"
+PASSWORD="clochette"
 
 
-
+NUMBER_OF_NODES = 10
 
 
 EXPE_STR = '''{
    "type":"physical",
-   "duration":60,
+   "duration":50,
    "reservation":"0",
    "name":"calendarDemo",
    "nodes":null,
@@ -37,7 +41,6 @@ def __alive_nodes_list(nodes_list):
     ''' Returns '''
     ret = []
     [ret.append(str(node["network_address"])) for node in nodes_list if node["state"] == "Alive"]
-    print ret
     return ret
 
 
@@ -63,11 +66,22 @@ def __random_select_nodes(list_len, number):
 def __generate_exp_list(nodes_list, number):
 
     alive = __alive_nodes_list(nodes_list)
-    selected = __random_select_nodes(len(alive), 10)
+    selected = __random_select_nodes(len(alive), number)
     expe_nodes = []
     [expe_nodes.append(alive.pop(id)) for id in selected]
 
     return expe_nodes
+
+
+def __start_exp(json_str):
+    post_url = "/rest/experiment?body"
+    url = URL + post_url
+    headers = {'content-type': 'application/json'}
+    auth = requests.auth.HTTPBasicAuth(USERNAME, PASSWORD)
+
+    r = requests.post(url, data=json_str, headers=headers, auth=auth)
+    print r.text
+
 
 
 if __name__ == '__main__':
@@ -78,22 +92,20 @@ if __name__ == '__main__':
         sys.exit(1)
 
 
-    # print re.sub("\..*$", "", str(time.time()))
+
+
     nodes_list = j["resources"]
-#    print nodes_list
-#    __schedule_expes(nodes_list)
 
-    # __create_experiment()
+    current_time = int(time.time())
+    current_time += 2*3600 # Ugly patch because fred does not know how to manage time
 
+    exp_start = current_time + 10*60
     for i in range(0, 24):
-        expe_nodes = __generate_exp_list(nodes_list, 10)
+        expe_nodes = __generate_exp_list(nodes_list, NUMBER_OF_NODES)
+        exp_json = __create_experiment(expe_nodes, exp_start)
+        __start_exp(exp_json)
+        exp_start += 3600
 
 
 
-
-
-
-
-
-#    print [sum(range(nombre)) for nombre in range(10) if nombre % 2 == 0]
 
