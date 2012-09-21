@@ -22,6 +22,10 @@ USERNAME="harter"
 PASSWORD="clochette"
 
 
+XP_LENGTH        = 2
+DELAY_BETWEEN_XP = 2
+NUMBER_OF_XP     = 2
+
 NUMBER_OF_NODES = 10
 
 
@@ -44,10 +48,11 @@ def __alive_nodes_list(nodes_list):
     return ret
 
 
-def __create_experiment(nodes_list, timestamp):
+def __create_experiment(nodes_list, timestamp, duration):
     exp = json.loads(EXPE_STR)
     exp["reservation"] = timestamp
     exp["nodes"] = nodes_list
+    exp["duration"] = duration
     return json.dumps(exp, indent=2)
 
 
@@ -80,7 +85,8 @@ def __start_exp(json_str):
     auth = requests.auth.HTTPBasicAuth(USERNAME, PASSWORD)
 
     r = requests.post(url, data=json_str, headers=headers, auth=auth)
-    print r.text
+    j =  json.loads(r.text)
+    print json.dumps(j, indent=2)
 
 
 
@@ -99,12 +105,13 @@ if __name__ == '__main__':
     current_time = int(time.time())
     current_time += 2*3600 # Ugly patch because fred does not know how to manage time
 
-    exp_start = current_time + 10*60
-    for i in range(0, 24):
+
+    exp_start = current_time + DELAY_BETWEEN_XP * 60
+    for i in range(0, NUMBER_OF_XP):
         expe_nodes = __generate_exp_list(nodes_list, NUMBER_OF_NODES)
-        exp_json = __create_experiment(expe_nodes, exp_start)
+        exp_json = __create_experiment(expe_nodes, exp_start, XP_LENGTH)
         __start_exp(exp_json)
-        exp_start += 3600
+        exp_start += (XP_LENGTH + DELAY_BETWEEN_XP) * 60
 
 
 
