@@ -7,7 +7,6 @@ OBJCOPY=msp430-objcopy
 DEBUG=-g
 OPT=-Os
 
-WSN430_DRIVERS_PATH=../..
 
 INCLUDES = -I$(WSN430_DRIVERS_PATH)
 WARNINGS=-Wall -Wshadow -Wpointer-arith -Wbad-function-cast -Wcast-align -Wsign-compare \
@@ -33,11 +32,11 @@ SRC = 	main.c \
 #
 OBJ = $(SRC:.c=.o)
 
-a.out : $(OBJ) makefile
+a.out : $(OBJ) Makefile
 	$(CC) $(OBJ) $(CFLAGS)
 	$(OBJCOPY) -O ihex $(NAME).elf $(NAME).hex
 
-$(OBJ) : %.o : %.c makefile
+$(OBJ) : %.o : %.c Makefile
 	$(CC) -c $(CFLAGS) $< -o $@
 
 clean :
