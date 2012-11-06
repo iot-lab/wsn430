@@ -1,0 +1,18 @@
+This is the Senslab Control Node software source.
+All source code is provided under the CeCILL license [www.cecill.info] and can be copied, modified and redistributed under its terms.
+If you got this archive, it means you have read and agreed with the licence.
+
+All source code written by:
+- Colin Chaballier <colin.chaballier@inria.fr>
+- Clément Burin des Roziers <clement.burin-des-roziers@inria.fr>
+
+To compile this software, you need mspgcc installed (http://mspgcc.sf.net), and to have the SensTools drivers and FreeRTOS port for WSN430 (http://www.senstools.info).
+The following environment variables must be set:
+- WSN430_DRIVERS_PATH must point to the WSN430 drivers obtained from SensTools
+- FREERTOS_PATH must point to the FreeRTOS port for WSN430 obtained from SensTools
+
+You can select the WSN430 version in the makefile, setting the VERSION_14 to 1 for version 1.4 or to 0 for version 1.3. 
+
+Then just type:
+ $ make
+and it should get compiled.

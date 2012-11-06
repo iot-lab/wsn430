@@ -1,0 +1,26 @@
+#INA209 calibration
+
+Vbus_max = 32 V
+Vshunt_max = 0.32 V
+Rshunt = 1 Ohm
+
+MaxPossible_I = 0.32 A
+
+Max_Expected_I = 0.32 A
+
+Min LSB = 0.32/32767 = 9.77e-6
+Max LSB = 0.32/4096  = 78.1e-6
+
+Current LSB = 10e-6
+
+Cal = 0.04096/(10e-6*1) = 4096
+
+Power LSB = 20*10e-6 = 200e-6 = 0.2mW
+
+Max Current = 10e-6*32767 = 0.32767
+Max Current Before Overflow = 0.32
+
+Max Shunt Voltage = 0.32*1 = 0.32
+Max Shunt Voltage Before Overflow = 0.32
+
+MaximumPower = 0.32*32 = 10.24 W

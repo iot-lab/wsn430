@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<experiment login="user7" ip="vmuser7" id="1" xmlns="http://www.senslab.info"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.senslab.info experiment.xsd">
+	<profiles>
+		<profile id="batt_conso">
+			<cc1100/>
+			<powersupply>battery</powersupply>
+			<measure>
+				<power values="voltage,current">200</power>
+			</measure>
+		</profile>
+	</profiles>
+	<nodes>
+		<node userId="1" senslabId="104" profile="batt_conso" firmware="demo.hex" />
+		<node userId="2" senslabId="105" profile="batt_conso" firmware="demo.hex" />
+		<node userId="3" senslabId="106" profile="batt_conso" firmware="demo.hex" />
+		<node userId="4" senslabId="107" profile="batt_conso" firmware="demo.hex" />
+	</nodes>
+</experiment>
