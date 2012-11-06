@@ -3,7 +3,7 @@ $(error Please set environment variable WSN430_DRIVERS_PATH to the drivers folde
 endif
 
 # define one name for each executable to be built
-NAMES = tp2
+NAMES = tp
 
 SRC  = main.c
 SRC += $(WSN430_DRIVERS_PATH)/clock.c
