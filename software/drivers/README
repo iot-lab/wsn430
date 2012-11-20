@@ -1,11 +1,52 @@
-This is the source repository for the WSN430 drivers, and driver application examples.
-All source code is provided under the CeCILL license [www.cecill.info] and can be copied, modified and redistributed under its terms.
-If you got this archive, it means you have read and agreed with the licence.
+Readme
+======
 
-All source code written by:
-- Guillaume Chelius <guillaume.chelius@inria.fr>
-- Eric Fleury       <eric.fleury@inria.fr>
-- Antoine Fraboulet <antoine.fraboulet@insa-lyon.fr>
-- Colin Chaballier <colin.chaballier@inria.fr>
-- Clément Burin des Roziers <clement.burin-des-roziers@inria.fr>
+Last Update: October 25th, 2011
+Version: v1.8
+
+
+
+Description
+-----------
+
+This archive contains the drivers for the WSN430 main board, along with their descriptions. Drivers for both WSN430 platforms is provided.
+	Last up to date version can be found on: http://www.senslab.info/
+
+There are two versions of the WSN430 board. The names have absolutely no links with the drivers versions, which represent new features and bug fixes:
+	* one with a CC1100 radio chip, known as wsn430v13b (especially in the platform simulator WSIM)
+        * the other with a CC2420 radio chip, known as wsn430v14 (especially in the platform simulator WSIM)
+
+The documentation for these drivers may be found on the dedicated Doxygen documentation page:
+	http://senstools.gforge.inria.fr/doxygen/
+
+
+
+Changelog
+---------
+
+Compatible with mspgcc3, mspgcc4 and mspgcc-4 uniarch
+WSN430 drivers v1.8, CHANGELOG:
+	o switch to a Makefile.common architecture to get genericity
+	o Added beta support for msp430-gcc uniarch version (>= 4.5)  http://sourceforge.net/apps/mediawiki/mspgcc/index.php?title=MSPGCC_Wiki
+	  (automatically managed in Makefile.common - beta version)
+	o add of uart1 baudrate for SCLK at 8MHz and set i2c0 frequency at 70kHz with SCLK at 8MHz for GPS i2c comm compatibility
+
+Compatible with mspgcc3 and mspgcc4
+WSN430 drivers v1.7, CHANGELOG:
+	o optimized cc2420 driver and updated examples;
+	o fixed cc1100 channel spacing configuration bug;
+	o improved i2c0 robustness;
+WSN430 drivers v1.6.1, CHANGELOG:
+	o minor fix in UART driver;
+	o fixed infinite loop lock bug in CC1100 driver;
+	o improved radio examples;
+	o added new serial + timer + LEDs example to get started with the platform
+WSN430 drivers v1.5
+	o ?
+WSN430 drivers v1.4
+	o ?
+WSN430 drivers v1.3
+	o ?
+WSN430 drivers v1.2
+	o ?
 

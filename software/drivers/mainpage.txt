@@ -1,0 +1,10 @@
+/**
+
+\mainpage SensLAB Drivers Mainpage
+
+SensLAB, provides a complete set of drivers for the WSN430 platform.
+
+\sa \ref wsn430
+
+
+*/

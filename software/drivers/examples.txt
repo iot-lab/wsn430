@@ -1,0 +1,55 @@
+
+/**
+ * \example ds2411/main.c A simple application using the DS2411 driver.
+ */
+
+/**
+ * \example cc1100/main.c
+ * An example application sending and receiving radio frames,
+ * displaying incoming frames on the uart port.
+ */
+
+/**
+ * \example cc2420/main.c
+ * An example application sending and receiving radio frames,
+ * displaying incoming frames on the uart port.
+ */
+
+/**
+ * \example ds1722/main.c
+ * An example application using the DS1722 temperature sensor.
+ */
+
+
+/**
+ * \example ds2411/main.c
+ * An example application using the DS2411 unique serial number.
+ */
+
+
+/**
+ * \example leds/main.c
+ * An example application using the LEDs.
+ */
+
+
+/**
+ * \example m25p80/main.c
+ * An example application using the M25P80 serial flash memory.
+ */
+
+/**
+ * \example serial/main.c
+ * An example application using the UART0 module.
+ */
+
+/**
+ * \example timerA/main.c
+ * An example application using the timerA module to create periodic events.
+ */
+
+
+/**
+ * \example tsl2550/main.c
+ * An example application using the TSL2550 light sensor.
+ */
