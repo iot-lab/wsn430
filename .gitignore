@@ -1,3 +1,4 @@
+# Compilation
 *.hex
 *.elf
 *.o
@@ -7,5 +8,20 @@
 *.d
 *.map
 obj_wsn430
+
+# swap files
 *~
 *.swp
+
+# Pyhon
+*.pyc
+
+# latex files
+*.aux
+*.log
+*.pdf
+*.toc
+*.out
+*.lof
+*.dvi
+

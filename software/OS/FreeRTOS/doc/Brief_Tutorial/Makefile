@@ -8,7 +8,7 @@ all: ${FILE}.pdf
 
 
 clean:
-	rm -f *.aux *.dvi *.log *.toc
+	rm -f *.aux *.dvi *.log *.toc *.lof *.out
 realclean: clean
 	rm -f ${FILE}.pdf
 
