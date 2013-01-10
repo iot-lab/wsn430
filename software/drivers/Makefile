@@ -17,4 +17,4 @@ examples:
 	cd examples; ./compile_all.sh
 
 clean:
-	rm -r $(DOCFOLDER)
+	rm -rf $(DOCFOLDER)
