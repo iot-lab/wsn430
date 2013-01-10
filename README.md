@@ -53,7 +53,8 @@ This is the source repository for the WSN430 drivers, and driver application exa
 All source code is provided under the CeCILL license [www.cecill.info] and can be copied, modified and redistributed under its terms.
 If you got this archive, it means you have read and agreed with the licence.
 
-All source code written by:
+All modification to the original source code written by:
+
 - Guillaume Chelius <guillaume.chelius@inria.fr>
 - Eric Fleury       <eric.fleury@inria.fr>
 - Antoine Fraboulet <antoine.fraboulet@insa-lyon.fr>
