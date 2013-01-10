@@ -1,33 +1,53 @@
-Senslab Git repository
+IoT-LAB Git repository
 ======================
 
-To give an easier access to the code updates and last versions,
-in addition to the releases archives that can be found on senslab.info website,
-you can find the up to date code for Senslab in this git repository:
+This repository contains the IoT-LAB source code to run experiments on the IoT-LAB sensor network platform.
+
+Description
+-----------
+
+It contains:
+
+* the wsn430 nodes drivers with examples using them
+* a port of different RTOS for the wsn430 nodes:
+    * ContikiOS
+    * FreeRTOS
+    * TinyOS
+* Radio communication libraries
 
 
-All the history of the former svn repository has been kept in the git repository
-for the included files.
+Getting updates
+---------------
+
+To get the last modifications from the git repository:
+
+        ~/iot-lab$ git pull
+
+
+Installation
+------------
+
+Run the `install.sh` script and copy its output to your `~/.bashrc` file
+
+        ~/iot-lab$ ./install.sh | less
+        ~/iot-lab$ ./install.sh >> ~/.bashrc
+
+And reload the configuration
+
+        ~/iot-lab$ source ~/.bashrc
+
 
 
 Contributing
-============
+------------
 
 The repository is read only, but you can send patches on
 senslab-users mailing-list to fix bugs or suggest improvement.
 Just remember to tell on which commit they are based.
 
 
-Branches
-========
-
-master: all the code
-release: follows master but contains files to build the release archives
-
-
 License
-=======
-
+-------
 
 This is the source repository for the WSN430 drivers, and driver application examples.
 All source code is provided under the CeCILL license [www.cecill.info] and can be copied, modified and redistributed under its terms.

@@ -2,6 +2,18 @@
 
 # Generate export variables for .bashrc.
 # It exports all the variable required to compile programs for senslab
+#
+#
+# Run the `install.sh` script and copy its output to your `~/.bashrc` file
+#
+#         ~$ ./install.sh | less
+#         ~$ ./install.sh >> ~/.bashrc
+#
+# And reload the configuration
+#
+#         ~$ source ~/.bashrc
+#
+
 
 cd $(dirname $0)
 
