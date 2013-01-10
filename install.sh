@@ -5,10 +5,7 @@
 
 cd $(dirname $0)
 
-
-#  FIT_ECO=$(git rev-parse --show-toplevel)
-# --show-toplevel is not supported on git versions from senslab VMs :/
-FIT_ECO=$(dirname $(git rev-parse --git-dir))
+FIT_ECO=$(git rev-parse --show-toplevel)
 
 cat << EOF
 
