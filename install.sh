@@ -17,18 +17,37 @@
 
 cd $(dirname $0)
 
-FIT_ECO=$(git rev-parse --show-toplevel)
+IOT_LAB=$(git rev-parse --show-toplevel)
 
-cat << EOF
-
+ENV_VAR="
 # add the following lines to your ~/.bashrc file
 
-# Senslab variables
-export FIT_ECO="${FIT_ECO}"
-export WSN430_DRIVERS_PATH="\${FIT_ECO}/software/drivers/wsn430"
-export WSN430_LIB_PATH="\${FIT_ECO}/software/lib"
-export FREERTOS_PATH="\${FIT_ECO}/software/OS/FreeRTOS"
-export CONTIKI_PATH="\${FIT_ECO}/software/OS/Contiki"
-EOF
+# IoT-LAB variables
+export IOT_LAB="${IOT_LAB}"
+export WSN430_DRIVERS_PATH="\${IOT_LAB}/wsn430/drivers"
+export WSN430_LIB_PATH="\${IOT_LAB}/wsn430/lib"
+export FREERTOS_PATH="\${IOT_LAB}/wsn430/OS/FreeRTOS"
+export CONTIKI_PATH="\${IOT_LAB}/wsn430/OS/Contiki"
+"
+
+error=0
+eval "$ENV_VAR"
+for var in "$IOT_LAB" "$WSN430_DRIVERS_PATH" "$WSN430_LIB_PATH" "$FREERTOS_PATH" "$CONTIKI_PATH"
+do
+        if [ ! -d "$var" ]; then
+                echo "Folder $var does not exist"
+                error=1
+        fi
+done
+
+if [ "$error" -eq "1" ]
+then
+        echo
+        echo "Please check your repository and the configuration in the 'install.sh' script"
+        echo "and report the issue to the users mailing list"
+        exit 1
+else
+        echo "$ENV_VAR"
+fi
 
 cd - > /dev/null
