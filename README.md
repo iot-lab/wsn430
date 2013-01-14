@@ -37,7 +37,6 @@ And reload the configuration
         ~/iot-lab$ source ~/.bashrc
 
 
-
 Contributing
 ------------
 
