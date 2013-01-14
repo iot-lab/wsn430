@@ -6,7 +6,7 @@ This repository contains the IoT-LAB source code to run experiments on the IoT-L
 Description
 -----------
 
-It contains:
+The code base contains:
 
 * the wsn430 nodes drivers with examples using them
 * a port of different RTOS for the wsn430 nodes:
