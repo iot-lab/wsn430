@@ -1,0 +1,33 @@
+Readme
+======
+
+Last Update: May 07th, 2012
+Version: v2012-05-07
+
+
+
+Description
+-----------
+
+TinyOS is an embedded operating system, featuring a component-oriented
+architecture. More information may be found on
+* TinyOS website http://www.tinyos.net/
+* TinyOS wiki http://docs.tinyos.net/
+
+Some documentation may be found on [www.senslab.info].
+
+
+
+tinyos-wsn430-2.1.1 v2012-05-07, CHANGELOG:
+	o Correcting problems in cc2420 Radio (ActiveMessage)
+	o     and usage with serial port.
+	o Remaining BUG:
+	o   When sending a message using ActiveMessage,
+	o   the SendDone does not return SUCCESS every time whenever
+	o   the message is well received.
+	o   It return RETRY, which is caused when a mote fail to get the
+	o   SFD time to timestamp the message. But it can be ignored
+
+wsn430-tinyos-2.1.1 v2010-07, CHANGELOG:
+	o 2.1.1 version of TinyOS for Senslab
+
