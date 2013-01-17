@@ -56,7 +56,7 @@ If you want to compile TinyOS programs from your machine, you can follow the ins
         sudo bash $(which tos-install-jni)
         # corrects a missing 'generic_printf.h' dependency
         # http://www.geoffreylo.com/resources/tinyos-primer/
-        sudo cp /opt/tinyos-2.1.1/tos/lib/printf.h /opt/tinyos-2.1.1/tos/lib/generic_printf.h
+        sudo cp /opt/tinyos-2.1.1/tos/lib/printf/printf.h /opt/tinyos-2.1.1/tos/lib/printf/generic_printf.h
         cd /opt/tinyos-2.1.1/support/sdk/java
         make tinyos.jar
 
