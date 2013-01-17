@@ -6,6 +6,14 @@ Introduction
 
 This is the Senslab port of the TinyOS release version 2.1.1
 
+
+The officially supported version is the following:
+
+* `deb http://hinrg.cs.jhu.edu/tinyos lenny main`
+    * tinyos-2.1.1_2.1.1-20100323_all
+    * tinyos-required-msp430_2.1-20100228_all
+
+
 ### wsn430 versions ###
 
 It supports the two Senslab nodes:
@@ -51,4 +59,12 @@ If you want to compile TinyOS programs from your machine, you can follow the ins
         sudo cp /opt/tinyos-2.1.1/tos/lib/printf.h /opt/tinyos-2.1.1/tos/lib/generic_printf.h
         cd /opt/tinyos-2.1.1/support/sdk/java
         make tinyos.jar
+
+
+### Installing without 'deb' files ###
+
+If you don't want to rely on a 'deb' method, find your own method on http://docs.tinyos.net/tinywiki/index.php/Getting_started.
+However, please note the version notice on top of the document
+
+
 
