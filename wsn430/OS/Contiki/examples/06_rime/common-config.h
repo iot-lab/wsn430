@@ -6,12 +6,11 @@
  * It is based on the UID of the node given by the DS2411 chip
  *
  * To configure the Rime address of your receiver node:
- *  + Compile the firmware with an arbitrary value
- *  + Connect to the receiver node serial link
- *  + Load it on the receiver node
- *  + Read the value
- *  + Update this file
- *  + Compile and update all the nodes
+ *  + Compile and run the firmware with an arbitrary value on the receiver node
+ *  + Read the RimeAddress via serial link
+ *
+ *  + Modify the address and compile
+ *  + Update all the nodes
  *
  */
 

@@ -48,6 +48,7 @@
 
 #include "dev/leds.h"
 
+/* receiver_node_rime_addr configuration */
 #include "common-config.h"
 
 #define MAX_RETRANSMISSIONS 4

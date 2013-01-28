@@ -12,6 +12,7 @@
 
 #include <stdio.h>
 
+/* receiver_node_rime_addr configuration */
 #include "common-config.h"
 
 /*---------------------------------------------------------------------------*/
