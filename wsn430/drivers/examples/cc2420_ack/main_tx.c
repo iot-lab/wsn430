@@ -85,6 +85,7 @@ int main( void )
     cc2420_io_sfd_int_set_falling();
     cc2420_io_sfd_int_clear();
     cc2420_io_sfd_int_enable();
+    cc2420_set_txpower(CC2420_2_45GHz_TX_0dBm);
 
     uint8_t fcf[2] = {0x21, 0x88};  /* -> 00100001 10001000 -> reverse of bits for each byte -> 10000100 00010001 -> ack bit = 1 (6th bit), Frame type = 001 (don't forget to read from right to left) */
     uint8_t seq_numb = 0x01;

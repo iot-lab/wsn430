@@ -193,6 +193,25 @@ void cc1101_cmd_idle(void);
     cc1101_strobe_cmd(CC1101_STROBE_SNOP)
 
 
+/**
+ * \enum cc1101_868MHz_power_config
+ * \brief Defines PATABLE value for each power configuration at 868MHz
+ *        Values taken from cc1101 documentation revision SWRS061H
+ */
+enum cc1101_868MHz_power_config {
+        CC1101_868MHz_TX_m30dBm = 0x03,    /**< -30 dBm */
+        CC1101_868MHz_TX_m20dBm = 0x17,    /**< -20 dBm */
+        CC1101_868MHz_TX_m15dBm = 0x1D,    /**< -15 dBm */
+        CC1101_868MHz_TX_m10dBm = 0x26,    /**< -10 dBm */
+        CC1101_868MHz_TX_m6dBm  = 0x37,    /**<  -6 dBm */
+        CC1101_868MHz_TX_0dBm   = 0x50,    /**<   0 dBm */
+        CC1101_868MHz_TX_5dBm   = 0x86,    /**<   5 dBm */
+        CC1101_868MHz_TX_7dBm   = 0xCD,    /**<   7 dBm */
+        CC1101_868MHz_TX_10dBm  = 0xC5,    /**<  10 dBm */
+        CC1101_868MHz_TX_12dBm  = 0xC0,    /**<  12 dBm */
+};
+
+
 // Power Table Config
 /**
  * \brief configure the radio chip with the given power table

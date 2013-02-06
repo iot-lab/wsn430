@@ -173,15 +173,17 @@ void mac_init(uint8_t channel)
     cc1101_cfg_rxoff_mode(CC1101_RXOFF_MODE_IDLE);
     cc1101_cfg_txoff_mode(CC1101_TXOFF_MODE_RX);
 
-    uint8_t table[1];
-    //~ table[0] = 0x03; // -30dBm
-    //~ table[0] = 0x0F; // -20dBm
-    //~ table[0] = 0x1E; // -15dBm
-    //~ table[0] = 0x27; // -10dBm
-    //~ table[0] = 0x67; // -5dBm
-    table[0] = 0x50; // 0dBm
-    //~ table[0] = 0x81; // +5dBm
-    //~ table[0] = 0xC2; // +10dBm
+    uint8_t table[1] = {CC1101_868MHz_TX_0dBm};
+    // table[0] = CC1101_868MHz_TX_m30dBm;
+    // table[0] = CC1101_868MHz_TX_m20dBm;
+    // table[0] = CC1101_868MHz_TX_m15dBm;
+    // table[0] = CC1101_868MHz_TX_m10dBm;
+    // table[0] = CC1101_868MHz_TX_m6dBm;
+    table[0] = CC1101_868MHz_TX_0dBm;
+    // table[0] = CC1101_868MHz_TX_5dBm;
+    // table[0] = CC1101_868MHz_TX_7dBm;
+    // table[0] = CC1101_868MHz_TX_10dBm;
+    // table[0] = CC1101_868MHz_TX_12dBm;
     cc1101_cfg_patable(table, 1);
     cc1101_cfg_pa_power(0);
 

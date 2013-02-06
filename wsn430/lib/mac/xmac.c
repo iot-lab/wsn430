@@ -189,10 +189,9 @@ void mac_init(uint8_t channel)
     cc1101_cfg_event1(4);
     cc1101_cfg_rc_pd(CC1101_RC_OSC_ENABLE);
 
-    uint8_t table[1];
-    //~ table[0] = 0x81; // +5dBm
-    //~ table[0] = 0x67; // -5dBm
-    table[0] = 0x27; // -10dBm
+    uint8_t table[] = {CC1101_868MHz_TX_m10dBm};
+    // table[0] = CC1101_868MHz_TX_5dBm
+    // table[0] = CC1101_868MHz_TX_m6dBm
     cc1101_cfg_patable(table, 1);
     cc1101_cfg_pa_power(0);
 

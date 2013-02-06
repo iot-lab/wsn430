@@ -103,19 +103,19 @@ void phy_init(xSemaphoreHandle spi_m, phy_rx_callback_t callback,
 	// Store the TX power
 	switch (power) {
 	case PHY_TX_0dBm:
-		radio_power = 0xC2;
+		radio_power = CC1101_868MHz_TX_0dBm;
 		break;
 	case PHY_TX_m5dBm:
-		radio_power = 0x67;
+		radio_power = CC1101_868MHz_TX_m6dBm;   // No exact match so using the nearest
 		break;
 	case PHY_TX_m10dBm:
-		radio_power = 0x27;
+		radio_power = CC1101_868MHz_TX_m10dBm;
 		break;
 	case PHY_TX_m20dBm:
-		radio_power = 0x0F;
+		radio_power = CC1101_868MHz_TX_m20dBm;
 		break;
 	default:
-		radio_power = 0xC2;
+		radio_power = CC1101_868MHz_TX_0dBm;
 		break;
 	}
 

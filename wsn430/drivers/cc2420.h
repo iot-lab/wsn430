@@ -145,12 +145,26 @@ void cc2420_write_ram(uint16_t addr, uint8_t* buffer, uint16_t len);
 	cc2420_write_reg(CC2420_REG_FSCTRL, reg); \
 } while (0)
 
+
+
+/**
+ * \enum cc2420_2.45GHz_power_config
+ * \brief Defines PA_LEVEL value for each power configuration at 2.45GHz
+ *        Values taken from cc2420 documentation revision SWRS041B
+ */
+enum cc2420_2_45GHz_power_config {
+        CC2420_2_45GHz_TX_0dBm   = 31,    /**<   0 dBm */
+        CC2420_2_45GHz_TX_m1dBm  = 27,    /**<  -1 dBm */
+        CC2420_2_45GHz_TX_m3dBm  = 23,    /**<  -3 dBm */
+        CC2420_2_45GHz_TX_m5dBm  = 19,    /**<  -5 dBm */
+        CC2420_2_45GHz_TX_m7dBm  = 15,    /**<  -7 dBm */
+        CC2420_2_45GHz_TX_m10dBm = 11,    /**< -10 dBm */
+        CC2420_2_45GHz_TX_m15dBm =  7,    /**< -15 dBm */
+        CC2420_2_45GHz_TX_m25dBm =  3,    /**< -25 dBm */
+};
+
 /**
  * \brief Set the TX power.
- *
- * Here is the corresponding table
- * param value     : 31 | 27 | 23 | 19 | 15 |  11 |  7  |  3
- * output power (dBm): 0  | -1 | -3 | -5 | -7 | -10 | -15 | -25
  * \param power the power value
  */
 #define cc2420_set_txpower(power) do { \

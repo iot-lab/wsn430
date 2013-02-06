@@ -117,8 +117,7 @@ static void vInitMac(void)
     cc1101_cfg_drate_e(0x0D);
     cc1101_cfg_drate_m(0x2F);
 
-    uint8_t table[1];
-    table[0] = 0xC2; // 10dBm
+    uint8_t table[] = {CC1101_868MHz_TX_12dBm};
     cc1101_cfg_patable(table, 1);
     cc1101_cfg_pa_power(0);
 

@@ -59,11 +59,13 @@ void radio_init() {
 	radio_set_freq(0x20, 0x28, 0xC5);
 	radio_set_chanbw(0, 2);
 	radio_set_drate(13, 47);
-	//radio_set_txpower(0xC2); // 10dBm
-	//radio_set_txpower(0x50); // 0dBm
-	radio_set_txpower(0x27); // -10 dBm
-	//radio_set_txpower(0x0F); // -20dBm
-	//radio_set_txpower(0x03); // -30dBm
+
+	//radio_set_txpower(CC1101_868MHz_TX_10dBm);
+	//radio_set_txpower(CC1101_868MHz_TX_0dBm);
+	radio_set_txpower(CC1101_868MHz_TX_m10dBm);
+	//radio_set_txpower(CC1101_868MHz_TX_m20dBm);
+	//radio_set_txpower(CC1101_868MHz_TX_m30dBm);
+
 	radio_set_modulation(MOD_MSK);
 
 	// Configure interruptions

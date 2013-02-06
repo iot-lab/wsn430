@@ -119,7 +119,7 @@ int main( void )
 	cc1101_cfg_chan(6);
 
 	// Set the TX Power
-	uint8_t table[] = {0xC2}; // +10dBm
+	uint8_t table[] = {CC1101_868MHz_TX_12dBm};
 	cc1101_cfg_patable(table, 1);
 	cc1101_cfg_pa_power(0);
 

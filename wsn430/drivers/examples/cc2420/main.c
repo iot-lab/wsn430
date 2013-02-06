@@ -80,6 +80,7 @@ int main( void )
 
 
 	cc2420_init();
+        cc2420_set_txpower(CC2420_2_45GHz_TX_0dBm);
 
 
 	printf("CC2420 initialized\r\nType 's' to send a message\r\n");
