@@ -15,7 +15,7 @@ SOURCE_PATH = $(FREERTOS_PATH)/Source
 PORT_PATH = $(FREERTOS_PATH)/Source/portable/GCC/MSP430F449
 
 
-NAMES_wsn  = tdma_test_coord_cc1100 tdma_test_node_cc1100
+NAMES_wsn  = tdma_test_coord_cc1101 tdma_test_node_cc1101
 NAMES_wsn += tdma_test_coord_cc2420 tdma_test_node_cc2420
 NAMES_mds  = tdma_test_coord_cc2500 tdma_test_node_cc2500
 
@@ -51,8 +51,8 @@ SRC_node += $(FREERTOS_PATH)/lib/mac/tdma/tdma_node.c
 SRC_wsn  = $(DRIVERS_PATH)/spi1.c
 SRC_wsn += $(DRIVERS_PATH)/ds2411.c
 
-SRC_cc1100  = $(DRIVERS_PATH)/cc1100.c
-SRC_cc1100 += $(FREERTOS_PATH)/lib/phy/phy_cc1100.c
+SRC_cc1101  = $(DRIVERS_PATH)/cc1101.c
+SRC_cc1101 += $(FREERTOS_PATH)/lib/phy/phy_cc1101.c
 
 SRC_cc2420  = $(DRIVERS_PATH)/cc2420.c
 SRC_cc2420 += $(FREERTOS_PATH)/lib/phy/phy_cc2420.c
@@ -63,8 +63,8 @@ SRC_cc2500 += $(FREERTOS_PATH)/lib/phy/phy_cc2500.c
 
 
 # target specific SRC variables
-SRC_tdma_test_coord_cc1100 = $(SRC_coord) $(SRC_wsn) $(SRC_cc1100)
-SRC_tdma_test_node_cc1100  = $(SRC_node)  $(SRC_wsn) $(SRC_cc1100)
+SRC_tdma_test_coord_cc1101 = $(SRC_coord) $(SRC_wsn) $(SRC_cc1101)
+SRC_tdma_test_node_cc1101  = $(SRC_node)  $(SRC_wsn) $(SRC_cc1101)
 SRC_tdma_test_coord_cc2420 = $(SRC_coord) $(SRC_wsn) $(SRC_cc2420)
 SRC_tdma_test_node_cc2420  = $(SRC_node)  $(SRC_wsn) $(SRC_cc2420)
 SRC_tdma_test_coord_cc2500 = $(SRC_coord) $(SRC_mds) $(SRC_cc2500)

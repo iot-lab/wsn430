@@ -28,7 +28,7 @@ ifeq ($(USE_CC2420), 1)
     SRC += $(WSN430_DRIVERS_PATH)/cc2420.c
     CFLAGS += -DUSE_CC2420=1
 else
-    SRC += $(WSN430_DRIVERS_PATH)/cc1100.c
+    SRC += $(WSN430_DRIVERS_PATH)/cc1101.c
     CFLAGS += -DUSE_CC2420=0
 endif
 #

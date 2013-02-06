@@ -48,7 +48,7 @@ SRC_sink    = sink.c
 SRC_idle    = idle.c
 
 SRC  = main.c
-SRC += $(WSN430_DRIVERS_PATH)/cc1100.c
+SRC += $(WSN430_DRIVERS_PATH)/cc1101.c
 SRC += $(WSN430_DRIVERS_PATH)/ds2411.c
 SRC += $(WSN430_DRIVERS_PATH)/ds1722.c
 SRC += $(WSN430_DRIVERS_PATH)/tsl2550.c
@@ -59,7 +59,7 @@ SRC += $(WSN430_DRIVERS_PATH)/uart0.c
 SRC += $(WSN430_DRIVERS_PATH)/spi1.c
 SRC += $(WSN430_DRIVERS_PATH)/timerB.c
 SRC += $(WSN430_DRIVERS_PATH)/timerA.c
-SRC += $(WSN430_LIB_PATH)/mac/csma_cc1100.c
+SRC += $(WSN430_LIB_PATH)/mac/csma_cc1101.c
 
 
 INCLUDES  = -I$(WSN430_DRIVERS_PATH)

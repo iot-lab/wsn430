@@ -18,7 +18,7 @@ The officially supported version is the following:
 
 It supports the two Senslab nodes:
 
-* `wsn430v13` (with CC1100 radio chip)
+* `wsn430v13` (with CC1101 radio chip)
 * `wsn430v14` (with CC2420 radio chip).
 
 ### Folder content ###

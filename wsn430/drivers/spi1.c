@@ -71,13 +71,13 @@
  */
 #define WAIT_EOTX() while ( (IFG2 & UTXIFG1) == 0){}
 
-#define CC1100_CS_PIN (1<<2)
+#define CC1101_CS_PIN (1<<2)
 #define CC2420_CS_PIN (1<<2)
 #define DS1722_CS_PIN (1<<3)
 #define M25P80_CS_PIN (1<<4)
 
-#define CC1100_ENABLE()  P4OUT &= ~CC1100_CS_PIN
-#define CC1100_DISABLE() P4OUT |=  CC1100_CS_PIN
+#define CC1101_ENABLE()  P4OUT &= ~CC1101_CS_PIN
+#define CC1101_DISABLE() P4OUT |=  CC1101_CS_PIN
 
 #define CC2420_ENABLE()  P4OUT &= ~CC2420_CS_PIN
 #define CC2420_DISABLE() P4OUT |=  CC2420_CS_PIN
@@ -108,12 +108,12 @@ void spi1_init(void) {
     U1CTL &= ~(SWRST); /* clear reset */
 
     /* CS IO pins configuration */
-    P4SEL &= ~(CC1100_CS_PIN | DS1722_CS_PIN | M25P80_CS_PIN);
-    P4DIR |=  (CC1100_CS_PIN | DS1722_CS_PIN | M25P80_CS_PIN);
+    P4SEL &= ~(CC1101_CS_PIN | DS1722_CS_PIN | M25P80_CS_PIN);
+    P4DIR |=  (CC1101_CS_PIN | DS1722_CS_PIN | M25P80_CS_PIN);
 
     /* disable peripherals */
     M25P80_DISABLE();
-    CC1100_DISABLE();
+    CC1101_DISABLE();
     DS1722_DISABLE();
 }
 
@@ -153,14 +153,14 @@ void spi1_read(uint8_t* data, int16_t len) {
 
 void spi1_select(int16_t chip) {
     switch (chip) {
-    case SPI1_CC1100:
+    case SPI1_CC1101:
         M25P80_DISABLE();
         DS1722_DISABLE();
-        CC1100_ENABLE();
+        CC1101_ENABLE();
         break;
     case SPI1_DS1722:
         M25P80_DISABLE();
-        CC1100_DISABLE();
+        CC1101_DISABLE();
         DS1722_DISABLE();
         U1CTL |= SWRST;
         U1TCTL &= ~(CKPH);
@@ -168,7 +168,7 @@ void spi1_select(int16_t chip) {
         DS1722_ENABLE();
         break;
     case SPI1_M25P80:    
-        CC1100_DISABLE();
+        CC1101_DISABLE();
         DS1722_DISABLE();
         M25P80_ENABLE();
         break;
@@ -179,8 +179,8 @@ void spi1_select(int16_t chip) {
 
 void spi1_deselect(int16_t chip) {
     switch (chip) {
-    case SPI1_CC1100:
-        CC1100_DISABLE();
+    case SPI1_CC1101:
+        CC1101_DISABLE();
         break;
     case SPI1_DS1722:
         DS1722_DISABLE();

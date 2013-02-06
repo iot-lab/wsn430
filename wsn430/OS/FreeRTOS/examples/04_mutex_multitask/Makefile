@@ -7,10 +7,10 @@ endif
 SOURCE_PATH = $(FREERTOS_PATH)/Source
 PORT_PATH = $(FREERTOS_PATH)/Source/portable/GCC/MSP430F449
 
-NAMES    = mutex_multitask_cc1100
+NAMES    = mutex_multitask_cc1101
 
-# Implemented only for cc1100
-SRC_mutex_multitask_cc1100 = $(WSN430_DRIVERS_PATH)/cc1100.c
+# Implemented only for cc1101
+SRC_mutex_multitask_cc1101 = $(WSN430_DRIVERS_PATH)/cc1101.c
 
 
 INCLUDES  = -I. -I$(WSN430_DRIVERS_PATH) -I$(SOURCE_PATH)/include

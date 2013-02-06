@@ -4,7 +4,7 @@
 	xsi:schemaLocation="http://www.senslab.info experiment.xsd">
 	<profiles>
 		<profile id="batt_conso">
-			<cc1100/>
+			<cc1101/>
 			<powersupply>battery</powersupply>
 			<measure>
 				<power values="voltage,current">200</power>

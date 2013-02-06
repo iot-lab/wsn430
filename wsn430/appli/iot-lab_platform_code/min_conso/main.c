@@ -9,7 +9,7 @@
 #include "leds.h"
 
 #if VERSION == 13
-#include "cc1100.h"
+#include "cc1101.h"
 #warning "using version 13"
 #elif VERSION == 14
 #include "cc2420.h"
@@ -70,8 +70,8 @@ int main( void )
     
     // radio
 #if VERSION == 13
-    cc1100_init();
-    cc1100_cmd_pwd();
+    cc1101_init();
+    cc1101_cmd_pwd();
 #elif VERSION == 14
     cc2420_init();
     cc2420_cmd_xoscoff();

@@ -52,7 +52,7 @@ $(WSN430_DRIVERS_PATH)/i2c0.c \
 $(WSN430_DRIVERS_PATH)/clock.c
 
 ifeq ($(VERSION_14), 0)
-	SRC += tasks/radioTask13.c $(WSN430_DRIVERS_PATH)/cc1100.c
+	SRC += tasks/radioTask13.c $(WSN430_DRIVERS_PATH)/cc1101.c
 else
 	SRC += tasks/radioTask14.c $(WSN430_DRIVERS_PATH)/cc2420.c
 endif

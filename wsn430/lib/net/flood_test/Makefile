@@ -3,14 +3,14 @@ CPU      = msp430x1611
 CC       = msp430-gcc
 
 SRC = main.c \
-      $(WSN430_DRIVERS_PATH)/cc1100.c \
+      $(WSN430_DRIVERS_PATH)/cc1101.c \
       $(WSN430_DRIVERS_PATH)/ds2411.c \
       $(WSN430_DRIVERS_PATH)/clock.c \
       $(WSN430_DRIVERS_PATH)/uart0.c \
       $(WSN430_DRIVERS_PATH)/spi1.c \
       $(WSN430_DRIVERS_PATH)/timerA.c \
       $(WSN430_DRIVERS_PATH)/timerB.c \
-      $(WSN430_LIB_PATH)/mac/csma_cc1100.c \
+      $(WSN430_LIB_PATH)/mac/csma_cc1101.c \
       $(WSN430_LIB_PATH)/net/flood.c
 
 OBJECTS = $(SRC:.c=.o)

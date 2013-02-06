@@ -28,20 +28,20 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: cc1100.h,v 1.7 2008/07/02 09:05:40 adamdunkels Exp $
+ * $Id: cc1101.h,v 1.7 2008/07/02 09:05:40 adamdunkels Exp $
  */
 
 /**
  * \file
- *         CC1100 driver header file
+ *         CC1101 driver header file
  * \author
  *         Clément Burin des Roziers <clement.burin-des-roziers@inrialpes.fr>
  * 
  * This driver has been mostly copied from the cc2420... files from Adam Dunkels
  */
 
-#ifndef __CC1100_H__
-#define __CC1100_H__
+#ifndef __CC1101_H__
+#define __CC1101_H__
 
 #include "contiki.h"
 #include "dev/radio.h"
@@ -50,4 +50,4 @@ int cc2420_radio_init(void);
 
 extern const struct radio_driver cc2420_radio_driver;
 
-#endif /* __CC1100_H__ */
+#endif /* __CC1101_H__ */

@@ -7,13 +7,13 @@ endif
 
 
 NAMES  = xmac
-NAMES += csma_cc1100
+NAMES += csma_cc1101
 NAMES += csma_cc2420
 
 SRC_xmac         = $(WSN430_LIB_PATH)/mac/xmac.c
-SRC_xmac        += $(WSN430_DRIVERS_PATH)/cc1100.c
-SRC_csma_cc1100  = $(WSN430_LIB_PATH)/mac/csma_cc1100.c
-SRC_csma_cc1100 += $(WSN430_DRIVERS_PATH)/cc1100.c
+SRC_xmac        += $(WSN430_DRIVERS_PATH)/cc1101.c
+SRC_csma_cc1101  = $(WSN430_LIB_PATH)/mac/csma_cc1101.c
+SRC_csma_cc1101 += $(WSN430_DRIVERS_PATH)/cc1101.c
 
 SRC_csma_cc2420  = $(WSN430_LIB_PATH)/mac/csma_cc2420.c
 SRC_csma_cc2420 += $(WSN430_DRIVERS_PATH)/cc2420.c

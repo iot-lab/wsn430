@@ -11,12 +11,12 @@ WSN430_LIB_PATH = ..
 endif
 
 
-NAMES = ex3_cc1100 ex3_cc2420
+NAMES = ex3_cc1101 ex3_cc2420
 
 
-SRC_ex3_cc1100  = log_rssi_cc1100.c
-SRC_ex3_cc1100 += $(WSN430_DRIVERS_PATH)/cc1100.c
-SRC_ex3_cc1100 += $(WSN430_LIB_PATH)/mac/csma_cc1100.c
+SRC_ex3_cc1101  = log_rssi_cc1101.c
+SRC_ex3_cc1101 += $(WSN430_DRIVERS_PATH)/cc1101.c
+SRC_ex3_cc1101 += $(WSN430_LIB_PATH)/mac/csma_cc1101.c
 
 SRC_ex3_cc2420  = log_rssi_cc2420.c
 SRC_ex3_cc2420 += $(WSN430_DRIVERS_PATH)/cc2420.c

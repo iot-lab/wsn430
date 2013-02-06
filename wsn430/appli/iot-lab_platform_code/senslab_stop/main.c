@@ -5,7 +5,7 @@
 /* Drivers includes */
 #include "clock.h"
 #include "leds.h"
-#include "cc1100.h"
+#include "cc1101.h"
 #include "ds1722.h"
 #include "ds2411.h"
 #include "m25p80.h"

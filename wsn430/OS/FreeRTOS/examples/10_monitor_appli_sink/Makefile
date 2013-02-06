@@ -10,7 +10,7 @@ endif
 SOURCE_PATH = $(FREERTOS_PATH)/Source
 PORT_PATH = $(FREERTOS_PATH)/Source/portable/GCC/MSP430F449
 
-NAMES = sink_example_cc1100
+NAMES = sink_example_cc1101
 
 
 INCLUDES  = -I. -Imac -Iinterface
@@ -23,7 +23,7 @@ SRC += mac/mac.c
 SRC += interface/interface.c
 
 SRC += $(WSN430_LIB_PATH)/phy/simplephy/simplephy.c
-SRC += $(WSN430_DRIVERS_PATH)/cc1100.c
+SRC += $(WSN430_DRIVERS_PATH)/cc1101.c
 
 SRC += $(SOURCE_PATH)/tasks.c
 SRC += $(SOURCE_PATH)/list.c

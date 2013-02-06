@@ -4,7 +4,7 @@
 This module contains all the drivers related to the WSN430 mainboard.
 
 The WSN430 is a wireless sensor network node, containing an MSP430, 
-a CC1100 or CC2420 radio chip, and other peripheral components. 
+a CC1101 or CC2420 radio chip, and other peripheral components. 
 */
 /** @} */
 

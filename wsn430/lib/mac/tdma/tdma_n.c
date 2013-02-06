@@ -46,7 +46,7 @@
 #include "tdma_n.h"
 #include "tdma_frames.h"
 #include "tdma_timings.h"
-#include "cc1100.h"
+#include "cc1101.h"
 #include "ds2411.h"
 #include "timerB.h"
 
@@ -132,66 +132,66 @@ void mac_init(uint8_t channel) {
     timerB_start_ACLK_div(TIMERB_DIV_1);
     
     // configure the radio
-    cc1100_init();
-    cc1100_cmd_idle();
+    cc1101_init();
+    cc1101_cmd_idle();
     
     /* configure the radio behaviour */
-    cc1100_cfg_append_status(CC1100_APPEND_STATUS_DISABLE);
-    cc1100_cfg_crc_autoflush(CC1100_CRC_AUTOFLUSH_DISABLE);
-    cc1100_cfg_white_data(CC1100_DATA_WHITENING_ENABLE);
-    cc1100_cfg_crc_en(CC1100_CRC_CALCULATION_ENABLE);
-    cc1100_cfg_freq_if(0x0E);
-    cc1100_cfg_fs_autocal(CC1100_AUTOCAL_NEVER);
-    cc1100_cfg_mod_format(CC1100_MODULATION_MSK);
-    cc1100_cfg_sync_mode(CC1100_SYNCMODE_30_32);
-    cc1100_cfg_manchester_en(CC1100_MANCHESTER_DISABLE);
-    cc1100_cfg_cca_mode(CC1100_CCA_MODE_RSSI_PKT_RX);
+    cc1101_cfg_append_status(CC1101_APPEND_STATUS_DISABLE);
+    cc1101_cfg_crc_autoflush(CC1101_CRC_AUTOFLUSH_DISABLE);
+    cc1101_cfg_white_data(CC1101_DATA_WHITENING_ENABLE);
+    cc1101_cfg_crc_en(CC1101_CRC_CALCULATION_ENABLE);
+    cc1101_cfg_freq_if(0x0E);
+    cc1101_cfg_fs_autocal(CC1101_AUTOCAL_NEVER);
+    cc1101_cfg_mod_format(CC1101_MODULATION_MSK);
+    cc1101_cfg_sync_mode(CC1101_SYNCMODE_30_32);
+    cc1101_cfg_manchester_en(CC1101_MANCHESTER_DISABLE);
+    cc1101_cfg_cca_mode(CC1101_CCA_MODE_RSSI_PKT_RX);
     
     // freq = 860MHz
-    cc1100_write_reg(CC1100_REG_FREQ2, 0x1F);
-    cc1100_write_reg(CC1100_REG_FREQ1, 0xDA);
-    cc1100_write_reg(CC1100_REG_FREQ0, 0x12);
+    cc1101_write_reg(CC1101_REG_FREQ2, 0x1F);
+    cc1101_write_reg(CC1101_REG_FREQ1, 0xDA);
+    cc1101_write_reg(CC1101_REG_FREQ0, 0x12);
     
     // configure the radio channel (300kHz spacing)
-    cc1100_cfg_chanspc_e(0x3);
-    cc1100_cfg_chanspc_m(0x6C);
-    cc1100_cfg_chan(channel<<1); // channel x2 to get 600kHz spacing
+    cc1101_cfg_chanspc_e(0x3);
+    cc1101_cfg_chanspc_m(0x6C);
+    cc1101_cfg_chan(channel<<1); // channel x2 to get 600kHz spacing
     
     // set channel bandwidth (560 kHz)
-    cc1100_cfg_chanbw_e(0);
-    cc1100_cfg_chanbw_m(2);
+    cc1101_cfg_chanbw_e(0);
+    cc1101_cfg_chanbw_m(2);
 
     // set data rate (0xD/0x2F is 250kbps)
-    cc1100_cfg_drate_e(0x0D);
-    cc1100_cfg_drate_m(0x2F);
+    cc1101_cfg_drate_e(0x0D);
+    cc1101_cfg_drate_m(0x2F);
 
     // go to IDLE after RX and TX
-    cc1100_cfg_rxoff_mode(CC1100_RXOFF_MODE_IDLE);
-    cc1100_cfg_txoff_mode(CC1100_TXOFF_MODE_IDLE);
+    cc1101_cfg_rxoff_mode(CC1101_RXOFF_MODE_IDLE);
+    cc1101_cfg_txoff_mode(CC1101_TXOFF_MODE_IDLE);
 
     uint8_t table[1];
     table[0] = 0x50; // 0dBm
-    cc1100_cfg_patable(table, 1);
-    cc1100_cfg_pa_power(0);
+    cc1101_cfg_patable(table, 1);
+    cc1101_cfg_pa_power(0);
     
     // set IDLE state, flush everything
-    cc1100_cmd_idle();
-    cc1100_cmd_flush_rx();
-    cc1100_cmd_flush_tx();
+    cc1101_cmd_idle();
+    cc1101_cmd_flush_rx();
+    cc1101_cmd_flush_tx();
     
     // configure irq eop
-    cc1100_cfg_gdo0(CC1100_GDOx_SYNC_WORD);
-    cc1100_gdo0_int_set_falling_edge();
-    cc1100_gdo0_int_clear();
-    cc1100_gdo0_int_enable();
-    cc1100_gdo0_register_callback(beacon_received);
+    cc1101_cfg_gdo0(CC1101_GDOx_SYNC_WORD);
+    cc1101_gdo0_int_set_falling_edge();
+    cc1101_gdo0_int_clear();
+    cc1101_gdo0_int_enable();
+    cc1101_gdo0_register_callback(beacon_received);
     
     // configure irq sync
-    cc1100_cfg_gdo2(CC1100_GDOx_SYNC_WORD);
-    cc1100_gdo2_int_set_rising_edge();
-    cc1100_gdo2_int_clear();
-    cc1100_gdo2_int_enable();
-    cc1100_gdo2_register_callback(sync_detected);
+    cc1101_cfg_gdo2(CC1101_GDOx_SYNC_WORD);
+    cc1101_gdo2_int_set_rising_edge();
+    cc1101_gdo2_int_clear();
+    cc1101_gdo2_int_enable();
+    cc1101_gdo2_register_callback(sync_detected);
     
     // start RX
     state = STATE_BEACON_SEARCH;
@@ -219,13 +219,13 @@ void mac_set_access_allowed_cb(uint16_t (*cb)(void)) {
 
 static void set_rx(void) {
     // idle, flush, calibrate
-    cc1100_cmd_idle();
-    cc1100_cmd_flush_rx();
-    cc1100_cmd_flush_tx();
-    cc1100_cmd_calibrate();
+    cc1101_cmd_idle();
+    cc1101_cmd_flush_rx();
+    cc1101_cmd_flush_tx();
+    cc1101_cmd_calibrate();
     
     // set RX
-    cc1100_cmd_rx();
+    cc1101_cmd_rx();
     LED_RED_ON();
 }
 
@@ -235,14 +235,14 @@ static uint16_t beacon_received() {
     now = timerB_time();
     
     // test CRC and bytes in FIFO
-    if ( ((cc1100_status_crc_lqi()&0x80)==0) || 
-         (cc1100_status_rxbytes()!=BEACON_LENGTH) ) {
+    if ( ((cc1101_status_crc_lqi()&0x80)==0) || 
+         (cc1101_status_rxbytes()!=BEACON_LENGTH) ) {
         set_rx();
         return 0;
     }
     
     // data
-    cc1100_fifo_get((uint8_t*)&beacon_msg, BEACON_LENGTH);
+    cc1101_fifo_get((uint8_t*)&beacon_msg, BEACON_LENGTH);
     
     // check length, type
     if ( (beacon_msg.hdr.length != (BEACON_LENGTH-1)) ||
@@ -341,7 +341,7 @@ static uint16_t beacon_received() {
             timerB_register_cb(ALARM_SEND, slot_send);
             
             // put the data in the FIFO
-            cc1100_fifo_put((uint8_t*)&data_msg, data_msg.hdr.length+1);
+            cc1101_fifo_put((uint8_t*)&data_msg, data_msg.hdr.length+1);
             send_ready=0;
             if (access_allowed_cb && access_allowed_cb()) {
                 // if wanted we return 1 to wake the CPU up
@@ -364,9 +364,9 @@ static uint16_t beacon_rx(void) {
     set_rx();
     
     // set callback
-    cc1100_gdo0_register_callback(beacon_received);
-    cc1100_gdo0_int_clear();
-    cc1100_gdo0_int_enable();
+    cc1101_gdo0_register_callback(beacon_received);
+    cc1101_gdo0_int_clear();
+    cc1101_gdo0_int_enable();
     
     // set alarm for beacon timeout
     timerB_set_alarm_from_now(ALARM_TIMEOUT,  // alarm #
@@ -378,7 +378,7 @@ static uint16_t beacon_rx(void) {
 
 static uint16_t beacon_timeout(void) {
     // put radio to sleep
-    cc1100_cmd_pwd();
+    cc1101_cmd_pwd();
     LED_RED_OFF();
     
     // increase timeout count
@@ -403,14 +403,14 @@ static uint16_t beacon_timeout(void) {
 
 static uint16_t control_send(void) {
     LED_BLUE_ON();
-    cc1100_gdo0_register_callback(control_sent);
-    cc1100_gdo0_int_clear();
+    cc1101_gdo0_register_callback(control_sent);
+    cc1101_gdo0_int_clear();
     
-    cc1100_cmd_idle();
-    cc1100_cmd_flush_tx();
+    cc1101_cmd_idle();
+    cc1101_cmd_flush_tx();
     
-    cc1100_cmd_tx();
-    cc1100_fifo_put((uint8_t*)&control_msg, control_msg.hdr.length+1);
+    cc1101_cmd_tx();
+    cc1101_fifo_put((uint8_t*)&control_msg, control_msg.hdr.length+1);
     
     return 0;
 }
@@ -422,13 +422,13 @@ static uint16_t control_sent(void) {
 
 static uint16_t slot_send(void) {
     LED_GREEN_ON();
-    cc1100_cmd_tx();
-    cc1100_gdo0_register_callback(slot_sent);
+    cc1101_cmd_tx();
+    cc1101_gdo0_register_callback(slot_sent);
     return 0;
 }
 static uint16_t slot_sent(void) {
     // put radio to sleep
-    cc1100_cmd_pwd();
+    cc1101_cmd_pwd();
     LED_GREEN_OFF();
     return 0;
 }

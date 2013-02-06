@@ -1,4 +1,4 @@
-TDMA OS-Free Implementation (cc1100 only)
+TDMA OS-Free Implementation (cc1101 only)
 
 
 The TDMA defines the network as one coordinator node, and several end nodes. Time is divided in slots, managed by the coordinator.

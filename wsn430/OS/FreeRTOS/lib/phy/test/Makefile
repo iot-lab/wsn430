@@ -14,7 +14,7 @@ endif # BUILD
 SOURCE_PATH = $(FREERTOS_PATH)/Source
 PORT_PATH = $(FREERTOS_PATH)/Source/portable/GCC/MSP430F449
 
-NAMES_wsn  = phy_test_cc1100
+NAMES_wsn  = phy_test_cc1101
 NAMES_wsn += phy_test_cc2420
 
 NAMES_mds  = phy_test_cc2500
@@ -45,8 +45,8 @@ endif
 SRC_wsn  = $(DRIVERS_PATH)/spi1.c
 SRC_wsn += $(DRIVERS_PATH)/ds2411.c
 
-SRC_cc1100  = $(DRIVERS_PATH)/cc1100.c
-SRC_cc1100 += $(FREERTOS_PATH)/lib/phy/phy_cc1100.c
+SRC_cc1101  = $(DRIVERS_PATH)/cc1101.c
+SRC_cc1101 += $(FREERTOS_PATH)/lib/phy/phy_cc1101.c
 
 SRC_cc2420  = $(DRIVERS_PATH)/cc2420.c
 SRC_cc2420 += $(FREERTOS_PATH)/lib/phy/phy_cc2420.c
@@ -57,7 +57,7 @@ SRC_cc2500 += $(FREERTOS_PATH)/lib/phy/phy_cc2500.c
 
 
 # target specific SRC variables
-SRC_phy_test_cc1100 = $(SRC_wsn) $(SRC_cc1100)
+SRC_phy_test_cc1101 = $(SRC_wsn) $(SRC_cc1101)
 SRC_phy_test_cc2420 = $(SRC_wsn) $(SRC_cc2420)
 SRC_phy_test_cc2500 = $(SRC_mds) $(SRC_cc2500)
 

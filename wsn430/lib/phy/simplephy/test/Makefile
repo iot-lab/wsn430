@@ -13,7 +13,7 @@ SRC_phy_test_node = main_node.c
 SRC_phy_test_sink = main_sink.c
 
 SRC  = ../simplephy.c
-SRC += $(WSN430_DRIVERS_PATH)/cc1100.c
+SRC += $(WSN430_DRIVERS_PATH)/cc1101.c
 
 SRC += $(WSN430_DRIVERS_PATH)/clock.c
 SRC += $(WSN430_DRIVERS_PATH)/uart0.c

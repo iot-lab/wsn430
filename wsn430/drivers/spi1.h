@@ -67,7 +67,7 @@
 extern uint8_t spi1_tx_return_value;
 
 enum {
-    SPI1_CC1100 = 1,
+    SPI1_CC1101 = 1,
     SPI1_CC2420 = 1,
     SPI1_DS1722 = 2,
     SPI1_M25P80 = 3

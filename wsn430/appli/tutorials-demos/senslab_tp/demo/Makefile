@@ -11,11 +11,11 @@ WSN430_LIB_PATH = ..
 endif
 
 
-NAMES = demo_cc1100 demo_cc2420
+NAMES = demo_cc1101 demo_cc2420
 
 
-SRC_demo_cc1100  = $(WSN430_DRIVERS_PATH)/cc1100.c
-SRC_demo_cc1100 += $(WSN430_LIB_PATH)/mac/csma_cc1100.c
+SRC_demo_cc1101  = $(WSN430_DRIVERS_PATH)/cc1101.c
+SRC_demo_cc1101 += $(WSN430_LIB_PATH)/mac/csma_cc1101.c
 
 SRC_demo_cc2420  = $(WSN430_DRIVERS_PATH)/cc2420.c
 SRC_demo_cc2420 += $(WSN430_LIB_PATH)/mac/csma_cc2420.c

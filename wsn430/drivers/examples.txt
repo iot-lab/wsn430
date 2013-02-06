@@ -4,7 +4,7 @@
  */
 
 /**
- * \example cc1100/main.c
+ * \example cc1101/main.c
  * An example application sending and receiving radio frames,
  * displaying incoming frames on the uart port.
  */

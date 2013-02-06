@@ -44,7 +44,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "mac.h"
-#include "cc1100.h"
+#include "cc1101.h"
 #include "ds2411.h"
 #include "timerB.h"
 #include "leds.h"
@@ -143,70 +143,70 @@ void mac_init(uint8_t channel)
     timerB_start_ACLK_div(TIMERB_DIV_1);
     
     // configure the radio
-    cc1100_init();
-    cc1100_cmd_idle();
+    cc1101_init();
+    cc1101_cmd_idle();
     
     /* configure the radio behaviour */
-    cc1100_cfg_append_status(CC1100_APPEND_STATUS_ENABLE);
-    cc1100_cfg_crc_autoflush(CC1100_CRC_AUTOFLUSH_DISABLE);
-    cc1100_cfg_white_data(CC1100_DATA_WHITENING_ENABLE);
-    cc1100_cfg_crc_en(CC1100_CRC_CALCULATION_ENABLE);
-    cc1100_cfg_freq_if(0x0E);
-    cc1100_cfg_fs_autocal(CC1100_AUTOCAL_IDLE_TO_TX_RX);
-    cc1100_cfg_mod_format(CC1100_MODULATION_MSK);
-    cc1100_cfg_sync_mode(CC1100_SYNCMODE_30_32);
-    cc1100_cfg_manchester_en(CC1100_MANCHESTER_DISABLE);
+    cc1101_cfg_append_status(CC1101_APPEND_STATUS_ENABLE);
+    cc1101_cfg_crc_autoflush(CC1101_CRC_AUTOFLUSH_DISABLE);
+    cc1101_cfg_white_data(CC1101_DATA_WHITENING_ENABLE);
+    cc1101_cfg_crc_en(CC1101_CRC_CALCULATION_ENABLE);
+    cc1101_cfg_freq_if(0x0E);
+    cc1101_cfg_fs_autocal(CC1101_AUTOCAL_IDLE_TO_TX_RX);
+    cc1101_cfg_mod_format(CC1101_MODULATION_MSK);
+    cc1101_cfg_sync_mode(CC1101_SYNCMODE_30_32);
+    cc1101_cfg_manchester_en(CC1101_MANCHESTER_DISABLE);
     
     // freq = 860MHz
-    cc1100_write_reg(CC1100_REG_FREQ2, 0x1F);
-    cc1100_write_reg(CC1100_REG_FREQ1, 0xDA);
-    cc1100_write_reg(CC1100_REG_FREQ0, 0x12);
+    cc1101_write_reg(CC1101_REG_FREQ2, 0x1F);
+    cc1101_write_reg(CC1101_REG_FREQ1, 0xDA);
+    cc1101_write_reg(CC1101_REG_FREQ0, 0x12);
     
     // configure the radio channel (300kHz spacing)
-    cc1100_cfg_chanspc_e(0x3);
-    cc1100_cfg_chanspc_m(0x6C);
-    cc1100_cfg_chan(channel<<1); // channel x2 to get 600kHz spacing
+    cc1101_cfg_chanspc_e(0x3);
+    cc1101_cfg_chanspc_m(0x6C);
+    cc1101_cfg_chan(channel<<1); // channel x2 to get 600kHz spacing
     
     // rise CCA threshold
-    cc1100_cfg_carrier_sense_abs_thr(3);
+    cc1101_cfg_carrier_sense_abs_thr(3);
     
     // set channel bandwidth (560 kHz)
-    cc1100_cfg_chanbw_e(0);
-    cc1100_cfg_chanbw_m(2);
+    cc1101_cfg_chanbw_e(0);
+    cc1101_cfg_chanbw_m(2);
 
     // set data rate (0xD/0x2F is 250kbps)
-    cc1100_cfg_drate_e(0x0D);
-    cc1100_cfg_drate_m(0x2F);
+    cc1101_cfg_drate_e(0x0D);
+    cc1101_cfg_drate_m(0x2F);
 
     // go to IDLE after RX and TX
-    cc1100_cfg_rxoff_mode(CC1100_RXOFF_MODE_IDLE);
-    cc1100_cfg_txoff_mode(CC1100_TXOFF_MODE_IDLE);
+    cc1101_cfg_rxoff_mode(CC1101_RXOFF_MODE_IDLE);
+    cc1101_cfg_txoff_mode(CC1101_TXOFF_MODE_IDLE);
     
     // configure WOR
-    cc1100_cfg_rx_time(2); ///FIXME
-    cc1100_cfg_wor_res(0);
-    cc1100_cfg_event0(4208);
-    cc1100_cfg_event1(4);
-    cc1100_cfg_rc_pd(CC1100_RC_OSC_ENABLE);
+    cc1101_cfg_rx_time(2); ///FIXME
+    cc1101_cfg_wor_res(0);
+    cc1101_cfg_event0(4208);
+    cc1101_cfg_event1(4);
+    cc1101_cfg_rc_pd(CC1101_RC_OSC_ENABLE);
 
     uint8_t table[1];
     //~ table[0] = 0x81; // +5dBm
     //~ table[0] = 0x67; // -5dBm
     table[0] = 0x27; // -10dBm
-    cc1100_cfg_patable(table, 1);
-    cc1100_cfg_pa_power(0);
+    cc1101_cfg_patable(table, 1);
+    cc1101_cfg_pa_power(0);
     
     // set IDLE state, flush everything, and start rx
-    cc1100_cmd_idle();
-    cc1100_cmd_flush_rx();
-    cc1100_cmd_flush_tx();
-    cc1100_cmd_calibrate();
+    cc1101_cmd_idle();
+    cc1101_cmd_flush_rx();
+    cc1101_cmd_flush_tx();
+    cc1101_cmd_calibrate();
     
     // configure irq
-    cc1100_cfg_gdo0(CC1100_GDOx_SYNC_WORD);
-    cc1100_gdo0_int_set_falling_edge();
-    cc1100_gdo0_int_clear();
-    cc1100_gdo0_int_enable();
+    cc1101_cfg_gdo0(CC1101_GDOx_SYNC_WORD);
+    cc1101_gdo0_int_set_falling_edge();
+    cc1101_gdo0_int_clear();
+    cc1101_gdo0_int_enable();
     
     // start the machine
     set_wor();
@@ -261,18 +261,18 @@ uint16_t mac_send(uint8_t packet[], uint16_t length, uint16_t dst_addr) {
 }
 
 static uint16_t set_wor(void) {
-    cc1100_cmd_idle();
+    cc1101_cmd_idle();
     
-    cc1100_cfg_txoff_mode(CC1100_TXOFF_MODE_IDLE);
-    cc1100_cfg_rxoff_mode(CC1100_RXOFF_MODE_IDLE);
-    cc1100_cfg_cca_mode(CC1100_CCA_MODE_RSSI_PKT_RX);
-    cc1100_cfg_rc_pd(CC1100_RC_OSC_ENABLE);
-    cc1100_cfg_fs_autocal(CC1100_AUTOCAL_IDLE_TO_TX_RX);
+    cc1101_cfg_txoff_mode(CC1101_TXOFF_MODE_IDLE);
+    cc1101_cfg_rxoff_mode(CC1101_RXOFF_MODE_IDLE);
+    cc1101_cfg_cca_mode(CC1101_CCA_MODE_RSSI_PKT_RX);
+    cc1101_cfg_rc_pd(CC1101_RC_OSC_ENABLE);
+    cc1101_cfg_fs_autocal(CC1101_AUTOCAL_IDLE_TO_TX_RX);
 
-    cc1100_gdo0_register_callback(read_frame);
-    cc1100_gdo0_int_clear();
+    cc1101_gdo0_register_callback(read_frame);
+    cc1101_gdo0_int_clear();
     
-    cc1100_cmd_wor();
+    cc1101_cmd_wor();
     
     state = STATE_WOR;
     
@@ -285,22 +285,22 @@ static uint16_t try_send(void) {
         state = STATE_TX;
         
         // start RX
-        cc1100_cmd_idle();
-        cc1100_cmd_rx();
+        cc1101_cmd_idle();
+        cc1101_cmd_rx();
         
         // set a timer to check if the channel is free, the time to have a valid RSSI
         timerB_set_alarm_from_now(ALARM_PREAMBLE, SEND_PERIOD, 0);
         timerB_register_cb(TIMERB_ALARM_CCR0, medium_clear);
-        cc1100_cfg_rc_pd(CC1100_RC_OSC_DISABLE);
+        cc1101_cfg_rc_pd(CC1101_RC_OSC_DISABLE);
         
         // change GDO to SyncWord, and its callback
-        cc1100_gdo0_int_disable();
-        cc1100_gdo0_int_set_rising_edge();
-        cc1100_gdo0_int_clear();
-        cc1100_gdo0_int_enable();
-        cc1100_gdo0_register_callback(medium_busy);
+        cc1101_gdo0_int_disable();
+        cc1101_gdo0_int_set_rising_edge();
+        cc1101_gdo0_int_clear();
+        cc1101_gdo0_int_enable();
+        cc1101_gdo0_register_callback(medium_busy);
     } else {
-        if (cc1100_status_marcstate() == 0x01) {
+        if (cc1101_status_marcstate() == 0x01) {
             // this is an error situation
             set_wor();
             printf("try_send, bad state for sending (%u)\n", state);
@@ -333,20 +333,20 @@ static uint16_t delay_send(void) {
 
 static uint16_t medium_clear(void) {
     // the timer elapsed, thus the channel is clear
-    cc1100_cmd_idle();
-    cc1100_cfg_fs_autocal(CC1100_AUTOCAL_NEVER);
-    cc1100_cfg_txoff_mode(CC1100_TXOFF_MODE_RX);
-    cc1100_cfg_cca_mode(CC1100_CCA_MODE_ALWAYS);
+    cc1101_cmd_idle();
+    cc1101_cfg_fs_autocal(CC1101_AUTOCAL_NEVER);
+    cc1101_cfg_txoff_mode(CC1101_TXOFF_MODE_RX);
+    cc1101_cfg_cca_mode(CC1101_CCA_MODE_ALWAYS);
     
     // change GDO to EoP, and its callback
-    cc1100_gdo0_int_disable();
-    cc1100_gdo0_int_set_falling_edge();
-    cc1100_gdo0_int_clear();
-    cc1100_gdo0_int_enable();
-    cc1100_gdo0_register_callback(read_ack);
+    cc1101_gdo0_int_disable();
+    cc1101_gdo0_int_set_falling_edge();
+    cc1101_gdo0_int_clear();
+    cc1101_gdo0_int_enable();
+    cc1101_gdo0_register_callback(read_ack);
     
     // remove irq in case it happened
-    cc1100_gdo0_int_clear();
+    cc1101_gdo0_int_clear();
     
     // prepare frame
     frame.length = HEADER_LENGTH;
@@ -373,12 +373,12 @@ static uint16_t send_preamble(void) {
         send_data();
         return 0;
     }
-    cc1100_cmd_idle();
-    cc1100_cmd_flush_rx();
-    cc1100_cmd_flush_tx();
-    cc1100_cmd_tx();
+    cc1101_cmd_idle();
+    cc1101_cmd_flush_rx();
+    cc1101_cmd_flush_tx();
+    cc1101_cmd_tx();
     
-    cc1100_fifo_put((uint8_t*)(&frame.length), frame.length+1);
+    cc1101_fifo_put((uint8_t*)(&frame.length), frame.length+1);
     return 0;
 }
 
@@ -388,26 +388,26 @@ static uint16_t read_ack(void) {
     } ack;
     
     // check if radio state is idle
-    if ( (cc1100_status() & 0x70) != 0x0) {
+    if ( (cc1101_status() & 0x70) != 0x0) {
         // if not this means a preamble has been sent
         return 0;
     }
     /* Check CRC */
-    if ( !(cc1100_status_crc_lqi() & 0x80) ) {
+    if ( !(cc1101_status_crc_lqi() & 0x80) ) {
         // CRC error, abort
         return 0;
     }
     
     // we got a frame
     // Check Length is correct
-    cc1100_fifo_get( (uint8_t*) &(ack.length), 1);
+    cc1101_fifo_get( (uint8_t*) &(ack.length), 1);
     if (ack.length != HEADER_LENGTH) {
         // length doesn't match the frame
         return 0;
     }
     
     // Get Frame bytes and status
-    cc1100_fifo_get( (uint8_t*) &(ack.length)+1, ack.length+2);
+    cc1101_fifo_get( (uint8_t*) &(ack.length)+1, ack.length+2);
     
     // check type
     if (ack.type != TYPE_ACK) {
@@ -430,15 +430,15 @@ static uint16_t read_ack(void) {
 static uint16_t send_data(void) {
     // unset alarm
     timerB_unset_alarm(ALARM_PREAMBLE);
-    cc1100_cmd_idle();
-    cc1100_cmd_flush_rx();
-    cc1100_cmd_flush_tx();
+    cc1101_cmd_idle();
+    cc1101_cmd_flush_rx();
+    cc1101_cmd_flush_tx();
     
-    cc1100_cfg_txoff_mode(CC1100_TXOFF_MODE_IDLE);
+    cc1101_cfg_txoff_mode(CC1101_TXOFF_MODE_IDLE);
     
-    cc1100_cmd_tx();
-    cc1100_fifo_put((uint8_t*)(&txframe.length), txframe.length+1);
-    cc1100_gdo0_register_callback(send_done);
+    cc1101_cmd_tx();
+    cc1101_fifo_put((uint8_t*)(&txframe.length), txframe.length+1);
+    cc1101_gdo0_register_callback(send_done);
     return 0;
 }
 
@@ -454,16 +454,16 @@ static uint16_t send_done(void) {
     } else {
         // we need an ACK
         // set RX
-        cc1100_cmd_idle();
-        cc1100_cmd_flush_rx();
-        cc1100_cmd_rx();
+        cc1101_cmd_idle();
+        cc1101_cmd_flush_rx();
+        cc1101_cmd_rx();
             
         // change GDO to EoP, and its callback
-        cc1100_gdo0_int_disable();
-        cc1100_gdo0_int_set_falling_edge();
-        cc1100_gdo0_int_clear();
-        cc1100_gdo0_int_enable();
-        cc1100_gdo0_register_callback(read_dataack);
+        cc1101_gdo0_int_disable();
+        cc1101_gdo0_int_set_falling_edge();
+        cc1101_gdo0_int_clear();
+        cc1101_gdo0_int_enable();
+        cc1101_gdo0_register_callback(read_dataack);
     
         // set a timer alarm in case we never get an ACK
         timerB_set_alarm_from_now(ALARM_TIMEOUT, ACK_TIMEOUT, 0);
@@ -482,31 +482,31 @@ static uint16_t read_dataack(void) {
     } ack;
     
     // Check CRC
-    if ( !(cc1100_status_crc_lqi() & 0x80) ) {
+    if ( !(cc1101_status_crc_lqi() & 0x80) ) {
         // CRC error, abort
-        cc1100_cmd_flush_rx();
-        cc1100_cmd_rx();
+        cc1101_cmd_flush_rx();
+        cc1101_cmd_rx();
         return 0;
     }
     
     // we got a frame
     // Check Length is correct
-    cc1100_fifo_get( (uint8_t*) &(ack.length), 1);
+    cc1101_fifo_get( (uint8_t*) &(ack.length), 1);
     if (ack.length != HEADER_LENGTH) {
         // length doesn't match the frame
-        cc1100_cmd_flush_rx();
-        cc1100_cmd_rx();
+        cc1101_cmd_flush_rx();
+        cc1101_cmd_rx();
         return 0;
     }
     
     // Get Frame bytes
-    cc1100_fifo_get( (uint8_t*) &(ack.length)+1, ack.length);
+    cc1101_fifo_get( (uint8_t*) &(ack.length)+1, ack.length);
     
     // check type
     if (ack.type != TYPE_DATAACK) {
         // type error
-        cc1100_cmd_flush_rx();
-        cc1100_cmd_rx();
+        cc1101_cmd_flush_rx();
+        cc1101_cmd_rx();
         return 0;
     }
     
@@ -514,8 +514,8 @@ static uint16_t read_dataack(void) {
     if ( (ack.dst_addr[0] != (node_addr>>8)) || (ack.dst_addr[1] != (node_addr&0xFF)) ||
         (ack.src_addr[0] != txframe.dst_addr[0]) || (ack.src_addr[1] != txframe.dst_addr[1]) ) {
         // addresses don't match
-        cc1100_cmd_flush_rx();
-        cc1100_cmd_rx();
+        cc1101_cmd_flush_rx();
+        cc1101_cmd_rx();
         return 0;
     }
     
@@ -539,15 +539,15 @@ static uint16_t medium_busy(void) {
     timerB_unset_alarm(ALARM_PREAMBLE);
     
     // change GDO to EOP, and its callback
-    cc1100_gdo0_int_disable();
-    cc1100_gdo0_int_set_falling_edge();
-    cc1100_gdo0_int_clear();
-    cc1100_gdo0_int_enable();
-    cc1100_gdo0_register_callback(read_frame);
+    cc1101_gdo0_int_disable();
+    cc1101_gdo0_int_set_falling_edge();
+    cc1101_gdo0_int_clear();
+    cc1101_gdo0_int_enable();
+    cc1101_gdo0_register_callback(read_frame);
     
     // check if frame received
-    if ( !cc1100_gdo0_read() ) {
-        cc1100_gdo0_int_clear();
+    if ( !cc1101_gdo0_read() ) {
+        cc1101_gdo0_int_clear();
         read_frame();
     }
     
@@ -570,7 +570,7 @@ static uint16_t read_frame(void) {
     timerB_unset_alarm(ALARM_TIMEOUT);
     
     // Check CRC
-    if ( !(cc1100_status_crc_lqi() & 0x80) ) {
+    if ( !(cc1101_status_crc_lqi() & 0x80) ) {
         // CRC error, abort
         //~ printf("read_frame, crc error\n");
         set_wor();
@@ -578,7 +578,7 @@ static uint16_t read_frame(void) {
     }
     
     // Check Length is correct
-    cc1100_fifo_get( (uint8_t*) &(frame.length), 1);
+    cc1101_fifo_get( (uint8_t*) &(frame.length), 1);
     if (frame.length < HEADER_LENGTH || frame.length > PACKET_LENGTH_MAX) {
         // length error
         //~ printf("read_frame, length error\n");
@@ -587,10 +587,10 @@ static uint16_t read_frame(void) {
     }
     
     // Get Frame
-    cc1100_fifo_get( (uint8_t*) &(frame.length)+1, frame.length);
+    cc1101_fifo_get( (uint8_t*) &(frame.length)+1, frame.length);
     
     // Get Status
-    cc1100_fifo_get( (uint8_t*) status, 2);
+    cc1101_fifo_get( (uint8_t*) status, 2);
     
     // Compute addresses
     dst = (((uint16_t)frame.dst_addr[0])<<8) + frame.dst_addr[1];
@@ -610,30 +610,30 @@ static uint16_t read_frame(void) {
             frame.src_addr[1] = node_addr & 0xFF;
             
             // configure auto switch
-            cc1100_cfg_txoff_mode(CC1100_TXOFF_MODE_RX);
-            cc1100_cfg_cca_mode(CC1100_CCA_MODE_ALWAYS);
-            cc1100_cfg_rc_pd(CC1100_RC_OSC_DISABLE);
-            cc1100_cfg_fs_autocal(CC1100_AUTOCAL_NEVER);
-            cc1100_cmd_flush_rx();
-            cc1100_cmd_flush_tx();
+            cc1101_cfg_txoff_mode(CC1101_TXOFF_MODE_RX);
+            cc1101_cfg_cca_mode(CC1101_CCA_MODE_ALWAYS);
+            cc1101_cfg_rc_pd(CC1101_RC_OSC_DISABLE);
+            cc1101_cfg_fs_autocal(CC1101_AUTOCAL_NEVER);
+            cc1101_cmd_flush_rx();
+            cc1101_cmd_flush_tx();
             
             // update callback
-            cc1100_gdo0_register_callback(ack_sent);
+            cc1101_gdo0_register_callback(ack_sent);
             
             // Start TX
-            cc1100_cmd_tx();
+            cc1101_cmd_tx();
             
             // Put frame in TX FIFO
-            cc1100_fifo_put((uint8_t*)&frame.length, frame.length+1);
+            cc1101_fifo_put((uint8_t*)&frame.length, frame.length+1);
             
             return 0;
             
         } else if (dst == 0xFFFF) {
             // for broadcast
             // we keep listening until we get data
-            cc1100_cmd_flush_rx();
-            cc1100_cmd_flush_tx();
-            cc1100_cmd_rx();
+            cc1101_cmd_flush_rx();
+            cc1101_cmd_flush_tx();
+            cc1101_cmd_rx();
             
             // set a timer alarm in case we never get a data frame
             timerB_set_alarm_from_now(ALARM_TIMEOUT, SEND_PERIOD*MAX_PREAMBLE_COUNT, 0);
@@ -660,13 +660,13 @@ static uint16_t read_frame(void) {
             frame.src_addr[1] = node_addr & 0xFF;
             
             // update callback
-            cc1100_gdo0_register_callback(set_wor);
+            cc1101_gdo0_register_callback(set_wor);
             
             // Start TX
-            cc1100_cmd_tx();
+            cc1101_cmd_tx();
             
             // Put frame in TX FIFO
-            cc1100_fifo_put((uint8_t*)&frame.length, frame.length+1);
+            cc1101_fifo_put((uint8_t*)&frame.length, frame.length+1);
         } else {
             set_wor();
         }
@@ -691,7 +691,7 @@ static uint16_t read_frame(void) {
 
 static uint16_t ack_sent(void) {
     // now we wait for data
-    cc1100_gdo0_register_callback(read_frame);
+    cc1101_gdo0_register_callback(read_frame);
     
     // set a timer alarm in case we never get a data frame
     timerB_set_alarm_from_now(ALARM_TIMEOUT, SEND_PERIOD*4, 0);

@@ -81,16 +81,16 @@ uint16_t send_packet(void) {
     
     return 0;
 }
-#include "cc1100.h"
+#include "cc1101.h"
 uint16_t char_rx(uint8_t c) {
     static uint8_t c0 = 0;
     if (c == '\n') {
         if (c0=='s') {
             send_packet();
         } else {
-            printf("state=%x\n", cc1100_status()&0x70);
-            printf("txb=%x\n", cc1100_status_txbytes());
-            printf("rxb=%x\n", cc1100_status_rxbytes());
+            printf("state=%x\n", cc1101_status()&0x70);
+            printf("txb=%x\n", cc1101_status_txbytes());
+            printf("rxb=%x\n", cc1101_status_rxbytes());
         }
     }
     

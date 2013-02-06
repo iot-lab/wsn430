@@ -32,7 +32,7 @@ SRC = 	main.c \
 	$(WSN430_DRIVERS_PATH)/spi1.c
 
 ifeq ($(VERSION), 13)
-	SRC += $(WSN430_DRIVERS_PATH)/cc1100.c
+	SRC += $(WSN430_DRIVERS_PATH)/cc1101.c
 else
 	SRC += $(WSN430_DRIVERS_PATH)/cc2420.c
 endif

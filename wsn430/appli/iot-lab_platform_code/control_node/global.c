@@ -106,14 +106,14 @@ void vReleaseDS1722(void) // 1
 	uart1_register_callback((uart1_cb_t) uart1_rx_cb);
 }
 
-void vGetCC1100(void) // 1
+void vGetCC1101(void) // 1
 {
 	xSemaphoreTake( xUSART1Mutex, portMAX_DELAY);
 	uart1_stop();
 	spi1_init();
 }
 
-void vReleaseCC1100(void) // 1
+void vReleaseCC1101(void) // 1
 {
 	xSemaphoreGive( xUSART1Mutex );
 	uart1_init(UART_CONFIG);

@@ -308,7 +308,7 @@ static void vParseFrame() {
 		xTxFrame.ack = ACK;
 		break;
 
-	case CONFIG_CC1100:
+	case CONFIG_CC1101:
 		// Freq
 		longValue = xRxFrame.payload[0];
 		longValue <<= 8;
@@ -316,19 +316,19 @@ static void vParseFrame() {
 		longValue <<= 8;
 		longValue += xRxFrame.payload[2];
 
-		if (!radio_cc1100_setfreq(longValue)) {
+		if (!radio_cc1101_setfreq(longValue)) {
 			break;
 		}
-		if (!radio_cc1100_setchanbw(xRxFrame.payload[3], xRxFrame.payload[4])) {
+		if (!radio_cc1101_setchanbw(xRxFrame.payload[3], xRxFrame.payload[4])) {
 			break;
 		}
-		if (!radio_cc1100_setdatarate(xRxFrame.payload[5], xRxFrame.payload[6])) {
+		if (!radio_cc1101_setdatarate(xRxFrame.payload[5], xRxFrame.payload[6])) {
 			break;
 		}
-		if (!radio_cc1100_setmod(xRxFrame.payload[7])) {
+		if (!radio_cc1101_setmod(xRxFrame.payload[7])) {
 			break;
 		}
-		if (!radio_cc1100_settxpower(xRxFrame.payload[8])) {
+		if (!radio_cc1101_settxpower(xRxFrame.payload[8])) {
 			break;
 		}
 

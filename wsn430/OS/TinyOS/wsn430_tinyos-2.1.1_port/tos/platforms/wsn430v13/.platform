@@ -3,7 +3,7 @@ push( @includes, qw(
   ## wsn430v13 Platform
   %T/platforms/wsn430v13
   %T/platforms/wsn430v13/chips/msp430
-  %T/platforms/wsn430v13/chips/cc1100
+  %T/platforms/wsn430v13/chips/cc1101
   %T/platforms/wsn430v13/chips/ds2401
   
   ## Unique ID chip
@@ -27,19 +27,19 @@ push( @includes, qw(
   %T/chips/ds2401
 
 
-  %T/platforms/wsn430v13/chips/cc1100
-  %T/platforms/wsn430v13/chips/cc1100/alarm
-  %T/platforms/wsn430v13/chips/cc1100/control
-  %T/platforms/wsn430v13/chips/cc1100/csma
-  %T/platforms/wsn430v13/chips/cc1100/interfaces
-  %T/platforms/wsn430v13/chips/cc1100/link
-  %T/platforms/wsn430v13/chips/cc1100/lowpan
-  %T/platforms/wsn430v13/chips/cc1100/lpl
-  %T/platforms/wsn430v13/chips/cc1100/packet
-  %T/platforms/wsn430v13/chips/cc1100/receive
-  %T/platforms/wsn430v13/chips/cc1100/spi
-  %T/platforms/wsn430v13/chips/cc1100/transmit
-  %T/platforms/wsn430v13/chips/cc1100/unique
+  %T/platforms/wsn430v13/chips/cc1101
+  %T/platforms/wsn430v13/chips/cc1101/alarm
+  %T/platforms/wsn430v13/chips/cc1101/control
+  %T/platforms/wsn430v13/chips/cc1101/csma
+  %T/platforms/wsn430v13/chips/cc1101/interfaces
+  %T/platforms/wsn430v13/chips/cc1101/link
+  %T/platforms/wsn430v13/chips/cc1101/lowpan
+  %T/platforms/wsn430v13/chips/cc1101/lpl
+  %T/platforms/wsn430v13/chips/cc1101/packet
+  %T/platforms/wsn430v13/chips/cc1101/receive
+  %T/platforms/wsn430v13/chips/cc1101/spi
+  %T/platforms/wsn430v13/chips/cc1101/transmit
+  %T/platforms/wsn430v13/chips/cc1101/unique
   
   ) );
 

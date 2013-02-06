@@ -65,43 +65,43 @@ int radio_getrssi(uint8_t * data);
  */
 int radio_setnoise(uint16_t on);
 
-// CC1100 specific configuration
+// CC1101 specific configuration
 /**
- * \brief Update the CC1100 base frequency.
+ * \brief Update the CC1101 base frequency.
  * \param freq the frequency register value (22 bits).
  * \return 1 if OK, 0 if error.
  */
-int radio_cc1100_setfreq(uint32_t freq);
+int radio_cc1101_setfreq(uint32_t freq);
 
 /**
- * \brief Set the CC1100 modulation format.
+ * \brief Set the CC1101 modulation format.
  * \param mof_format the mod_format register value to set.
  * \return 1 if OK, 0 if error.
  */
-int radio_cc1100_setmod(uint8_t mod_format);
+int radio_cc1101_setmod(uint8_t mod_format);
 
 /**
- * \brief Set the CC1100 TX power.
+ * \brief Set the CC1101 TX power.
  * \param patable the PATABLE value to set.
  * \return 1 if OK, 0 if error.
  */
-int radio_cc1100_settxpower(uint8_t patable);
+int radio_cc1101_settxpower(uint8_t patable);
 
 /**
- * \brief Set the CC1100 channel bandwidth.
+ * \brief Set the CC1101 channel bandwidth.
  * \param chanbw_e the chanbw_e register value to set.
  * \param chanbw_m the chanbw_m register value to set.
  * \return 1 if OK, 0 if error.
  */
-int radio_cc1100_setchanbw(uint8_t chanbw_e, uint8_t chanbw_m);
+int radio_cc1101_setchanbw(uint8_t chanbw_e, uint8_t chanbw_m);
 
 /**
- * \brief Set the CC1100 data rate.
+ * \brief Set the CC1101 data rate.
  * \param drate_e the drate_e register value to set.
  * \param drate_m the drate_m register value to set.
  * \return 1 if OK, 0 if error.
  */
-int radio_cc1100_setdatarate(uint8_t drate_e, uint8_t drate_m);
+int radio_cc1101_setdatarate(uint8_t drate_e, uint8_t drate_m);
 
 
 // CC2420 specific configuration

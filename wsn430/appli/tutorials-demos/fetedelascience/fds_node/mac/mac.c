@@ -12,7 +12,7 @@
 #include "mac.h"
 
 /* Drivers Include */
-#include "cc1100.h"
+#include "cc1101.h"
 #include "ds2411.h"
 #include "ds1722.h"
 #include "tsl2550.h"
@@ -133,34 +133,34 @@ static void vInitMac(void)
     LEDS_OFF();
     
     /* Initialize the radio driver */
-    cc1100_init();
-    cc1100_cmd_idle();
+    cc1101_init();
+    cc1101_cmd_idle();
 
-    cc1100_cfg_append_status(CC1100_APPEND_STATUS_ENABLE);
-    cc1100_cfg_crc_autoflush(CC1100_CRC_AUTOFLUSH_DISABLE);
-    cc1100_cfg_white_data(CC1100_DATA_WHITENING_ENABLE);
-    cc1100_cfg_crc_en(CC1100_CRC_CALCULATION_ENABLE);
-    cc1100_cfg_freq_if(0x0C);
-    cc1100_cfg_fs_autocal(CC1100_AUTOCAL_NEVER);
+    cc1101_cfg_append_status(CC1101_APPEND_STATUS_ENABLE);
+    cc1101_cfg_crc_autoflush(CC1101_CRC_AUTOFLUSH_DISABLE);
+    cc1101_cfg_white_data(CC1101_DATA_WHITENING_ENABLE);
+    cc1101_cfg_crc_en(CC1101_CRC_CALCULATION_ENABLE);
+    cc1101_cfg_freq_if(0x0C);
+    cc1101_cfg_fs_autocal(CC1101_AUTOCAL_NEVER);
 
-    cc1100_cfg_mod_format(CC1100_MODULATION_MSK);
+    cc1101_cfg_mod_format(CC1101_MODULATION_MSK);
 
-    cc1100_cfg_sync_mode(CC1100_SYNCMODE_30_32);
+    cc1101_cfg_sync_mode(CC1101_SYNCMODE_30_32);
 
-    cc1100_cfg_manchester_en(CC1100_MANCHESTER_DISABLE);
+    cc1101_cfg_manchester_en(CC1101_MANCHESTER_DISABLE);
 
     // set channel bandwidth (560 kHz)
-    cc1100_cfg_chanbw_e(0);
-    cc1100_cfg_chanbw_m(2);
+    cc1101_cfg_chanbw_e(0);
+    cc1101_cfg_chanbw_m(2);
 
     // set data rate (0xD/0x2F is 250kbps)
-    cc1100_cfg_drate_e(0x0D);
-    cc1100_cfg_drate_m(0x2F);
+    cc1101_cfg_drate_e(0x0D);
+    cc1101_cfg_drate_m(0x2F);
 
     uint8_t table[1];
     table[0] = 0xC2; // 10dBm
-    cc1100_cfg_patable(table, 1);
-    cc1100_cfg_pa_power(0);
+    cc1101_cfg_patable(table, 1);
+    cc1101_cfg_pa_power(0);
     
     /* Setup the ds1722 temperature sensor */
     ds1722_init();
@@ -181,48 +181,48 @@ static void vEraseTable(void)
 
 static void vStartRx(void)
 {
-    cc1100_cmd_idle();
-    cc1100_cmd_flush_rx();
-    cc1100_cmd_flush_tx();
-    cc1100_cmd_calibrate();
+    cc1101_cmd_idle();
+    cc1101_cmd_flush_rx();
+    cc1101_cmd_flush_tx();
+    cc1101_cmd_calibrate();
 
-    cc1100_cfg_gdo0(CC1100_GDOx_SYNC_WORD);
-    cc1100_gdo0_int_set_falling_edge();
-    cc1100_gdo0_int_clear();
-    cc1100_gdo0_int_enable();
-    cc1100_gdo0_register_callback(xRxOk_cb);
+    cc1101_cfg_gdo0(CC1101_GDOx_SYNC_WORD);
+    cc1101_gdo0_int_set_falling_edge();
+    cc1101_gdo0_int_clear();
+    cc1101_gdo0_int_enable();
+    cc1101_gdo0_register_callback(xRxOk_cb);
 
-    cc1100_gdo2_int_disable();
+    cc1101_gdo2_int_disable();
 
-    cc1100_cmd_rx();
+    cc1101_cmd_rx();
 }
 
 static void vParseFrame(void)
 {
     // verify CRC result
-    if ( !(cc1100_status_crc_lqi() & 0x80) )
+    if ( !(cc1101_status_crc_lqi() & 0x80) )
     {
-        cc1100_cmd_flush_rx();
-        cc1100_cmd_rx();
+        cc1101_cmd_flush_rx();
+        cc1101_cmd_rx();
         return;
     }
 
-    cc1100_fifo_get(&(rx_frame.length), 1);
+    cc1101_fifo_get(&(rx_frame.length), 1);
     
     if (rx_frame.length > sizeof(rx_frame)-1)
     {
-        cc1100_cmd_flush_rx();
-        cc1100_cmd_rx();
+        cc1101_cmd_flush_rx();
+        cc1101_cmd_rx();
         return;
     }
 
-    cc1100_fifo_get(&(rx_frame.addr), rx_frame.length);
+    cc1101_fifo_get(&(rx_frame.addr), rx_frame.length);
     
     uint8_t rssi;
-    cc1100_fifo_get(&rssi, 1);
+    cc1101_fifo_get(&rssi, 1);
     
-    cc1100_cmd_flush_rx();
-    cc1100_cmd_rx();
+    cc1101_cmd_flush_rx();
+    cc1101_cmd_rx();
     
     /* Compare RSSI */
     rssi += 0x80;
@@ -249,19 +249,19 @@ static void vSendFrame(void)
 {
     uint16_t delay;
     
-    cc1100_gdo0_int_disable();
-    cc1100_gdo2_int_disable();
+    cc1101_gdo0_int_disable();
+    cc1101_gdo2_int_disable();
     
     tx_frame.length = 0x6 + tx_frame.neigh_num;
     
     /* Wait until CCA */
-    while ( !(0x10 & cc1100_status_pktstatus() ) )
+    while ( !(0x10 & cc1101_status_pktstatus() ) )
     {
         
-        cc1100_cmd_idle();
-        cc1100_cmd_flush_rx();
-        cc1100_cmd_flush_tx();
-        cc1100_cmd_rx();
+        cc1101_cmd_idle();
+        cc1101_cmd_flush_rx();
+        cc1101_cmd_flush_tx();
+        cc1101_cmd_rx();
         
         delay = (rand() & 0x7F) +1;
         vTaskDelay( delay );
@@ -269,21 +269,21 @@ static void vSendFrame(void)
     
     LED_RED_ON();
 
-    cc1100_cmd_idle();
-    cc1100_cmd_flush_rx();
-    cc1100_cmd_flush_tx();
+    cc1101_cmd_idle();
+    cc1101_cmd_flush_rx();
+    cc1101_cmd_flush_tx();
     
-    cc1100_cfg_gdo0(CC1100_GDOx_SYNC_WORD);
-    cc1100_gdo0_int_set_falling_edge();
-    cc1100_gdo0_int_clear();
-    cc1100_gdo0_int_enable();
-    cc1100_gdo0_register_callback(xTxOk_cb);
+    cc1101_cfg_gdo0(CC1101_GDOx_SYNC_WORD);
+    cc1101_gdo0_int_set_falling_edge();
+    cc1101_gdo0_int_clear();
+    cc1101_gdo0_int_enable();
+    cc1101_gdo0_register_callback(xTxOk_cb);
 
-    cc1100_gdo2_int_disable();
+    cc1101_gdo2_int_disable();
 
-    cc1100_fifo_put((uint8_t*)&tx_frame, tx_frame.length+1);
+    cc1101_fifo_put((uint8_t*)&tx_frame, tx_frame.length+1);
 
-    cc1100_cmd_tx();
+    cc1101_cmd_tx();
 }
 
 static uint16_t xRxOk_cb(void)

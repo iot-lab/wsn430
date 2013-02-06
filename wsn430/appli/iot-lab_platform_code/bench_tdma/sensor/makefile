@@ -35,7 +35,7 @@ $(PORT_PATH)/port.c \
 $(WSN430_DRIVERS_PATH)/uart0.c \
 $(WSN430_DRIVERS_PATH)/timerB.c \
 $(WSN430_DRIVERS_PATH)/spi1.c \
-$(WSN430_DRIVERS_PATH)/cc1100.c \
+$(WSN430_DRIVERS_PATH)/cc1101.c \
 $(WSN430_DRIVERS_PATH)/clock.c \
 $(WSN430_DRIVERS_PATH)/ds2411.c \
 $(FREERTOS_PATH)/lib/tdma/tdma_node.c

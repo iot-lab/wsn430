@@ -17,7 +17,7 @@ SRC_tdma_coord += $(WSN430_LIB_PATH)/mac/tdma/tdma_mgt.c
 
 
 
-SRC  = $(WSN430_DRIVERS_PATH)/cc1100.c
+SRC  = $(WSN430_DRIVERS_PATH)/cc1101.c
 SRC += $(WSN430_DRIVERS_PATH)/ds2411.c
 SRC += $(WSN430_DRIVERS_PATH)/clock.c
 SRC += $(WSN430_DRIVERS_PATH)/uart0.c

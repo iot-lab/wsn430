@@ -47,8 +47,8 @@
 #include "dev/slip.h"
 #include "dev/watchdog.h"
 #include "dev/xmem.h"
-#ifdef WITH_CC1100
-#include "dev/cc1100-radio.h"
+#ifdef WITH_CC1101
+#include "dev/cc1101-radio.h"
 #else
 #include "dev/cc2420-radio.h"
 #endif
@@ -227,8 +227,8 @@ main(int argc, char **argv)
 
   set_rime_addr();
   
-#ifdef WITH_CC1100
-  cc1100_radio_init();
+#ifdef WITH_CC1101
+  cc1101_radio_init();
 #else
   cc2420_radio_init();
 #endif

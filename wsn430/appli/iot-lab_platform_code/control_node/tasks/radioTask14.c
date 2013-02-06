@@ -153,28 +153,28 @@ int radio_setnoise(uint16_t on) {
 	return 1;
 }
 
-// CC1100 specific configuration
-int radio_cc1100_setfreq(uint32_t freq) {
+// CC1101 specific configuration
+int radio_cc1101_setfreq(uint32_t freq) {
 	// wrong radio, return error
 	return 0;
 }
 
-int radio_cc1100_setmod(uint8_t mod_format) {
+int radio_cc1101_setmod(uint8_t mod_format) {
 	// wrong radio, return error
 	return 0;
 }
 
-int radio_cc1100_settxpower(uint8_t patable) {
+int radio_cc1101_settxpower(uint8_t patable) {
 	// wrong radio, return error
 	return 0;
 }
 
-int radio_cc1100_setchanbw(uint8_t chanbw_e, uint8_t chanbw_m) {
+int radio_cc1101_setchanbw(uint8_t chanbw_e, uint8_t chanbw_m) {
 	// wrong radio, return error
 	return 0;
 }
 
-int radio_cc1100_setdatarate(uint8_t drate_e, uint8_t drate_m) {
+int radio_cc1101_setdatarate(uint8_t drate_e, uint8_t drate_m) {
 	// wrong radio, return error
 	return 0;
 }

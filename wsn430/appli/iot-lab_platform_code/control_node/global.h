@@ -63,8 +63,8 @@ void vGetINA209(void);
 void vReleaseINA209(void);
 void vGetDS1722(void);
 void vReleaseDS1722(void);
-void vGetCC1100(void);
-void vReleaseCC1100(void);
+void vGetCC1101(void);
+void vReleaseCC1101(void);
 void vGetCC2420(void);
 void vReleaseCC2420(void);
 

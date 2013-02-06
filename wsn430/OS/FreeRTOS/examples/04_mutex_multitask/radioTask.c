@@ -9,7 +9,7 @@
 
 #include "radioTask.h"
 
-#include "cc1100.h"
+#include "cc1101.h"
 #include "leds.h"
 
 
@@ -54,34 +54,34 @@ static void vRadioTask(void* pvParameters)
 
 	/* Initialize the radio chip driver, and configure the radio */
 
-	cc1100_init();
-	cc1100_cmd_idle();
+	cc1101_init();
+	cc1101_cmd_idle();
 
-	cc1100_cfg_append_status(CC1100_APPEND_STATUS_DISABLE);
-	cc1100_cfg_crc_autoflush(CC1100_CRC_AUTOFLUSH_DISABLE);
-	cc1100_cfg_white_data(CC1100_DATA_WHITENING_ENABLE);
-	cc1100_cfg_crc_en(CC1100_CRC_CALCULATION_ENABLE);
-	cc1100_cfg_freq_if(0x0C);
-	cc1100_cfg_fs_autocal(CC1100_AUTOCAL_NEVER);
+	cc1101_cfg_append_status(CC1101_APPEND_STATUS_DISABLE);
+	cc1101_cfg_crc_autoflush(CC1101_CRC_AUTOFLUSH_DISABLE);
+	cc1101_cfg_white_data(CC1101_DATA_WHITENING_ENABLE);
+	cc1101_cfg_crc_en(CC1101_CRC_CALCULATION_ENABLE);
+	cc1101_cfg_freq_if(0x0C);
+	cc1101_cfg_fs_autocal(CC1101_AUTOCAL_NEVER);
 
-	cc1100_cfg_mod_format(CC1100_MODULATION_MSK);
+	cc1101_cfg_mod_format(CC1101_MODULATION_MSK);
 
-	cc1100_cfg_sync_mode(CC1100_SYNCMODE_30_32);
+	cc1101_cfg_sync_mode(CC1101_SYNCMODE_30_32);
 
-	cc1100_cfg_manchester_en(CC1100_MANCHESTER_DISABLE);
+	cc1101_cfg_manchester_en(CC1101_MANCHESTER_DISABLE);
 
 	// set channel bandwidth (560 kHz)
-	cc1100_cfg_chanbw_e(0);
-	cc1100_cfg_chanbw_m(2);
+	cc1101_cfg_chanbw_e(0);
+	cc1101_cfg_chanbw_m(2);
 
 	// set data rate (0xD/0x2F is 250kbps)
-	cc1100_cfg_drate_e(0x0D);
-	cc1100_cfg_drate_m(0x2F);
+	cc1101_cfg_drate_e(0x0D);
+	cc1101_cfg_drate_m(0x2F);
 
 	uint8_t table[1];
 	table[0] = 0xC2; // 10dBm
-	cc1100_cfg_patable(table, 1);
-	cc1100_cfg_pa_power(0);
+	cc1101_cfg_patable(table, 1);
+	cc1101_cfg_pa_power(0);
 
 	/* Give the mutex back */
 	xSemaphoreGive(xSPIMutex);
@@ -110,22 +110,22 @@ static void vRadioTask(void* pvParameters)
 				LED_BLUE_ON();
 				printf("Radio takes mutex\r\n");
 
-				cc1100_cmd_idle();
-				cc1100_cmd_flush_tx();
-				cc1100_cmd_calibrate();
+				cc1101_cmd_idle();
+				cc1101_cmd_flush_tx();
+				cc1101_cmd_calibrate();
 
-				cc1100_cfg_gdo0(CC1100_GDOx_SYNC_WORD);
-				cc1100_gdo0_int_set_falling_edge();
-				cc1100_gdo0_int_clear();
-				cc1100_gdo0_int_enable();
-				cc1100_gdo0_register_callback(vEndOfTx_cb);
+				cc1101_cfg_gdo0(CC1101_GDOx_SYNC_WORD);
+				cc1101_gdo0_int_set_falling_edge();
+				cc1101_gdo0_int_clear();
+				cc1101_gdo0_int_enable();
+				cc1101_gdo0_register_callback(vEndOfTx_cb);
 
-				cc1100_gdo2_int_disable();
+				cc1101_gdo2_int_disable();
 
-				cc1100_fifo_put((&tx_length), 1);
-				cc1100_fifo_put(tx_buffer, tx_length);
+				cc1101_fifo_put((&tx_length), 1);
+				cc1101_fifo_put(tx_buffer, tx_length);
 
-				cc1100_cmd_tx();
+				cc1101_cmd_tx();
 
 				printf("Radio gives mutex\r\n");
 				LED_BLUE_OFF();

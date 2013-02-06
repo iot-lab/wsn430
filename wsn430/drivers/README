@@ -13,7 +13,7 @@ This archive contains the drivers for the WSN430 main board, along with their de
 	Last up to date version can be found on: http://www.senslab.info/
 
 There are two versions of the WSN430 board. The names have absolutely no links with the drivers versions, which represent new features and bug fixes:
-	* one with a CC1100 radio chip, known as wsn430v13b (especially in the platform simulator WSIM)
+	* one with a CC1101 radio chip, known as wsn430v13b (especially in the platform simulator WSIM)
         * the other with a CC2420 radio chip, known as wsn430v14 (especially in the platform simulator WSIM)
 
 The documentation for these drivers may be found on the dedicated Doxygen documentation page:
@@ -34,11 +34,11 @@ WSN430 drivers v1.8, CHANGELOG:
 Compatible with mspgcc3 and mspgcc4
 WSN430 drivers v1.7, CHANGELOG:
 	o optimized cc2420 driver and updated examples;
-	o fixed cc1100 channel spacing configuration bug;
+	o fixed cc1101 channel spacing configuration bug;
 	o improved i2c0 robustness;
 WSN430 drivers v1.6.1, CHANGELOG:
 	o minor fix in UART driver;
-	o fixed infinite loop lock bug in CC1100 driver;
+	o fixed infinite loop lock bug in CC1101 driver;
 	o improved radio examples;
 	o added new serial + timer + LEDs example to get started with the platform
 WSN430 drivers v1.5

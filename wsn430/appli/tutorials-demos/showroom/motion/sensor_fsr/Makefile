@@ -3,7 +3,7 @@ CPU      = msp430x1611
 CC       = msp430-gcc
 
 SRC = main.c \
-      $(WSN430_DRIVERS_PATH)/cc1100.c \
+      $(WSN430_DRIVERS_PATH)/cc1101.c \
       $(WSN430_DRIVERS_PATH)/ds2411.c \
       $(WSN430_DRIVERS_PATH)/clock.c \
       $(WSN430_DRIVERS_PATH)/uart0.c \

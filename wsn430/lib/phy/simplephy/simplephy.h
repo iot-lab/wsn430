@@ -51,7 +51,7 @@ uint16_t phy_cca(void);
 /** 
  * Do an RSSI measurment.
  * Duration is 485µs if not in RX, 65µs else.
- * \return raw rssi value as given by CC1100
+ * \return raw rssi value as given by CC1101
  */
 uint8_t phy_rssi(void);
 

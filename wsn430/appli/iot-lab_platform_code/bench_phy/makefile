@@ -51,15 +51,15 @@ SRC += \
 $(DRIVERS_PATH)/spi1.c \
 $(DRIVERS_PATH)/ds2411.c
 
-SRC_1100 =  \
-$(DRIVERS_PATH)/cc1100.c \
-$(FREERTOS_PATH)/lib/phy/phy_cc1100.c
+SRC_1101 =  \
+$(DRIVERS_PATH)/cc1101.c \
+$(FREERTOS_PATH)/lib/phy/phy_cc1101.c
 
 SRC_2420 =  \
 $(DRIVERS_PATH)/cc2420.c \
 $(FREERTOS_PATH)/lib/phy/phy_cc2420.c
 
-OBJ_1100 = $(SRC_1100:.c=.o)
+OBJ_1101 = $(SRC_1101:.c=.o)
 OBJ_2420 = $(SRC_2420:.c=.o)
 else
 SRC += \
@@ -77,17 +77,17 @@ endif
 #
 OBJ = $(SRC:.c=.o)
 
-OBJ_ALL = ${OBJ} ${OBJ_1100} ${OBJ_2420} ${OBJ_2500} ${NAME_RX}.o ${NAME_TX}.o
+OBJ_ALL = ${OBJ} ${OBJ_1101} ${OBJ_2420} ${OBJ_2500} ${NAME_RX}.o ${NAME_TX}.o
 
 ifneq ($(BUILD),"MDS")
-all : ${NAME}_1100 ${NAME}_2420
+all : ${NAME}_1101 ${NAME}_2420
 else
 all: ${NAME}_2500
 endif
 
-${NAME}_1100 : ${OBJ} ${OBJ_1100} ${NAME_RX}.o ${NAME_TX}.o
-	$(CC) ${OBJ} ${OBJ_1100} ${NAME_RX}.o $(CFLAGS) -o $(NAME_RX)_1100.elf
-	$(CC) ${OBJ} ${OBJ_1100} ${NAME_TX}.o $(CFLAGS) -o $(NAME_TX)_1100.elf
+${NAME}_1101 : ${OBJ} ${OBJ_1101} ${NAME_RX}.o ${NAME_TX}.o
+	$(CC) ${OBJ} ${OBJ_1101} ${NAME_RX}.o $(CFLAGS) -o $(NAME_RX)_1101.elf
+	$(CC) ${OBJ} ${OBJ_1101} ${NAME_TX}.o $(CFLAGS) -o $(NAME_TX)_1101.elf
 
 ${NAME}_2420 : ${OBJ} ${OBJ_2420}
 	$(CC) ${OBJ} ${OBJ_2420} ${NAME_RX}.o $(CFLAGS) -o $(NAME_RX)_2420.elf

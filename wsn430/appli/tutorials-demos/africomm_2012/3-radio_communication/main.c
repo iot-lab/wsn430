@@ -41,7 +41,7 @@
 /* Project includes */
 #include "clock.h"
 #include "uart0.h"
-#include "cc1100.h"
+#include "cc1101.h"
 #include "leds.h"
 
 static uint16_t rx_ok(void);
@@ -88,66 +88,66 @@ int main( void )
 	/* Initialize the UART0 */
 	uart0_init(UART0_CONFIG_1MHZ_115200);
 	uart0_register_callback(char_cb);
-	printf("CC1100 RXTX test program\r\n");
+	printf("CC1101 RXTX test program\r\n");
 
     /* Initialize the LEDs */
 	LEDS_INIT();
 	LEDS_OFF();
 
 	/* Initialize CC1101 */
-	cc1100_init();
+	cc1101_init();
 
 	/**************************************************************************************/
 	/* Configure CC1101, see datasheet for details and SmartRF Studio for configuration */
-	cc1100_cfg_append_status(CC1100_APPEND_STATUS_ENABLE);
-	cc1100_cfg_crc_autoflush(CC1100_CRC_AUTOFLUSH_DISABLE);
-	cc1100_cfg_white_data(CC1100_DATA_WHITENING_ENABLE);	//see 15.1 DATA WHITENING
-	cc1100_cfg_crc_en(CC1100_CRC_CALCULATION_ENABLE);
-	cc1100_cfg_freq_if(0x0C);
+	cc1101_cfg_append_status(CC1101_APPEND_STATUS_ENABLE);
+	cc1101_cfg_crc_autoflush(CC1101_CRC_AUTOFLUSH_DISABLE);
+	cc1101_cfg_white_data(CC1101_DATA_WHITENING_ENABLE);	//see 15.1 DATA WHITENING
+	cc1101_cfg_crc_en(CC1101_CRC_CALCULATION_ENABLE);
+	cc1101_cfg_freq_if(0x0C);
 
-	cc1100_cfg_fs_autocal(CC1100_AUTOCAL_NEVER); 			// disable auto-calibration
-	cc1100_cfg_mod_format(CC1100_MODULATION_MSK); 			// set MSK modulation
-	cc1100_cfg_sync_mode(CC1100_SYNCMODE_30_32);			// sync word qualifier: 30/32 bits detected
-	cc1100_cfg_manchester_en(CC1100_MANCHESTER_DISABLE);	// disable manchester coding
+	cc1101_cfg_fs_autocal(CC1101_AUTOCAL_NEVER); 			// disable auto-calibration
+	cc1101_cfg_mod_format(CC1101_MODULATION_MSK); 			// set MSK modulation
+	cc1101_cfg_sync_mode(CC1101_SYNCMODE_30_32);			// sync word qualifier: 30/32 bits detected
+	cc1101_cfg_manchester_en(CC1101_MANCHESTER_DISABLE);	// disable manchester coding
 
 	// set state IDLE when TX or RX are finish
-	cc1100_cfg_txoff_mode(CC1100_TXOFF_MODE_IDLE);
-	cc1100_cfg_rxoff_mode(CC1100_RXOFF_MODE_IDLE);
+	cc1101_cfg_txoff_mode(CC1101_TXOFF_MODE_IDLE);
+	cc1101_cfg_rxoff_mode(CC1101_RXOFF_MODE_IDLE);
 
 	// set channel bandwidth (560 kHz)
-	cc1100_cfg_chanbw_e(0);
-	cc1100_cfg_chanbw_m(2);
+	cc1101_cfg_chanbw_e(0);
+	cc1101_cfg_chanbw_m(2);
 
 	// set data rate (0xD/0x2F is 250kbps)
-	cc1100_cfg_drate_e(0x0D);
-	cc1100_cfg_drate_m(0x2F);
+	cc1101_cfg_drate_e(0x0D);
+	cc1101_cfg_drate_m(0x2F);
 
 	// set channel
-	cc1100_cfg_chan(6);
+	cc1101_cfg_chan(6);
 
 	// Set the TX power
 	uint8_t table[] = {0xC2};		// +10dBm  see 24  Output Power Programming
-	cc1100_cfg_patable(table, 1);
-	cc1100_cfg_pa_power(0);
+	cc1101_cfg_patable(table, 1);
+	cc1101_cfg_pa_power(0);
 	/**************************************************************************************/
 
-	printf("CC1100 initialized\r\nType 's' to send a message\r\n");
+	printf("CC1101 initialized\r\nType 's' to send a message\r\n");
 
 	while(1)
 	{
 		/* put CC1101 in RX state */
 		LED_RED_ON();
-		cc1100_cmd_idle();			// put CC1101 in IDLE state
-		cc1100_cmd_flush_rx();		// flush the RX FIFO
-		cc1100_cmd_calibrate();		// manual calibration
-		cc1100_cmd_rx();			// put CC1101 in RX state
+		cc1101_cmd_idle();			// put CC1101 in IDLE state
+		cc1101_cmd_flush_rx();		// flush the RX FIFO
+		cc1101_cmd_calibrate();		// manual calibration
+		cc1101_cmd_rx();			// put CC1101 in RX state
 
 		/* configure interupt see 26  General Purpose - Test Output Control Pins */
-		cc1100_cfg_gdo0(CC1100_GDOx_SYNC_WORD);		// assert when SYNC sent/recv, deasserts on EOP
-		cc1100_gdo0_int_set_falling_edge();			// when deasserts
-		cc1100_gdo0_int_clear();
-		cc1100_gdo0_int_enable();
-		cc1100_gdo0_register_callback(rx_ok);		// call rx_ok() function when the end of packet is detected
+		cc1101_cfg_gdo0(CC1101_GDOx_SYNC_WORD);		// assert when SYNC sent/recv, deasserts on EOP
+		cc1101_gdo0_int_set_falling_edge();			// when deasserts
+		cc1101_gdo0_int_clear();
+		cc1101_gdo0_int_enable();
+		cc1101_gdo0_register_callback(rx_ok);		// call rx_ok() function when the end of packet is detected
 
 		/* low Power Mode */
 		LPM0;
@@ -156,10 +156,10 @@ int main( void )
 		if (send == 1) {
 			send = 0;
 			LED_RED_OFF();
-			cc1100_cmd_idle();			// put CC1101 in IDLE state
-			cc1100_cmd_flush_tx();		// flush the TX FIFO
-			cc1100_cmd_calibrate();		// manual calibration
-			cc1100_gdo0_int_disable();	// disable gdo interupt
+			cc1101_cmd_idle();			// put CC1101 in IDLE state
+			cc1101_cmd_flush_tx();		// flush the TX FIFO
+			cc1101_cmd_calibrate();		// manual calibration
+			cc1101_gdo0_int_disable();	// disable gdo interupt
 
 			/* prepare the frame to send */
 			frameseq ++;
@@ -167,15 +167,15 @@ int main( void )
 			printf("Sent : %s \r\n", frame);
 
 			/* put the length and the frame in the TX FIFO */
-			cc1100_fifo_put(&length, 1);
-			cc1100_fifo_put(frame, length);
-			cc1100_cmd_tx();	// put CC1101 in TX state to send the TX FIFO content
+			cc1101_fifo_put(&length, 1);
+			cc1101_fifo_put(frame, length);
+			cc1101_cmd_tx();	// put CC1101 in TX state to send the TX FIFO content
 
 			/* wait for SYNC word sent */
-			while (cc1100_gdo0_read() == 0);
+			while (cc1101_gdo0_read() == 0);
 
 			/* wait for end of packet */
-			while (cc1100_gdo0_read() != 0);
+			while (cc1101_gdo0_read() != 0);
 		}
 
 		/* check for receive flag */
@@ -184,22 +184,22 @@ int main( void )
 			uint8_t i;
 
 			/* 1: check the validity of the CRC register */
-			if ( !(cc1100_status_crc_lqi() & 0x80) ) {
+			if ( !(cc1101_status_crc_lqi() & 0x80) ) {
 				int16_t rssi;
-				rssi = compute_rssi(cc1100_status_rssi());
+				rssi = compute_rssi(cc1101_status_rssi());
 				printf("bad crc, rssi = %i.%u\n", rssi>>1, 5* (rssi & 0x1));
 				continue;
 			}
 
 			/* 2: get the first byte of the RX FIFO: the length */
-			cc1100_fifo_get(&length, 1);
+			cc1101_fifo_get(&length, 1);
 
 			if (length > 60) {
 				continue;
 			}
 
 			/* 3: get the content of the RX FIFO */
-			cc1100_fifo_get(frame, length+2);
+			cc1101_fifo_get(frame, length+2);
 
 			/* 4: compute RSSI and print the packet content */
 			int16_t rssi_d = compute_rssi(frame[length]);

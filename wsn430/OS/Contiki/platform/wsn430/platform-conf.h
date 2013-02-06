@@ -4,8 +4,8 @@
 /* define RADIO=WITH_CCXXXX in platform/wsn430/Makefile.wsn430 or application Makefile */
 
 /* the low-level radio driver */
-#ifdef WITH_CC1100
-#define NETSTACK_CONF_RADIO cc1100_radio_driver
+#ifdef WITH_CC1101
+#define NETSTACK_CONF_RADIO cc1101_radio_driver
 #else
 #define NETSTACK_CONF_RADIO cc2420_radio_driver
 #endif

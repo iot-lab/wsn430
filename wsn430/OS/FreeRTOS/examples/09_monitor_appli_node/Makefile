@@ -10,7 +10,7 @@ endif
 SOURCE_PATH = $(FREERTOS_PATH)/Source
 PORT_PATH = $(FREERTOS_PATH)/Source/portable/GCC/MSP430F449
 
-NAMES = node_example_cc1100
+NAMES = node_example_cc1101
 
 CC=msp430-gcc
 OBJCOPY=msp430-objcopy
@@ -28,7 +28,7 @@ SRC += sensor/sensor.c
 SRC += blinker/blinker.c
 
 SRC += $(WSN430_LIB_PATH)/phy/simplephy/simplephy.c
-SRC += $(WSN430_DRIVERS_PATH)/cc1100.c
+SRC += $(WSN430_DRIVERS_PATH)/cc1101.c
 
 SRC += $(SOURCE_PATH)/tasks.c
 SRC += $(SOURCE_PATH)/list.c
