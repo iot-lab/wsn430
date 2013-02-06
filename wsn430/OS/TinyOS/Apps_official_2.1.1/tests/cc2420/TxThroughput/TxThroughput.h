@@ -28,11 +28,11 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE
  */
- 
+
 /**
  * @author David Moss
  */
- 
+
 #ifndef TXTHROUGHPUT_H
 #define TXTHROUGHPUT_H
 
@@ -41,7 +41,7 @@
  * affects throughput.  Be sure to re-mig your messages.
  */
 #ifndef TOSH_DATA_LENGTH
-#define TOSH_DATA_LENGTH 28 
+#define TOSH_DATA_LENGTH 28
 #endif
 
 #include "message.h"

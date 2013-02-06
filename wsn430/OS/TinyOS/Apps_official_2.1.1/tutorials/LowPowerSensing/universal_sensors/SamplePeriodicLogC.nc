@@ -47,7 +47,7 @@ implementation {
   components new PeriodicSampleLogger16C(sampling_period, 1) as PeriodicLogger;
   components new SineSensorC();
   PeriodicLogger.Sensor[0] -> SineSensorC;
-  
+
   //Don't change..... just copy for different sensorboard implementations
   components MainC;
   components new LogStorageC(volume, TRUE);

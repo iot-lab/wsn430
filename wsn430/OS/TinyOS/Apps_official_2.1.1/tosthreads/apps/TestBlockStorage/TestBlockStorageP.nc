@@ -23,11 +23,11 @@
 /**
  * This application is used to test the threaded version of the API for performing
  * block storage.
- * 
+ *
  * This application first checks the size of the block storage volume, and
  * erases it. Then, it randomly writes records, followed by a verification
  * with read.
- * 
+ *
  * Successful running of this application results in LED0 being ON
  * throughout the duration of the erase, write, and read sequence. Finally,
  * if all tests pass, LED1 is turned ON. Otherwise, all three LEDs are
@@ -54,7 +54,7 @@ implementation
   event void Boot.booted() {
     call TinyThread1.start(NULL);
   }
-  
+
   event void TinyThread1.run(void* arg)
   {
     int i;
@@ -71,18 +71,18 @@ implementation
       call Leds.set(7);
       return;
     }
-    
+
     error = call BlockingBlock1.erase();
     if (error != SUCCESS) {
       call Leds.set(7);
       return;
     }
-    
+
     for (i = 0; i < 50; i++) {
       storage_addr_t writeAddr = call Random.rand32() % (call BlockingBlock1.getSize() - sizeof(storage_addr_t));
       storage_len_t len = sizeof(storage_addr_t);
       storage_addr_t readBuf;
-    
+
       error = call BlockingBlock1.write(writeAddr, &writeAddr, &len);
       if (error == SUCCESS) {
         len = sizeof(storage_addr_t);
@@ -96,7 +96,7 @@ implementation
         return;
       }
     }
-    
+
     call Leds.set(2);
   }
 }

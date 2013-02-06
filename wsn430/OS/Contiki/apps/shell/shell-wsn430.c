@@ -101,7 +101,7 @@ PROCESS_THREAD(shell_nodeid_process, ev, data)
   PROCESS_BEGIN();
 
   nodeid = shell_strtolong(data, &newptr);
-  
+
   /* If no node ID was given on the command line, we print out the
      current channel. Else we burn the new node ID. */
   if(newptr == data) {
@@ -123,7 +123,7 @@ shell_wsn430_init(void)
 {
   ds1722_set_res(10);
   ds1722_sample_cont();
-  
+
   shell_register_command(&sense_command);
   shell_register_command(&nodeid_command);
 

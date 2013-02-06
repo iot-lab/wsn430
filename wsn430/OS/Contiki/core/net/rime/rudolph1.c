@@ -101,7 +101,7 @@ static int
 format_data(struct rudolph1_conn *c, int chunk)
 {
   struct rudolph1_datapacket *p;
-  
+
   packetbuf_clear();
   p = packetbuf_dataptr();
   p->h.type = TYPE_DATA;
@@ -193,7 +193,7 @@ handle_data(struct rudolph1_conn *c, struct rudolph1_datapacket *p)
 
     /* If we have heard a higher chunk number, we send a NACK so that
        we get a repair for the next packet. */
-    
+
     if(c->highest_chunk_heard > p->h.chunk) {
       send_nack(c);
     }
@@ -288,7 +288,7 @@ send_next_packet(void *ptr)
 
     c->highest_chunk_heard = c->chunk;
     c->chunk++;
-    
+
   } else {
     ctimer_set(&c->t, c->send_interval, send_next_packet, c);
   }

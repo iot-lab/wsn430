@@ -34,8 +34,8 @@
  * @date July 24, 2007
  */
 
-generic module PeriodicSampleLoggerP(uint32_t period_ms, 
-                                     uint8_t num_sensors, 
+generic module PeriodicSampleLoggerP(uint32_t period_ms,
+                                     uint8_t num_sensors,
                                      typedef sensor_type_t) {
   uses {
     interface Boot;

@@ -30,12 +30,12 @@
  */
 
 /**
- * This application stresses the blocking send and receive commands for the c based 
- * API of tosthreads.  Three threads are run, each thread toggling a different 
- * colored LED. If a node has TOS_NODE_ID == 0 it will try and receive in 
- * an infinite loop, toggling one of the three Leds upon reception.  If it has 
+ * This application stresses the blocking send and receive commands for the c based
+ * API of tosthreads.  Three threads are run, each thread toggling a different
+ * colored LED. If a node has TOS_NODE_ID == 0 it will try and receive in
+ * an infinite loop, toggling one of the three Leds upon reception.  If it has
  * TOS_NODE_ID == 1, it will try to send in an infinite loop, toggling one of the three
- * Leds upon the completion of a send.  Thread 0 toggles the Led0, Thread 1 toggles 
+ * Leds upon the completion of a send.  Thread 0 toggles the Led0, Thread 1 toggles
  * Led1, and Thread 2 toggles Led2.
  *
  * @author Kevin Klues <klueska@cs.stanford.edu>
@@ -76,7 +76,7 @@ void radioStress0_thread(void* arg) {
     }
     else {
       if(amRadioSend(!TOS_NODE_ID, m, 0, 20) == SUCCESS)
-        led0Toggle(); 
+        led0Toggle();
     }
   }
 }

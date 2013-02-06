@@ -64,17 +64,17 @@ class SerialReplyPacket(tinyos.GenericPacket):
 # Display an integer representation of byte stream to hex representation
 def print_hex(start_addr, byte_stream):
   byte_stream = ["%02x" % one_byte for one_byte in byte_stream]   # Converts to each byte to hex
-  
+
   num_iterations = int( (len(byte_stream) - 1) / HEX_OUTPUT_LINE_SIZE )
   num_iterations += 1
-  
+
   for i in range(num_iterations):
     line = "%07x" % start_addr + " "   # Prints memory address
     for j in range(HEX_OUTPUT_LINE_SIZE):
       if (i * HEX_OUTPUT_LINE_SIZE + j) < len(byte_stream):
         line += byte_stream[i * HEX_OUTPUT_LINE_SIZE + j] + " "
     print line
-    
+
     start_addr += HEX_OUTPUT_LINE_SIZE
 
 def op_run(s, sreqpkt):
@@ -100,27 +100,27 @@ def op_print(s, sreqpkt, offset, length):
         sreqpkt.len = HEX_OUTPUT_LINE_SIZE
       else:
         sreqpkt.len = length
-      
+
       success = s.write_packet(SERIALMSG_AMGROUP, SERIALMSG_AMID, sreqpkt.payload())
       if success == True:
         packet = s.read_packet()
         sreplypkt = SerialReplyPacket(packet[1])
         if sreplypkt.error != SERIALMSG_SUCCESS:
           return False
-  
+
       print_hex(offset, sreplypkt.data)
       length -= sreqpkt.len
       offset += sreqpkt.len
   else:
     print "ERROR: Specified offset and length are too large for the flash volume"
     return False
-  
+
   return True
 
 def op_write(s, sreqpkt, input_file, length):
   local_crc = 0
   input_file_size = length
-  
+
   sreqpkt.offset = 0
   while length > 0:
     # Calculates the payload size for the current packet
@@ -129,11 +129,11 @@ def op_write(s, sreqpkt, input_file, length):
     else:
       sreqpkt.len = length
     sreqpkt.data = []
-    
+
     # Reads in the file we want to transmit
     for i in range(sreqpkt.len):
       sreqpkt.data.append(struct.unpack("B", input_file.read(1))[0])
-    
+
     # Sends over serial to the mote
     if s.write_packet(SERIALMSG_AMGROUP, SERIALMSG_AMID, sreqpkt.payload()) == True:
       # Waiting for confirmation
@@ -145,10 +145,10 @@ def op_write(s, sreqpkt, input_file, length):
     else:
       print "ERROR: Unable to write to flash"
       return False
-    
+
     length -= sreqpkt.len
     sreqpkt.offset += sreqpkt.len
-  
+
   # Check local and remote CRC
   sreqpkt.msg_type = SERIALMSG_CRC
   remote_crc = op_crc(s, sreqpkt, 0, input_file_size)
@@ -162,7 +162,7 @@ def op_write(s, sreqpkt, input_file, length):
   else:
     print "ERROR: Unable to verify CRC"
     return False
-    
+
   return True
 
 def op_crc(s, sreqpkt, offset, length):
@@ -183,11 +183,11 @@ def op_leds(s, sreqpkt):
 # ======== MAIN ======== #
 if len(sys.argv) >= 3:
   sys.argv[2] = int(sys.argv[2])
-  
+
   s = tinyos.Serial(sys.argv[1], 57600)
   s.set_debug(False)   # Disables debug msg
   sreqpkt = SerialReqPacket((sys.argv[2], 0, 0, 0, []))   # msg_type, pad, offset, length, data
-  
+
   if sys.argv[2] == SERIALMSG_RUN:
     if op_run(s, sreqpkt) == True:
       print "Loaded image should be running now!"
@@ -198,11 +198,11 @@ if len(sys.argv) >= 3:
       print "Flash volume has been erased"
     else:
       print "ERROR: Unable to erase flash volume"
-    
+
   elif sys.argv[2] == SERIALMSG_WRITE:
     input_file = file(sys.argv[3], 'rb')
     fileStats = os.stat(sys.argv[3])
-    
+
     if fileStats[stat.ST_SIZE] <= DELUGE_VOLUME_SIZE:
       #sreqpkt = SerialReqPacket((SERIALMSG_LEDS, 0, 0, 0, []))
       #op_leds(s, sreqpkt)
@@ -215,12 +215,12 @@ if len(sys.argv) >= 3:
       op_leds(s, sreqpkt)
     else:
       print "ERROR: File is larger than flash volume (" + DELUGE_VOLUME_SIZE + ")"
-  
+
   elif sys.argv[2] == SERIALMSG_READ:
     data = op_print(s, sreqpkt, int(sys.argv[3]), int(sys.argv[4]))
     if data != True:
       print "ERROR: Unable to read the specified range"
-    
+
   elif sys.argv[2] == SERIALMSG_CRC:
     remote_crc = op_crc(s, sreqpkt, int(sys.argv[3]), int(sys.argv[4]))
     if remote_crc != None:

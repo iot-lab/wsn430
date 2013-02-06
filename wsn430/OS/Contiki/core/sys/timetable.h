@@ -127,7 +127,7 @@ extern rtimer_clock_t timetable_timestamp_time;
 struct timetable_timestamp *timetable_entry(struct timetable *t,
 					    int num);
 int timetable_ptr(struct timetable *t);
- 
+
 void timetable_clear(struct timetable *t);
 rtimer_clock_t timetable_timediff(struct timetable *t,
 				  const char *id1, const char *id2);

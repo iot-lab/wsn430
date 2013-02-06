@@ -5,12 +5,12 @@ Author: Kevin Klues <klueska@cs.stanford.edu>
 Description:
 
 TestJoin is a simple application used to test the basic functionality of
-the join() system call for waiting on a set of threads in a TOSThreads 
+the join() system call for waiting on a set of threads in a TOSThreads
 based application.
 
 You can install TestJoin on a mote via the following command:
   make <platform> threads install
-  
+
 Valid platforms are currently: tmote, telosb, iris, mica2, micaz, and epic
 
 Upon a successful burn, you should see all LEDs toggle in the following pattern,

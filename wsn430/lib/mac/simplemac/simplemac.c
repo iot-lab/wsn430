@@ -1,7 +1,7 @@
 /**
  * \file simplemac.c
  * \brief A complete implementation of a very simple MAC layer.
- * 
+ *
  * The protocol implemented is basic CSMA: all the nodes are always
  * in RX mode. If a frame is received, the callback function provided
  * by the user application is called, with the received data passed
@@ -61,49 +61,49 @@ void mac_init(void)
     // initialize the unique serial number chip and set node address accordingly
     ds2411_init();
     local_addr = ds2411_id.serial0;
-    
+
     // seed the random number generator
     uint16_t seed;
     seed = ( ((uint16_t)ds2411_id.serial0) << 8) + (uint16_t)ds2411_id.serial1;
     srand(seed);
-    
+
     // initialize the phy layer
     phy_init();
     phy_register_frame_sent_notifier(frame_sent);
     phy_register_frame_received_handler(frame_received);
-    
+
     // clean callback
     mac_cb = 0x0;
-    
+
     // initialize the timerB
     timerB_init();
     timerB_register_cb(TIMERB_ALARM_CCR0, try_sending);
-    
+
     phy_start_rx();
-    
+
     mac_state = STATE_RX;
 }
-   
+
 void mac_register_rx_cb(mac_handler_t cb)
 {
     mac_cb = cb;
 }
- 
+
 uint16_t mac_send(uint8_t packet[], uint16_t length, uint8_t dst_addr)
 {
     uint16_t i;
-    
+
     if (length>252)
     {
         return -1;
     }
-    
+
     // copy packet to local frame buffer
     txframe.src_addr = local_addr;
     txframe.dst_addr = BROADCAST_ADDR;
     txframe.type = DATA_FRAME;
     txframe_length = length + 3;
-    
+
     for (i=0;i<length;i++)
     {
         txframe.payload[i] = packet[i];
@@ -180,9 +180,9 @@ static void frame_received(uint8_t frame[], uint16_t length)
 {
     mac_frame_t *rx_frame;
     rx_frame = (mac_frame_t*) frame;
-    
+
     phy_start_rx();
-    
+
     if (rx_frame->type == DATA_FRAME)
     {
         if (mac_cb != 0x0)

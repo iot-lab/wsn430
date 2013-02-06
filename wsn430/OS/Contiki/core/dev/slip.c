@@ -166,9 +166,9 @@ slip_poll_handler(u8_t *outbuf, u16_t blen)
        && memcmp(&rxbuf[begin], "CLIENT", 6) == 0) {
       state = STATE_TWOPACKETS;	/* Interrupts do nothing. */
       memset(&rxbuf[begin], 0x0, 6);
-      
+
       rxbuf_init();
-      
+
       for(i = 0; i < 13; i++) {
 	slip_arch_writeb("CLIENTSERVER\300"[i]);
       }
@@ -210,7 +210,7 @@ slip_poll_handler(u8_t *outbuf, u16_t blen)
     if(state == STATE_TWOPACKETS) {
       pkt_end = end;
       state = STATE_OK;		/* Assume no bytes where lost! */
-      
+
       /* One more packet is buffered, need to be polled again! */
       process_poll(&slip_process);
     }
@@ -228,7 +228,7 @@ PROCESS_THREAD(slip_process, ev, data)
 
   while(1) {
     PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
-    
+
     slip_active = 1;
 
     /* Move packet from rxbuf to buffer provided by uIP. */
@@ -286,7 +286,7 @@ slip_input_byte(unsigned char c)
       state = STATE_OK;
     }
     return 0;
-    
+
   case STATE_TWOPACKETS:       /* Two packets are already buffered! */
     return 0;
 

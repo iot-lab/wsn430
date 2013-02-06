@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2008, Technische Universitaet Berlin
  * All rights reserved.
  *
@@ -66,7 +66,7 @@ module TestDeviceC
     m_capabilityInformation.ReceiverOnWhenIdle = 0;
     m_capabilityInformation.Reserved = 0;
     m_capabilityInformation.SecurityCapability = 0;
-    m_capabilityInformation.AllocateAddress = 1;    
+    m_capabilityInformation.AllocateAddress = 1;
     call MLME_RESET.request(TRUE);
   }
 
@@ -79,12 +79,12 @@ module TestDeviceC
   void startApp()
   {
     ieee154_phyChannelsSupported_t channel;
-    uint8_t scanDuration = BEACON_ORDER; 
+    uint8_t scanDuration = BEACON_ORDER;
 
     // scan only one channel (to save time)
     channel = ((uint32_t) 1) << RADIO_CHANNEL;
 
-    // we want all received beacons to be signalled 
+    // we want all received beacons to be signalled
     // through the MLME_BEACON_NOTIFY interface, i.e.
     // we set the macAutoRequest attribute to FALSE
     call MLME_SET.macAutoRequest(FALSE);
@@ -158,7 +158,7 @@ module TestDeviceC
                         )
   {
     if ( status == IEEE154_SUCCESS ) {
-      // we are now associated - set a timer for disassociation 
+      // we are now associated - set a timer for disassociation
       call Leds.led1On();
       call DisassociateTimer.startOneShot(312500U);
     } else {
@@ -205,7 +205,7 @@ module TestDeviceC
                           uint64_t DeviceAddress,
                           ieee154_CapabilityInformation_t CapabilityInformation,
                           ieee154_security_t *security
-                        ){}  
+                        ){}
 
   event void MLME_SYNC_LOSS.indication(
                           ieee154_status_t lossReason,

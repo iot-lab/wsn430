@@ -1,7 +1,7 @@
 // $Id: ActiveMessageC.nc,v 1.9 2010-06-29 22:07:54 scipio Exp $
 
 /*
- * Copyright (c) 2004-2005 The Regents of the University  of California.  
+ * Copyright (c) 2004-2005 The Regents of the University  of California.
  * Copyright (c) 2004-2005 Intel Corporation
  * All rights reserved.
  *
@@ -74,7 +74,7 @@ implementation {
 #endif
 
   SplitControl = AM;
-  
+
   AMSend       = AM;
   Receive      = AM.Receive;
   Snoop        = AM.Snoop;

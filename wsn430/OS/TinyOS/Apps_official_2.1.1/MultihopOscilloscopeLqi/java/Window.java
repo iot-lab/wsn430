@@ -2,9 +2,9 @@
  * Copyright (c) 2006 Intel Corporation
  * All rights reserved.
  *
- * This file is distributed under the terms in the attached INTEL-LICENSE     
+ * This file is distributed under the terms in the attached INTEL-LICENSE
  * file. If you do not find these files, copies can be found by writing to
- * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
+ * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA,
  * 94704.  Attention:  Intel License Inquiry.
  */
 
@@ -74,7 +74,7 @@ class Window
 
 	/* Return mote id of i'th mote */
 	int get(int i) { return ((Integer)motes.get(i)).intValue(); }
-	
+
 	/* Return color of i'th mote */
 	Color getColor(int i)  { return (Color)colors.get(i); }
 

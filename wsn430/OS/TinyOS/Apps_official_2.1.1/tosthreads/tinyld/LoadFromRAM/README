@@ -13,8 +13,8 @@ You can install LoadFromRAM on a mote via the following command:
 If you would like to generate your own loadable program run, for example:
   cd ../../capps/Blink
   make telosb dynthreads
-  (the output file needed is ../../capps/Blink/build/telosb/dynthreads/main.tos)	
-  
+  (the output file needed is ../../capps/Blink/build/telosb/dynthreads/main.tos)
+
 Tools:
   None.
 

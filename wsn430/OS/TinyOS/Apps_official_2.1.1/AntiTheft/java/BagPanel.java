@@ -4,9 +4,9 @@
  * Copyright (c) 2007 Intel Corporation
  * All rights reserved.
  *
- * This file is distributed under the terms in the attached INTEL-LICENSE     
+ * This file is distributed under the terms in the attached INTEL-LICENSE
  * file. If you do not find these files, copies can be found by writing to
- * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
+ * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA,
  * 94704.  Attention:  Intel License Inquiry.
  */
 
@@ -16,7 +16,7 @@ import java.awt.*;
 import java.awt.event.*;
 
 /**
- * A GridBagLayout based panel with convenience methods for 
+ * A GridBagLayout based panel with convenience methods for
  * making various swing items. These methods also ensure a
  * consistent appearance.
  *

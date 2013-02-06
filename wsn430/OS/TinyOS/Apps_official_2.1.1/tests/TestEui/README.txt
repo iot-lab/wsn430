@@ -20,4 +20,3 @@ java net.tinyos.tools.PrintfClient -comm serial@<serial port>:<mote>
 Known bugs/limitations:
 
 None.
- 

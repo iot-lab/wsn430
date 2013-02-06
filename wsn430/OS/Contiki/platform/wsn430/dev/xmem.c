@@ -71,9 +71,9 @@ int xmem_pread(void *_p, int size, unsigned long offset)
 {
     int s;
     s = splhigh();
-    
+
     m25p80_read(offset, _p, size);
-    
+
     splx(s);
     return size;
 }
@@ -82,9 +82,9 @@ int xmem_pwrite(const void *_buf, int size, unsigned long addr)
 {
     int s;
     s = splhigh();
-    
+
     m25p80_write(addr, (uint8_t*)_buf, (uint16_t) size);
-    
+
     splx(s);
     return size;
 }
@@ -111,7 +111,7 @@ int xmem_erase(long size, unsigned long addr)
     {
         m25p80_erase_sector((uint8_t)(addr>>16));
     }
-    
+
     watchdog_start();
 
     return size;

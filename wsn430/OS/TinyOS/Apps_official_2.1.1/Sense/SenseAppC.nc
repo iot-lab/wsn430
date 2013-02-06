@@ -34,19 +34,19 @@
  */
 
 /**
- * 
+ *
  * Sensing demo application. See README.txt file in this directory for usage
  * instructions and have a look at tinyos-2.x/doc/html/tutorial/lesson5.html
  * for a general tutorial on sensing in TinyOS.
- * 
+ *
  * @author Jan Hauer
  */
 
-configuration SenseAppC 
-{ 
-} 
-implementation { 
-  
+configuration SenseAppC
+{
+}
+implementation {
+
   components SenseC, MainC, LedsC, new TimerMilliC(), new DemoSensorC() as Sensor;
 
   SenseC.Boot -> MainC;

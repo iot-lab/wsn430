@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2008, Technische Universitaet Berlin
  * All rights reserved.
  *
@@ -36,7 +36,7 @@
 configuration TestPromiscuousAppC
 {
 } implementation {
- components MainC, TestPromiscuousC as App, LedsC, 
+ components MainC, TestPromiscuousC as App, LedsC,
             Ieee802154NonBeaconEnabledC as MAC;
 
   MainC.Boot <- App;

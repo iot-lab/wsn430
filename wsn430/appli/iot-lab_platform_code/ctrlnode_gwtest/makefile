@@ -36,8 +36,8 @@ a.out : $(OBJ) makefile
 	msp430-objcopy -O ihex $(NAME).elf $(NAME).hex
 
 $(OBJ) : %.o : %.c makefile
-	$(CC) -c $(CFLAGS) $< -o $@	
-	
+	$(CC) -c $(CFLAGS) $< -o $@
+
 clean :
 	rm -f ${NAME}.elf ${NAME}.hex ${OBJ}
-	
+

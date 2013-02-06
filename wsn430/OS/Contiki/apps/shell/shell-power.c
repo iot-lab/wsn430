@@ -89,7 +89,7 @@ PROCESS_THREAD(shell_power_process, ev, data)
   PROCESS_BEGIN();
 
   energest_flush();
-  
+
   msg.len = 12;
   msg.cpu = energest_type_time(ENERGEST_TYPE_CPU) - last_cpu;
   msg.lpm = energest_type_time(ENERGEST_TYPE_LPM) - last_lpm;
@@ -118,7 +118,7 @@ PROCESS_THREAD(shell_energy_process, ev, data)
   PROCESS_BEGIN();
 
   energest_flush();
-  
+
   msg.len = 12;
   msg.cpu = energest_type_time(ENERGEST_TYPE_CPU);
   msg.lpm = energest_type_time(ENERGEST_TYPE_LPM);
@@ -141,7 +141,7 @@ printpower(struct power_msg *msg)
   unsigned long time;
 
   time = msg->cpu + msg->lpm;
-  
+
   avg_power = (3L *
 	       (msg->cpu       * DEC2FIX(1L,800L) +
 		msg->lpm       * DEC2FIX(0L,545L) +
@@ -168,7 +168,7 @@ PROCESS_THREAD(shell_powerconv_process, ev, data)
   while(1) {
     PROCESS_WAIT_EVENT_UNTIL(ev == shell_event_input);
     input = data;
-    
+
     if(input->len1 + input->len2 == 0) {
       PROCESS_EXIT();
     }
@@ -186,7 +186,7 @@ PROCESS_THREAD(shell_powerconv_process, ev, data)
     }
 
   }
-  
+
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
@@ -201,7 +201,7 @@ printpowergraph(struct power_msg *msg)
   char buf[MAX_POWERGRAPH];
 
   time = msg->cpu + msg->lpm;
-  
+
   avg_power = (3L *
 	       (msg->cpu       * DEC2FIX(1L,800L) +
 		msg->lpm       * DEC2FIX(0L,545L) +
@@ -225,7 +225,7 @@ PROCESS_THREAD(shell_powergraph_process, ev, data)
   while(1) {
     PROCESS_WAIT_EVENT_UNTIL(ev == shell_event_input);
     input = data;
-    
+
     if(input->len1 + input->len2 == 0) {
       PROCESS_EXIT();
     }
@@ -243,7 +243,7 @@ PROCESS_THREAD(shell_powergraph_process, ev, data)
     }
 
   }
-  
+
   PROCESS_END();
 }
 #endif /* WITH_POWERGRAPH */

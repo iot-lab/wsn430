@@ -125,7 +125,7 @@ PROCESS_THREAD(shell_killall_process, ev, data)
   PROCESS_BEGIN();
 
   killall();
-  
+
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
@@ -153,7 +153,7 @@ PROCESS_THREAD(shell_kill_process, ev, data)
   }
 
   shell_output_str(&kill_command, "Command not found: ", name);
-  
+
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
@@ -168,7 +168,7 @@ PROCESS_THREAD(help_command_process, ev, data)
       c = c->next) {
     shell_output_str(&help_command, c->description, "");
   }
-  
+
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
@@ -177,7 +177,7 @@ replace_braces(char *commandline)
 {
   char *ptr;
   int level = 0;
-  
+
   for(ptr = commandline; *ptr != 0; ++ptr) {
     if(*ptr == '{') {
       if(level == 0) {
@@ -198,7 +198,7 @@ find_pipe(char *commandline)
 {
   char *ptr;
   int level = 0;
-  
+
   for(ptr = commandline; *ptr != 0; ++ptr) {
     if(*ptr == '{') {
       ++level;
@@ -245,16 +245,16 @@ start_command(char *commandline, struct shell_command *child)
     commandline[command_len - 1] = 0;
     command_len--;
   }
-  
+
   if(args == NULL) {
     command_len = (int)strlen(commandline);
     args = &commandline[command_len];
   } else {
     command_len = (int)(args - commandline - 1);
   }
-  
 
-  
+
+
   /* Go through list of commands to find a match for the first word in
      the command line. */
   for(c = list_head(commands);
@@ -262,7 +262,7 @@ start_command(char *commandline, struct shell_command *child)
 	!(strncmp(c->command, commandline, command_len) == 0 &&
 	  c->command[command_len] == 0);
       c = c->next);
-  
+
   if(c == NULL) {
     shell_output_str(NULL, commandline, ": command not found (try 'help')");
     command_kill(child);
@@ -277,7 +277,7 @@ start_command(char *commandline, struct shell_command *child)
     /* Start a new process for the command. */
     process_start(c->process, args);
   }
-  
+
   return c;
 }
 /*---------------------------------------------------------------------------*/
@@ -414,15 +414,15 @@ PROCESS_THREAD(shell_process, ev, data)
 
   /* Let the system start up before showing the prompt. */
   PROCESS_PAUSE();
-  
+
   while(1) {
     shell_prompt("Contiki> ");
-    
+
     PROCESS_WAIT_EVENT_UNTIL(ev == shell_event_input);
     {
       struct shell_input *input = data;
       int ret;
-      
+
       ret = shell_start_command(input->data1, input->len1, NULL,
 				&started_process);
 
@@ -436,7 +436,7 @@ PROCESS_THREAD(shell_process, ev, data)
       front_process = &shell_process;
     }
   }
-  
+
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
@@ -470,7 +470,7 @@ PROCESS_THREAD(shell_server_process, ev, data)
       shell_set_time(shell_time());
     }
   }
-  
+
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
@@ -483,9 +483,9 @@ shell_init(void)
   shell_register_command(&killall_command);
   shell_register_command(&kill_command);
   shell_register_command(&null_command);
-  
+
   shell_event_input = process_alloc_event();
-  
+
   process_start(&shell_process, NULL);
   process_start(&shell_server_process, NULL);
 
@@ -502,11 +502,11 @@ shell_strtolong(const char *str, const char **retstr)
   if(str == NULL) {
     return 0;
   }
-  
+
   while(*strptr == ' ') {
     ++strptr;
   }
-  
+
   for(i = 0; i < 10 && isdigit(strptr[i]); ++i) {
     num = num * 10 + strptr[i] - '0';
   }
@@ -517,7 +517,7 @@ shell_strtolong(const char *str, const char **retstr)
       *retstr = strptr + i;
     }
   }
-  
+
   return num;
 }
 /*---------------------------------------------------------------------------*/

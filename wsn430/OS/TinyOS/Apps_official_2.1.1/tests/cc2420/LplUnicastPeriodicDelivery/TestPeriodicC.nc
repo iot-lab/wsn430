@@ -56,56 +56,56 @@ module TestPeriodicC {
 }
 
 implementation {
- 
+
   uint8_t count;
   message_t fullMsg;
   bool transmitter;
-  
+
   /**************** Prototypes ****************/
   task void send();
-  
+
   /**************** Boot Events ****************/
   event void Boot.booted() {
     transmitter = (call AMPacket.address() != 0);
     count = 0;
-    
+
     call LowPowerListening.setLocalWakeupInterval(1000);
     call SplitControl.start();
   }
-  
+
   event void SplitControl.startDone(error_t error) {
     if(transmitter) {
       post send();
     }
   }
-  
+
   event void SplitControl.stopDone(error_t error) {
   }
-  
-  
+
+
   /**************** Send Receive Events *****************/
   event void AMSend.sendDone(message_t *msg, error_t error) {
     if(transmitter) {
-      count++; 
+      count++;
       call Timer.startOneShot(1000);
       call Leds.led0Off();
     }
   }
-  
+
   event message_t *Receive.receive(message_t *msg, void *payload, uint8_t len) {
     if(!transmitter) {
       call Leds.led1Toggle();
     }
     return msg;
   }
-  
+
   /**************** Timer Events ****************/
   event void Timer.fired() {
     if(transmitter) {
       post send();
     }
   }
-  
+
   /**************** Tasks ****************/
   task void send() {
     TestPeriodicMsg *periodicMsg = (TestPeriodicMsg *) call Packet.getPayload(&fullMsg, sizeof(TestPeriodicMsg));

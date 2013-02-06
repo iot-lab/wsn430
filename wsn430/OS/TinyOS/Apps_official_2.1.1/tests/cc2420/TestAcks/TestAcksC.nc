@@ -28,7 +28,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE
  */
- 
+
 /**
  * Test for radio acknowledgements
  * Program all motes up with ID 1
@@ -37,7 +37,7 @@
  *   Led2 = Missed an ack
  * @author David Moss
  */
- 
+
 
 configuration TestAcksC {
 }
@@ -50,7 +50,7 @@ implementation {
       new AMReceiverC(128),
       new TimerMilliC(),
       LedsC;
-      
+
   TestAcksP.Boot -> MainC;
   TestAcksP.SplitControl -> ActiveMessageC;
   TestAcksP.Leds -> LedsC;
@@ -58,5 +58,5 @@ implementation {
   TestAcksP.Receive -> AMReceiverC;
   TestAcksP.PacketAcknowledgements -> ActiveMessageC;
   TestAcksP.Timer -> TimerMilliC;
-  
+
 }

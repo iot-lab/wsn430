@@ -66,30 +66,30 @@ implementation {
       call Leds.led1Toggle();
     }
   }
-  
+
   void sendSampleMsg() {
     call LPL.setRemoteWakeupInterval(&sample_msg, 0);
     if(call SampleSend.send(BASE_STATION_ADDR, &sample_msg, sizeof(nx_sensor_sample_t)) != SUCCESS)
       post sendSampleMsgTask();
     else call Leds.led2On();
   }
-  
+
   task void readNextTask() { readNext(); }
   task void sendSampleMsgTask() { sendSampleMsg(); }
-	
+
   event void Boot.booted() {
     call LPL.setLocalWakeupInterval(LPL_INTERVAL);
     call AMControl.start();
   }
-  
+
   event void AMControl.startDone(error_t e) {
   	if(e != SUCCESS)
   		call AMControl.start();
   }
-  
+
   event void AMControl.stopDone(error_t e) {
   }
-  
+
   event void SampleLogRead.readDone(sensor_sample_t* sample, error_t error) {
     if(error == SUCCESS) {
       nx_sensor_sample_t* nx_sample = call SampleSend.getPayload(&sample_msg, sizeof(nx_sample));

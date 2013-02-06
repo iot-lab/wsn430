@@ -28,14 +28,14 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE
  */
- 
+
 /**
  * Dummy low power listening interface used when LowPowerListening is not
  * compiled in with the application.
  * Wakeup interval is always 0 (always on)
  * @author David Moss
  */
- 
+
 module DummyLplP {
   provides {
     interface LowPowerListening;
@@ -46,17 +46,17 @@ implementation {
 
   command void LowPowerListening.setLocalWakeupInterval(uint16_t intervalMs) {
   }
-  
+
   command uint16_t LowPowerListening.getLocalWakeupInterval() {
     return 0;
   }
-  
+
   command void LowPowerListening.setRemoteWakeupInterval(message_t *msg, uint16_t intervalMs) {
   }
-  
+
   command uint16_t LowPowerListening.getRemoteWakeupInterval(message_t *msg) {
     return 0;
   }
-  
+
 }
 

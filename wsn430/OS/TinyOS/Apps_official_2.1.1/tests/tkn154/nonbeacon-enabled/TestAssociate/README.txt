@@ -10,7 +10,7 @@ associate, the PAN coordinator allows association and assigns to the device a
 unique short address (starting from zero, incremented for every device
 requesting association).  A second node acts as a device, it switches to the
 pre-defined channel and tries to associate to the PAN. A short time after
-association the device then disassociates from the PAN. 
+association the device then disassociates from the PAN.
 
 Criteria for a successful test:
 
@@ -21,7 +21,7 @@ off. That's all.
 
 Tools: NONE
 
-Usage: 
+Usage:
 
 1. Install the coordinator:
 
@@ -36,8 +36,8 @@ You can change some of the configuration parameters in app_profile.h
 Known bugs/limitations:
 
 - Many TinyOS 2 platforms do not have a clock that satisfies the
-  precision/accuracy requirements of the IEEE 802.15.4 standard (e.g. 
-  62.500 Hz, +-40 ppm in the 2.4 GHz band); in this case the MAC timing 
+  precision/accuracy requirements of the IEEE 802.15.4 standard (e.g.
+  62.500 Hz, +-40 ppm in the 2.4 GHz band); in this case the MAC timing
   is not standard compliant
 
 $Id: README.txt,v 1.3 2010/01/05 17:12:56 janhauer Exp $o

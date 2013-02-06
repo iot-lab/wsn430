@@ -34,7 +34,7 @@ uint16_t phy_send_frame(uint8_t frame[], uint16_t length);
  * \return 1 if error encountered, 0 otherwise
  */
  uint16_t phy_start_rx(void);
- 
+
 /**
  * Stop radio RX.
  */
@@ -48,7 +48,7 @@ uint16_t phy_stop_rx(void);
  */
 uint16_t phy_cca(void);
 
-/** 
+/**
  * Do an RSSI measurment.
  * Duration is 485µs if not in RX, 65µs else.
  * \return raw rssi value as given by CC1101

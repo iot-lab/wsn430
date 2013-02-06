@@ -29,10 +29,10 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE
  */
- 
+
 /**
  * Java-side application for examining the radio Tx throughput
- * 
+ *
  * @author David Moss
  */
 
@@ -52,7 +52,7 @@ public class TxThroughput implements MessageListener {
   }
 
   public void messageReceived(int dest, Message message) {
-    System.out.println("[Packets/s]: " + ((ThroughputMsg) message).get_packetsPerSecond() 
+    System.out.println("[Packets/s]: " + ((ThroughputMsg) message).get_packetsPerSecond()
         + ";  [(Payload Bytes)/s]: " + ((((ThroughputMsg) message).numElements_fillBytes() + 2) * ((ThroughputMsg) message).get_packetsPerSecond()));
   }
 

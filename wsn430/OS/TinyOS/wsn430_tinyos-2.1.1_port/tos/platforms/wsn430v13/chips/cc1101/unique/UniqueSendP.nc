@@ -28,19 +28,19 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE
  */
- 
+
 /**
  * This layer is responsible for supplying a unique data sequence number (dsn)
  * to each outgoing message.
  * @author David Moss
  */
- 
+
 module UniqueSendP @safe() {
   provides {
     interface Send;
     interface Init;
   }
-  
+
   uses {
     interface Send as SubSend;
     interface State;
@@ -52,12 +52,12 @@ module UniqueSendP @safe() {
 implementation {
 
   uint8_t localSendId;
-  
+
   enum {
     S_IDLE,
     S_SENDING,
   };
-  
+
   /***************** Init Commands ****************/
   command error_t Init.init() {
     localSendId = call Random.rand16();
@@ -76,22 +76,22 @@ implementation {
     error_t error;
     if(call State.requestState(S_SENDING) == SUCCESS) {
       (call CC2420PacketBody.getHeader(msg))->dsn = localSendId++;
-      
+
       if((error = call SubSend.send(msg, len)) != SUCCESS) {
         call State.toIdle();
       }
-      
+
       return error;
     }
-    
+
     return EBUSY;
   }
 
   command error_t Send.cancel(message_t *msg) {
     return call SubSend.cancel(msg);
   }
-  
-  
+
+
   command uint8_t Send.maxPayloadLength() {
     return call SubSend.maxPayloadLength();
   }
@@ -99,12 +99,12 @@ implementation {
   command void *Send.getPayload(message_t* msg, uint8_t len) {
     return call SubSend.getPayload(msg, len);
   }
-  
+
   /***************** SubSend Events ****************/
   event void SubSend.sendDone(message_t *msg, error_t error) {
     call State.toIdle();
     signal Send.sendDone(msg, error);
   }
-  
+
 }
 

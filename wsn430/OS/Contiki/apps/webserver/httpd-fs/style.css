@@ -1,10 +1,10 @@
-h1 
+h1
 {
   text-align: center;
   font-size:14pt;
   font-family:arial,helvetica;
   font-weight:bold;
-  padding:10px; 
+  padding:10px;
 }
 
 body
@@ -21,7 +21,7 @@ body
   width: 98%;
   margin: 0 auto;
   text-align: left;
-  font-family:arial,helvetica;        
+  font-family:arial,helvetica;
 }
 
 .menublock
@@ -31,17 +31,17 @@ body
   float:left;
 
   padding:10px;
-	
+
   border: solid 1px;
   background-color: #fffcd2;
   text-align:left;
-  
+
   font-size:9pt;
-  font-family:arial,helvetica;  
+  font-family:arial,helvetica;
 }
 
 .contentblock
-{  
+{
   margin: 4px;
   width:50%;
   float:left;
@@ -52,7 +52,7 @@ body
   background-color: white;
 
   font-size:8pt;
-  font-family:arial,helvetica;  
+  font-family:arial,helvetica;
 
 }
 
@@ -90,7 +90,7 @@ body
 
 div.rfig
 {
-  border: solid 1px; 
+  border: solid 1px;
 
   text-align: left;
 
@@ -104,13 +104,13 @@ div.rfig
 
 pre.example
 {
-  border: solid 1px; 
+  border: solid 1px;
   padding: 10px;
   margin:10px;
   text-align: left;
   font-size:8pt;
   font-family:arial,helvetica;
-  white-space:pre;  
+  white-space:pre;
 }
 
 
@@ -121,27 +121,27 @@ p.intro
 
   font-size:10pt;
 /*  font-weight:bold; */
-  font-family:arial,helvetica;  
+  font-family:arial,helvetica;
 }
 
 p.clink
 {
   font-size:12pt;
-  font-family:courier,monospace;  
+  font-family:courier,monospace;
   text-align:center;
 }
 
 p.clink9
 {
   font-size:9pt;
-  font-family:courier,monospace;  
+  font-family:courier,monospace;
   text-align:center;
 }
 
 p.related
 {
   font-size:10pt;
-  font-family:arial,helvetica;  
+  font-family:arial,helvetica;
   text-align:center;
 }
 
@@ -161,7 +161,7 @@ img.left
 
 p.fig
 {
-  border: solid 1px; 
+  border: solid 1px;
 
   text-align: center;
 
@@ -173,7 +173,7 @@ p.fig
 
 p.rfig
 {
-  border: solid 1px; 
+  border: solid 1px;
 
   text-align: center;
 
@@ -188,7 +188,7 @@ p.rfig
 
 p.lfig
 {
-  border: solid 1px; 
+  border: solid 1px;
 
   text-align: center;
 
@@ -210,12 +210,12 @@ p.mailaddr
   padding-left:10px;
   font-size:7pt;
   font-family:courier,terminal;
-  text-align:right; 
+  text-align:right;
 }
 
 p.right
 {
-  text-align:right; 
+  text-align:right;
 }
 
 p.border-title
@@ -232,7 +232,7 @@ p.border-title
   background-color: #fffcba;
   border: solid 1px;
 
-} 
+}
 
 
 

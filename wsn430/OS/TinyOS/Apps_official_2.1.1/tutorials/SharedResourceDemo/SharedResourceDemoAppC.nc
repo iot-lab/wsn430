@@ -19,10 +19,10 @@
  * OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR
  * MODIFICATIONS."
  */
- 
+
 /**
  *
- * This application is used to test the use of Shared Resources.  
+ * This application is used to test the use of Shared Resources.
  * Three Resource users are created and all three request
  * control of the resource before any one of them is granted it.
  * Once the first user is granted control of the resource, it performs
@@ -30,8 +30,8 @@
  * is set to allow this user to have control of it for a specific
  * amount of time.  Once this timer expires, the resource is released
  * and then immediately requested again.  Upon releasing the resource
- * control will be granted to the next user that has requested it in 
- * round robin order.  Initial requests are made by the three resource 
+ * control will be granted to the next user that has requested it in
+ * round robin order.  Initial requests are made by the three resource
  * users in the following order.<br>
  * <li> Resource 0
  * <li> Resource 2
@@ -44,12 +44,12 @@
  * <li> Led 1 -> Resource 1
  * <li> Led 2 -> Resource 2
  * <br>
- * 
+ *
  * @author Kevin Klues (klueska@cs.wustl.edu)
  * @version $Revision: 1.1 $
  * @date $Date: 2007/07/13 23:43:17 $
  */
- 
+
 configuration SharedResourceDemoAppC{
 }
 implementation {
@@ -62,10 +62,10 @@ implementation {
   App.Timer0 -> Timer0;
   App.Timer1 -> Timer1;
   App.Timer2 -> Timer2;
-  
+
   components
   new SharedResourceC() as Resource0,
-  new SharedResourceC() as Resource1, 
+  new SharedResourceC() as Resource1,
   new SharedResourceC() as Resource2;
   App.Resource0 -> Resource0;
   App.Resource1 -> Resource1;

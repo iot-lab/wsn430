@@ -77,7 +77,7 @@ static
 PT_THREAD(send_file(struct httpd_state *s))
 {
   PSOCK_BEGIN(&s->sout);
-  
+
   do {
     /* Read data from file system into buffer */
     s->len = cfs_read(s->fd, s->outputbuf, sizeof(s->outputbuf));
@@ -89,7 +89,7 @@ PT_THREAD(send_file(struct httpd_state *s))
       break;
     }
   } while(s->len > 0);
-      
+
   PSOCK_END(&s->sout);
 }
 /*---------------------------------------------------------------------------*/
@@ -171,7 +171,7 @@ PT_THREAD(handle_input(struct httpd_state *s))
   PSOCK_BEGIN(&s->sin);
 
   PSOCK_READTO(&s->sin, ISO_space);
-  
+
   if(strncmp(s->inputbuf, http_get, 4) != 0) {
     PSOCK_CLOSE_EXIT(&s->sin);
   }
@@ -207,7 +207,7 @@ PT_THREAD(handle_input(struct httpd_state *s))
       webserver_log(s->inputbuf);
     }
   }
-  
+
   PSOCK_END(&s->sin);
 }
 /*---------------------------------------------------------------------------*/

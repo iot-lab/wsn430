@@ -34,13 +34,13 @@
  * @author David Moss
  * @author Jon Wyant
  */
- 
+
 configuration PacketLinkDummyC {
   provides {
     interface Send;
     interface PacketLink;
   }
-  
+
   uses {
     interface Send as SubSend;
   }
@@ -49,11 +49,11 @@ configuration PacketLinkDummyC {
 implementation {
   components PacketLinkDummyP,
       CC2420RadioC;
-  
+
   PacketLink = PacketLinkDummyP;
   Send = SubSend;
-  
+
   PacketLinkDummyP.PacketAcknowledgements -> CC2420RadioC;
-  
+
 }
 

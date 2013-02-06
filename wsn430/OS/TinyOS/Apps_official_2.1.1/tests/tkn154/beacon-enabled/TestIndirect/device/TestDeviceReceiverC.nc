@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2008, Technische Universitaet Berlin
  * All rights reserved.
  *
@@ -61,7 +61,7 @@ module TestDeviceReceiverC
   event void Boot.booted() {
     call MLME_RESET.request(TRUE);
   }
-  
+
   event void MLME_RESET.confirm(ieee154_status_t status)
   {
     if (status == IEEE154_SUCCESS)
@@ -73,12 +73,12 @@ module TestDeviceReceiverC
     ieee154_phyChannelsSupported_t channel;
     uint8_t scanDuration = BEACON_ORDER;
 
-    // in this application the coordinator assumes that 
-    // the device has a certain short address    
+    // in this application the coordinator assumes that
+    // the device has a certain short address
     call MLME_SET.macShortAddress(DEVICE_ADDRESS);
     channel = ((uint32_t) 1) << RADIO_CHANNEL;
 
-    // we want all received beacons to be signalled 
+    // we want all received beacons to be signalled
     // through the MLME_BEACON_NOTIFY interface, i.e.
     // we set the macAutoRequest attribute to FALSE
     call MLME_SET.macAutoRequest(FALSE);

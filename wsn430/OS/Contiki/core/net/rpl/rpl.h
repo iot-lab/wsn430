@@ -254,7 +254,7 @@ typedef struct rpl_stats rpl_stats_t;
 
 extern rpl_stats_t rpl_stats;
 
-#define RPL_STAT(code)	(code) 
+#define RPL_STAT(code)	(code)
 #else
 #define RPL_STAT(code)
 #endif /* RPL_CONF_STATS */

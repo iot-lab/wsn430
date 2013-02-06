@@ -102,12 +102,12 @@ module TestCoordReceiverC
 
   event void IEEE154TxBeaconPayload.modifyBeaconPayloadDone(uint8_t offset, void *buffer, uint8_t bufferLength) { }
 
-  event void IEEE154TxBeaconPayload.beaconTransmitted() 
+  event void IEEE154TxBeaconPayload.beaconTransmitted()
   {
     ieee154_macBSN_t beaconSequenceNumber = call MLME_GET.macBSN();
     if (beaconSequenceNumber & 1)
       call Leds.led2On();
     else
       call Leds.led2Off();
-  }  
+  }
 }

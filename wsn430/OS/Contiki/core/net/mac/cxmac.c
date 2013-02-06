@@ -537,7 +537,7 @@ send_packet(void)
   /* By setting we_are_sending to one, we ensure that the rtimer
      powercycle interrupt do not interfere with us sending the packet. */
   we_are_sending = 1;
-  
+
   t0 = RTIMER_NOW();
   strobes = 0;
 

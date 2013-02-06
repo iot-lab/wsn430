@@ -5,7 +5,7 @@
  * through dissemination. The default send rate is every 10s.
  *
  * See TEP118: Dissemination and TEP 119: Collection for details.
- * 
+ *
  * @author Philip Levis
  * @version $Revision: 1.1 $ $Date: 2009/09/16 00:53:47 $
  */
@@ -53,7 +53,7 @@ implementation {
     SEND_INTERVAL = 60*1024U,
   };
 
-  event void ReadSensor.readDone(error_t err, uint16_t val) { }  
+  event void ReadSensor.readDone(error_t err, uint16_t val) { }
 
   event void Boot.booted() {
     call SerialControl.start();
@@ -80,14 +80,14 @@ implementation {
   }
 
   event void RadioControl.stopDone(error_t err) {}
-  event void SerialControl.stopDone(error_t err) {}	
+  event void SerialControl.stopDone(error_t err) {}
 
   void failedSend() {
     dbg("App", "%s: Send failed.\n", __FUNCTION__);
     call CollectionDebug.logEvent(NET_C_DBG_1);
   }
 
-   
+
   void sendMessage() {
     TestNetworkMsg* msg = (TestNetworkMsg*)call Send.getPayload(&packet, sizeof(TestNetworkMsg));
     uint16_t metric;
@@ -110,12 +110,12 @@ implementation {
     }
     else {
       sendBusy = TRUE;
-      seqno++; 
+      seqno++;
       dbg("TestNetworkC", "%s: Transmission succeeded.\n", __FUNCTION__);
     }
   }
 
- 
+
   event void Timer.fired() {
     uint32_t nextInt;
     call Leds.led0Toggle();
@@ -134,17 +134,17 @@ implementation {
     sendBusy = FALSE;
     dbg("TestNetworkC", "Send completed.\n");
   }
-  
+
   event void DisseminationPeriod.changed() {
     const uint32_t* newVal = call DisseminationPeriod.get();
     call Timer.stop();
     call Timer.startPeriodic(*newVal);
   }
 
-  event message_t* 
+  event message_t*
   Receive.receive(message_t* msg, void* payload, uint8_t len) {
     dbg("TestNetworkC", "Received packet at %s from node %hhu.\n", sim_time_string(), call CollectionPacket.getOrigin(msg));
-    call Leds.led1Toggle();    
+    call Leds.led1Toggle();
     if (!call Pool.size() <= (TEST_NETWORK_QUEUE_SIZE < 4)? 1:3)  {
       //      call CtpCongestion.setClientCongested(TRUE);
     }
@@ -185,7 +185,7 @@ implementation {
     call Pool.put(msg);
     if (!call Queue.empty()) {
       post uartEchoTask();
-    } 
+    }
     else {
       //        call CtpCongestion.setClientCongested(FALSE);
     }
@@ -210,5 +210,5 @@ implementation {
     default command error_t CollectionDebug.logEventRoute(uint8_t type, am_addr_t parent, uint8_t hopcount, uint16_t metric) {
         return SUCCESS;
     }
- 
+
 }

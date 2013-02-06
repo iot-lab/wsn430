@@ -2,7 +2,7 @@
  * \addtogroup rimestbroadcast
  * @{
  */
-    
+
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -109,7 +109,7 @@ stbroadcast_send_stubborn(struct stbroadcast_conn *c, clock_time_t t)
   send(c);
   stbroadcast_set_timer(c, t);
   return 1;
-  
+
 }
 /*---------------------------------------------------------------------------*/
 void

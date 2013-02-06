@@ -2,9 +2,9 @@
  * Copyright (c) 2005 Intel Corporation
  * All rights reserved.
  *
- * This file is distributed under the terms in the attached INTEL-LICENSE     
+ * This file is distributed under the terms in the attached INTEL-LICENSE
  * file. If you do not find these files, copies can be found by writing to
- * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
+ * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA,
  * 94704.  Attention:  Intel License Inquiry.
  */
 /**
@@ -43,7 +43,7 @@ implementation {
     tmpShiftReg = shiftReg;
     endbit = ((tmpShiftReg & 0x8000) != 0);
     tmpShiftReg <<= 1;
-    if (endbit) 
+    if (endbit)
       tmpShiftReg ^= 0x100b;
     tmpShiftReg++;
     shiftReg = tmpShiftReg;
@@ -57,7 +57,7 @@ implementation {
     initSeed = shiftReg;
     mask = 137 * 29 * ((TOS_NODE_ID % 100) + 1);
   }
-  
+
   uint8_t data[512], rdata[512];
   int count, testCount;
   uint32_t len;
@@ -213,7 +213,7 @@ implementation {
   }
 
   const uint8_t actions[] = {
-    A_ERASE, 
+    A_ERASE,
     A_READ,
     A_WRITE,
     A_READ,

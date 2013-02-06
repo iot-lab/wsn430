@@ -24,26 +24,26 @@ uint16_t char_rx(uint8_t c);
 int main (void)
 {
     WDTCTL = WDTPW+WDTHOLD;                   // Stop watchdog timer
-    
+
     set_mcu_speed_xt2_mclk_8MHz_smclk_1MHz();
     set_aclk_div(1);
-    
+
     LEDS_INIT();
     LEDS_OFF();
     LED_BLUE_ON();
-    
+
     uart0_init(UART0_CONFIG_1MHZ_115200);
     uart0_register_callback(char_rx);
     printf("MAC test\r\n");
     eint();
-    
+
     mac_init(10);
     mac_set_rx_cb(packet_received);
     mac_set_error_cb(packet_error);
     mac_set_sent_cb(packet_sent);
-    
+
     printf("I'm %.4x\n", node_addr);
-    
+
     timerA_init();
     timerA_start_ACLK_div(TIMERA_DIV_8);
     timerA_register_cb(TIMERA_ALARM_CCR0, send_packet);
@@ -52,7 +52,7 @@ int main (void)
     {
         LPM1;
     }
-    
+
     return 0;
 }
 
@@ -65,7 +65,7 @@ uint16_t packet_received(uint8_t packet[], uint16_t length, uint16_t src_addr, i
         printf("%c", packet[i]);
     printf("\n");
     LED_BLUE_ON();
-    
+
     return 0;
 }
 
@@ -77,7 +77,7 @@ uint16_t send_packet(void) {
     count ++;
     printf("sending: %s\n", msg);
     mac_send(msg, len, MAC_BROADCAST);
-    
+
     return 0;
 }
 

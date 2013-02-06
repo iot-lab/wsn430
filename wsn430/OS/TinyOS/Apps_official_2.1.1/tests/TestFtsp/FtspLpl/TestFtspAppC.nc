@@ -62,5 +62,5 @@ implementation {
 #error "LPL timesync is not available for your platform"
 #endif
   App.Leds -> LedsC;
-  
+
 }

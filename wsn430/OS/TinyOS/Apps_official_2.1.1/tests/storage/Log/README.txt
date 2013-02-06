@@ -22,7 +22,7 @@ partial.  So, for instance, you could run the test with mote id = 104, then
 4, then run with mote id = 204 to test all these writes. Or you can just
 run the test with mote id = 4 to do a complete test.
 
-If the log fills up (which should take 4 or 5 write operations), the write 
+If the log fills up (which should take 4 or 5 write operations), the write
 will fail, but a subsequent read will succeed.
 
 A successful test will turn on the LED 1. A failed test will turn on

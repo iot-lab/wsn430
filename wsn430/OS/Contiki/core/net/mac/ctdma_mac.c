@@ -103,7 +103,7 @@ transmitter(void *ptr)
     {
       slot_start += PERIOD_LENGTH;
     }
-    
+
     PRINTF("TIMER Rescheduling until %u\n", slot_start);
     ctimer_set(&ctimer, slot_start - clock_time(), transmitter, NULL);
     return;
@@ -114,7 +114,7 @@ transmitter(void *ptr)
   {
     PRINTF("RADIO Transmitting packet #%i\n", id[nextsend]);
     if(!radio->send(
-        queuebuf_dataptr(data[nextsend]), 
+        queuebuf_dataptr(data[nextsend]),
         queuebuf_datalen(data[nextsend])))
     {
       sent_counter++;
@@ -147,7 +147,7 @@ static int
 send(void)
 {
   id_counter++;
-  
+
   /* Clean up already sent packets */
   while (lastqueued != nextsend)
   {
@@ -157,7 +157,7 @@ send(void)
 
     lastqueued = (lastqueued + 1) % NUM_PACKETS;
   }
-  
+
   if ((freeslot + 1) % NUM_PACKETS == lastqueued)
   {
     PRINTF("BUFFER Buffer full, dropping packet #%i\n", (id_counter+1));
@@ -175,8 +175,8 @@ send(void)
   PRINTF("BUFFER Wrote packet #%i to buffer \n", id[freeslot]);
 
   freeslot = (freeslot + 1) % NUM_PACKETS;
-  
-  if (!timer_on) 
+
+  if (!timer_on)
   {
     PRINTF("TIMER Starting timer\n");
     ctimer_set(&ctimer, CLOCK_SECOND, transmitter, NULL);

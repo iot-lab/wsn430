@@ -86,7 +86,7 @@ static void recv_runicast(struct runicast_conn *c, const rimeaddr_t *from, uint8
 			e = memb_alloc(&history_mem);
 			if (e == NULL) {
 				/* Remove oldest at full history */
-				e = list_chop(history_table);	
+				e = list_chop(history_table);
 			}
 			rimeaddr_copy(&e->addr, from);
 			e->seq = seqno;

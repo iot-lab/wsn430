@@ -72,7 +72,7 @@ PROCESS_THREAD(shell_reboot_process, ev, data)
   leds_on(LEDS_BLUE);
   etimer_reset(&etimer);
   PROCESS_WAIT_UNTIL(etimer_expired(&etimer));
-  
+
   watchdog_reboot();
 
   PROCESS_END();

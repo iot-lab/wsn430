@@ -9,7 +9,7 @@ The compilation is based on a Makefile that:
 * and get simple support for:
     * multiple targets with many common source files,
     * header dependency,
-    * mspgcc “uniarch” support 
+    * mspgcc “uniarch” support
     * and all the .elf and .hex files generation.
 
 

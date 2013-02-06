@@ -1,23 +1,23 @@
 /*
  * Copyright  2008-2009 INRIA/SensTools
- * 
+ *
  * <dev-team@sentools.info>
- * 
+ *
  * This software is a set of libraries designed to develop applications
  * for the WSN430 embedded hardware platform.
- * 
+ *
  * This software is governed by the CeCILL license under French law and
- * abiding by the rules of distribution of free software.  You can  use, 
+ * abiding by the rules of distribution of free software.  You can  use,
  * modify and/ or redistribute the software under the terms of the CeCILL
  * license as circulated by CEA, CNRS and INRIA at the following URL
- * "http://www.cecill.info". 
- * 
+ * "http://www.cecill.info".
+ *
  * As a counterpart to the access to the source code and  rights to copy,
  * modify and redistribute granted by the license, users are provided only
  * with a limited warranty  and the software's author,  the holder of the
  * economic rights,  and the successive licensors  have only  limited
- * liability. 
- * 
+ * liability.
+ *
  * In this respect, the user's attention is drawn to the risks associated
  * with loading,  using,  modifying and/or developing or reproducing the
  * software by the user in light of its specific status of free software,
@@ -25,10 +25,10 @@
  * therefore means  that it is reserved for developers  and  experienced
  * professionals having in-depth computer knowledge. Users are therefore
  * encouraged to load and test the software's suitability as regards their
- * requirements in conditions enabling the security of their systems and/or 
- * data to be ensured and,  more generally, to use and operate it in the 
- * same conditions as regards security. 
- * 
+ * requirements in conditions enabling the security of their systems and/or
+ * data to be ensured and,  more generally, to use and operate it in the
+ * same conditions as regards security.
+ *
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
@@ -38,7 +38,7 @@
  * \brief OS-free implementation of XMAC MAC protocol
  * \author Clément Burin des Roziers <clement.burin-des-roziers@inrialpes.fr>
  * \date November 2009
- * 
+ *
  */
 #include <io.h>
 #include <stdlib.h>
@@ -129,23 +129,23 @@ void mac_init(uint8_t channel)
     // initialize the unique serial number chip and set node address accordingly
     ds2411_init();
     node_addr = (((uint16_t)ds2411_id.serial1)<<8) + (ds2411_id.serial0);
-    
+
     // seed the random number generator
     srand(node_addr);
-    
+
     // reset callbacks
     received_cb = 0x0;
     sent_cb = 0x0;
     error_cb = 0x0;
-    
+
     // initialize the timerB
     timerB_init();
     timerB_start_ACLK_div(TIMERB_DIV_1);
-    
+
     // configure the radio
     cc1101_init();
     cc1101_cmd_idle();
-    
+
     /* configure the radio behaviour */
     cc1101_cfg_append_status(CC1101_APPEND_STATUS_ENABLE);
     cc1101_cfg_crc_autoflush(CC1101_CRC_AUTOFLUSH_DISABLE);
@@ -156,20 +156,20 @@ void mac_init(uint8_t channel)
     cc1101_cfg_mod_format(CC1101_MODULATION_MSK);
     cc1101_cfg_sync_mode(CC1101_SYNCMODE_30_32);
     cc1101_cfg_manchester_en(CC1101_MANCHESTER_DISABLE);
-    
+
     // freq = 860MHz
     cc1101_write_reg(CC1101_REG_FREQ2, 0x1F);
     cc1101_write_reg(CC1101_REG_FREQ1, 0xDA);
     cc1101_write_reg(CC1101_REG_FREQ0, 0x12);
-    
+
     // configure the radio channel (300kHz spacing)
     cc1101_cfg_chanspc_e(0x3);
     cc1101_cfg_chanspc_m(0x6C);
     cc1101_cfg_chan(channel<<1); // channel x2 to get 600kHz spacing
-    
+
     // rise CCA threshold
     cc1101_cfg_carrier_sense_abs_thr(3);
-    
+
     // set channel bandwidth (560 kHz)
     cc1101_cfg_chanbw_e(0);
     cc1101_cfg_chanbw_m(2);
@@ -181,7 +181,7 @@ void mac_init(uint8_t channel)
     // go to IDLE after RX and TX
     cc1101_cfg_rxoff_mode(CC1101_RXOFF_MODE_IDLE);
     cc1101_cfg_txoff_mode(CC1101_TXOFF_MODE_IDLE);
-    
+
     // configure WOR
     cc1101_cfg_rx_time(2); ///FIXME
     cc1101_cfg_wor_res(0);
@@ -195,23 +195,23 @@ void mac_init(uint8_t channel)
     table[0] = 0x27; // -10dBm
     cc1101_cfg_patable(table, 1);
     cc1101_cfg_pa_power(0);
-    
+
     // set IDLE state, flush everything, and start rx
     cc1101_cmd_idle();
     cc1101_cmd_flush_rx();
     cc1101_cmd_flush_tx();
     cc1101_cmd_calibrate();
-    
+
     // configure irq
     cc1101_cfg_gdo0(CC1101_GDOx_SYNC_WORD);
     cc1101_gdo0_int_set_falling_edge();
     cc1101_gdo0_int_clear();
     cc1101_gdo0_int_enable();
-    
+
     // start the machine
     set_wor();
 }
-   
+
 void mac_set_rx_cb(mac_received_t cb) {
     received_cb = cb;
 }
@@ -223,21 +223,21 @@ void mac_set_sent_cb(mac_sent_t cb) {
 void mac_set_error_cb(mac_error_t cb) {
     error_cb = cb;
 }
- 
+
 uint16_t mac_send(uint8_t packet[], uint16_t length, uint16_t dst_addr) {
     // check length
     if (length>PACKET_LENGTH_MAX) {
         printf("mac_send, packet length error\n");
         return 2;
     }
-    
+
     // check state
     if (frame_to_send) {
         // there is already a frame about to be sent
         printf("mac_send, frame_to_send=1 error\n");
         return 1;
     }
-    
+
     // prepare header
     txframe.length = length + HEADER_LENGTH;
     txframe.type = TYPE_DATA;
@@ -245,16 +245,16 @@ uint16_t mac_send(uint8_t packet[], uint16_t length, uint16_t dst_addr) {
     txframe.dst_addr[1] = dst_addr & 0xFF;
     txframe.src_addr[0] = node_addr>>8;
     txframe.src_addr[1] = node_addr & 0xFF;
-    
+
     // copy payload
     uint16_t i;
     for (i = 0; i < length; i++)
         txframe.payload[i] = packet[i];
-    
+
     // update frame to send flag
     frame_to_send = 1;
     delay_count = 0;
-    
+
     // call try_send to start TX procedure
     try_send();
     return 0;
@@ -262,7 +262,7 @@ uint16_t mac_send(uint8_t packet[], uint16_t length, uint16_t dst_addr) {
 
 static uint16_t set_wor(void) {
     cc1101_cmd_idle();
-    
+
     cc1101_cfg_txoff_mode(CC1101_TXOFF_MODE_IDLE);
     cc1101_cfg_rxoff_mode(CC1101_RXOFF_MODE_IDLE);
     cc1101_cfg_cca_mode(CC1101_CCA_MODE_RSSI_PKT_RX);
@@ -271,11 +271,11 @@ static uint16_t set_wor(void) {
 
     cc1101_gdo0_register_callback(read_frame);
     cc1101_gdo0_int_clear();
-    
+
     cc1101_cmd_wor();
-    
+
     state = STATE_WOR;
-    
+
     return 0;
 }
 
@@ -283,16 +283,16 @@ static uint16_t try_send(void) {
     //~ printf("try\n");
     if (state == STATE_WOR) {
         state = STATE_TX;
-        
+
         // start RX
         cc1101_cmd_idle();
         cc1101_cmd_rx();
-        
+
         // set a timer to check if the channel is free, the time to have a valid RSSI
         timerB_set_alarm_from_now(ALARM_PREAMBLE, SEND_PERIOD, 0);
         timerB_register_cb(TIMERB_ALARM_CCR0, medium_clear);
         cc1101_cfg_rc_pd(CC1101_RC_OSC_DISABLE);
-        
+
         // change GDO to SyncWord, and its callback
         cc1101_gdo0_int_disable();
         cc1101_gdo0_int_set_rising_edge();
@@ -315,7 +315,7 @@ static uint16_t delay_send(void) {
     if (delay_count >= MAX_DELAY_COUNT) {
         // abort
         frame_to_send = 0;
-        if (error_cb) 
+        if (error_cb)
             return error_cb();
     } else {
         // set a long random delay to send the packet
@@ -325,7 +325,7 @@ static uint16_t delay_send(void) {
         delay += 1638; // 1638<=delay<=34406 (50ms <= delay < 1.05s)
         timerB_set_alarm_from_now(ALARM_RETRY, delay, 0);
         timerB_register_cb(ALARM_RETRY, try_send);
-        
+
         delay_count++;
     }
     return 0;
@@ -337,17 +337,17 @@ static uint16_t medium_clear(void) {
     cc1101_cfg_fs_autocal(CC1101_AUTOCAL_NEVER);
     cc1101_cfg_txoff_mode(CC1101_TXOFF_MODE_RX);
     cc1101_cfg_cca_mode(CC1101_CCA_MODE_ALWAYS);
-    
+
     // change GDO to EoP, and its callback
     cc1101_gdo0_int_disable();
     cc1101_gdo0_int_set_falling_edge();
     cc1101_gdo0_int_clear();
     cc1101_gdo0_int_enable();
     cc1101_gdo0_register_callback(read_ack);
-    
+
     // remove irq in case it happened
     cc1101_gdo0_int_clear();
-    
+
     // prepare frame
     frame.length = HEADER_LENGTH;
     frame.type = TYPE_PREAMBLE;
@@ -355,20 +355,20 @@ static uint16_t medium_clear(void) {
     frame.dst_addr[1] = txframe.dst_addr[1];
     frame.src_addr[0] = node_addr>>8;
     frame.src_addr[1] = node_addr & 0xFF;
-    
+
     // set periodic alarm for sending preambles
     timerB_set_alarm_from_now(ALARM_PREAMBLE, SEND_PERIOD, SEND_PERIOD);
     timerB_register_cb(ALARM_PREAMBLE, send_preamble);
     preamble_count = 0;
-    
+
     send_preamble();
-        
+
     return 0;
 }
 
 static uint16_t send_preamble(void) {
     preamble_count ++;
-    
+
     if (preamble_count >= MAX_PREAMBLE_COUNT) {
         send_data();
         return 0;
@@ -377,7 +377,7 @@ static uint16_t send_preamble(void) {
     cc1101_cmd_flush_rx();
     cc1101_cmd_flush_tx();
     cc1101_cmd_tx();
-    
+
     cc1101_fifo_put((uint8_t*)(&frame.length), frame.length+1);
     return 0;
 }
@@ -386,7 +386,7 @@ static uint16_t read_ack(void) {
     static struct {
         uint8_t length, type, dst_addr[2], src_addr[2], status[2];
     } ack;
-    
+
     // check if radio state is idle
     if ( (cc1101_status() & 0x70) != 0x0) {
         // if not this means a preamble has been sent
@@ -397,7 +397,7 @@ static uint16_t read_ack(void) {
         // CRC error, abort
         return 0;
     }
-    
+
     // we got a frame
     // Check Length is correct
     cc1101_fifo_get( (uint8_t*) &(ack.length), 1);
@@ -405,23 +405,23 @@ static uint16_t read_ack(void) {
         // length doesn't match the frame
         return 0;
     }
-    
+
     // Get Frame bytes and status
     cc1101_fifo_get( (uint8_t*) &(ack.length)+1, ack.length+2);
-    
+
     // check type
     if (ack.type != TYPE_ACK) {
         // type error
         return 0;
     }
-    
+
     // Check address
     if ( (ack.dst_addr[0] != (node_addr>>8)) || (ack.dst_addr[1] != (node_addr&0xFF)) ||
         (ack.src_addr[0] != txframe.dst_addr[0]) || (ack.src_addr[1] != txframe.dst_addr[1]) ) {
         // addresses don't match
         return 0;
     }
-    
+
     // everything's good, send data
     send_data();
     return 0;
@@ -433,9 +433,9 @@ static uint16_t send_data(void) {
     cc1101_cmd_idle();
     cc1101_cmd_flush_rx();
     cc1101_cmd_flush_tx();
-    
+
     cc1101_cfg_txoff_mode(CC1101_TXOFF_MODE_IDLE);
-    
+
     cc1101_cmd_tx();
     cc1101_fifo_put((uint8_t*)(&txframe.length), txframe.length+1);
     cc1101_gdo0_register_callback(send_done);
@@ -457,21 +457,21 @@ static uint16_t send_done(void) {
         cc1101_cmd_idle();
         cc1101_cmd_flush_rx();
         cc1101_cmd_rx();
-            
+
         // change GDO to EoP, and its callback
         cc1101_gdo0_int_disable();
         cc1101_gdo0_int_set_falling_edge();
         cc1101_gdo0_int_clear();
         cc1101_gdo0_int_enable();
         cc1101_gdo0_register_callback(read_dataack);
-    
+
         // set a timer alarm in case we never get an ACK
         timerB_set_alarm_from_now(ALARM_TIMEOUT, ACK_TIMEOUT, 0);
         timerB_register_cb(ALARM_TIMEOUT, ack_timeout);
-        
+
     }
-    
-    
+
+
     return 0;
 }
 
@@ -480,7 +480,7 @@ static uint16_t read_dataack(void) {
     static struct {
         uint8_t length, type, dst_addr[2], src_addr[2];
     } ack;
-    
+
     // Check CRC
     if ( !(cc1101_status_crc_lqi() & 0x80) ) {
         // CRC error, abort
@@ -488,7 +488,7 @@ static uint16_t read_dataack(void) {
         cc1101_cmd_rx();
         return 0;
     }
-    
+
     // we got a frame
     // Check Length is correct
     cc1101_fifo_get( (uint8_t*) &(ack.length), 1);
@@ -498,10 +498,10 @@ static uint16_t read_dataack(void) {
         cc1101_cmd_rx();
         return 0;
     }
-    
+
     // Get Frame bytes
     cc1101_fifo_get( (uint8_t*) &(ack.length)+1, ack.length);
-    
+
     // check type
     if (ack.type != TYPE_DATAACK) {
         // type error
@@ -509,7 +509,7 @@ static uint16_t read_dataack(void) {
         cc1101_cmd_rx();
         return 0;
     }
-    
+
     // Check address
     if ( (ack.dst_addr[0] != (node_addr>>8)) || (ack.dst_addr[1] != (node_addr&0xFF)) ||
         (ack.src_addr[0] != txframe.dst_addr[0]) || (ack.src_addr[1] != txframe.dst_addr[1]) ) {
@@ -518,13 +518,13 @@ static uint16_t read_dataack(void) {
         cc1101_cmd_rx();
         return 0;
     }
-    
+
     // everything's good, send is really done
     timerB_unset_alarm(ALARM_TIMEOUT);
     set_wor();
     frame_to_send = 0;
     if (sent_cb) return sent_cb();
-    
+
     return 0;
 }
 
@@ -537,23 +537,23 @@ static uint16_t ack_timeout(void) {
 static uint16_t medium_busy(void) {
     // stop the timer
     timerB_unset_alarm(ALARM_PREAMBLE);
-    
+
     // change GDO to EOP, and its callback
     cc1101_gdo0_int_disable();
     cc1101_gdo0_int_set_falling_edge();
     cc1101_gdo0_int_clear();
     cc1101_gdo0_int_enable();
     cc1101_gdo0_register_callback(read_frame);
-    
+
     // check if frame received
     if ( !cc1101_gdo0_read() ) {
         cc1101_gdo0_int_clear();
         read_frame();
     }
-    
+
     // set a delay for a retry
     delay_send();
-    
+
     return 0;
 }
 
@@ -563,12 +563,12 @@ static uint16_t read_frame(void) {
     uint16_t src, dst;
     uint8_t status[2];
     int16_t rssi;
-    
+
     state = STATE_RX;
-    
+
     // deactivate timeout alarm
     timerB_unset_alarm(ALARM_TIMEOUT);
-    
+
     // Check CRC
     if ( !(cc1101_status_crc_lqi() & 0x80) ) {
         // CRC error, abort
@@ -576,7 +576,7 @@ static uint16_t read_frame(void) {
         set_wor();
         return 0;
     }
-    
+
     // Check Length is correct
     cc1101_fifo_get( (uint8_t*) &(frame.length), 1);
     if (frame.length < HEADER_LENGTH || frame.length > PACKET_LENGTH_MAX) {
@@ -585,17 +585,17 @@ static uint16_t read_frame(void) {
         set_wor();
         return 0;
     }
-    
+
     // Get Frame
     cc1101_fifo_get( (uint8_t*) &(frame.length)+1, frame.length);
-    
+
     // Get Status
     cc1101_fifo_get( (uint8_t*) status, 2);
-    
+
     // Compute addresses
     dst = (((uint16_t)frame.dst_addr[0])<<8) + frame.dst_addr[1];
     src = (((uint16_t)frame.src_addr[0])<<8) + frame.src_addr[1];
-    
+
     // Check Frame Type
     if (frame.type == TYPE_PREAMBLE) {
         // preamble
@@ -608,7 +608,7 @@ static uint16_t read_frame(void) {
             frame.dst_addr[1] = frame.src_addr[1];
             frame.src_addr[0] = node_addr>>8;
             frame.src_addr[1] = node_addr & 0xFF;
-            
+
             // configure auto switch
             cc1101_cfg_txoff_mode(CC1101_TXOFF_MODE_RX);
             cc1101_cfg_cca_mode(CC1101_CCA_MODE_ALWAYS);
@@ -616,25 +616,25 @@ static uint16_t read_frame(void) {
             cc1101_cfg_fs_autocal(CC1101_AUTOCAL_NEVER);
             cc1101_cmd_flush_rx();
             cc1101_cmd_flush_tx();
-            
+
             // update callback
             cc1101_gdo0_register_callback(ack_sent);
-            
+
             // Start TX
             cc1101_cmd_tx();
-            
+
             // Put frame in TX FIFO
             cc1101_fifo_put((uint8_t*)&frame.length, frame.length+1);
-            
+
             return 0;
-            
+
         } else if (dst == 0xFFFF) {
             // for broadcast
             // we keep listening until we get data
             cc1101_cmd_flush_rx();
             cc1101_cmd_flush_tx();
             cc1101_cmd_rx();
-            
+
             // set a timer alarm in case we never get a data frame
             timerB_set_alarm_from_now(ALARM_TIMEOUT, SEND_PERIOD*MAX_PREAMBLE_COUNT, 0);
             timerB_register_cb(ALARM_TIMEOUT, set_wor);
@@ -644,11 +644,11 @@ static uint16_t read_frame(void) {
             set_wor();
             return 0;
         }
-        
+
     } else if (frame.type == TYPE_DATA) {
         // data
         int len = frame.length-HEADER_LENGTH;
-        
+
         // if for me, send ACK
         if (dst == node_addr) {
             // send DATAACK
@@ -658,19 +658,19 @@ static uint16_t read_frame(void) {
             frame.dst_addr[1] = frame.src_addr[1];
             frame.src_addr[0] = node_addr>>8;
             frame.src_addr[1] = node_addr & 0xFF;
-            
+
             // update callback
             cc1101_gdo0_register_callback(set_wor);
-            
+
             // Start TX
             cc1101_cmd_tx();
-            
+
             // Put frame in TX FIFO
             cc1101_fifo_put((uint8_t*)&frame.length, frame.length+1);
         } else {
             set_wor();
         }
-        
+
         if (dst == node_addr || dst == 0xFFFF) {
             // for me, call handler
             if (received_cb) {
@@ -685,14 +685,14 @@ static uint16_t read_frame(void) {
         set_wor();
         return 0;
     }
-    
+
     return 0;
 }
 
 static uint16_t ack_sent(void) {
     // now we wait for data
     cc1101_gdo0_register_callback(read_frame);
-    
+
     // set a timer alarm in case we never get a data frame
     timerB_set_alarm_from_now(ALARM_TIMEOUT, SEND_PERIOD*4, 0);
     timerB_register_cb(ALARM_TIMEOUT, set_wor);

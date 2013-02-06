@@ -6,7 +6,7 @@
 /**
  * \file
  *         ICMPv6 echo request and error messages (RFC 4443)
- * \author Julien Abeille <jabeille@cisco.com> 
+ * \author Julien Abeille <jabeille@cisco.com>
  * \author Mathilde Durvy <mdurvy@cisco.com>
  */
 
@@ -78,7 +78,7 @@ uip_icmp6_echo_request_input(void)
   PRINTF("to");
   PRINT6ADDR(&UIP_IP_BUF->destipaddr);
   PRINTF("\n");
-  
+
   /* IP header */
   UIP_IP_BUF->ttl = uip_ds6_if.cur_hop_limit;
 
@@ -103,7 +103,7 @@ uip_icmp6_echo_request_input(void)
      * Note: UIP_ICMP_BUF still points to the echo request at this stage
      */
     memmove((void *)UIP_ICMP_BUF + UIP_ICMPH_LEN - uip_ext_len,
-            (void *)UIP_ICMP_BUF + UIP_ICMPH_LEN, 
+            (void *)UIP_ICMP_BUF + UIP_ICMPH_LEN,
             (uip_len - UIP_IPH_LEN - UIP_ICMPH_LEN));
   }
   /* Below is important for the correctness of UIP_ICMP_BUF and the
@@ -115,7 +115,7 @@ uip_icmp6_echo_request_input(void)
   UIP_ICMP_BUF->icode = 0;
   UIP_ICMP_BUF->icmpchksum = 0;
   UIP_ICMP_BUF->icmpchksum = ~uip_icmp6chksum();
- 
+
   PRINTF("Sending Echo Reply to");
   PRINT6ADDR(&UIP_IP_BUF->destipaddr);
   PRINTF("from");
@@ -136,12 +136,12 @@ uip_icmp6_error_output(u8_t type, u8_t code, u32_t param) {
   }
 
   /* remember data of original packet before shifting */
-  uip_ipaddr_copy(&tmp_ipaddr, &UIP_IP_BUF->destipaddr);   
-    
+  uip_ipaddr_copy(&tmp_ipaddr, &UIP_IP_BUF->destipaddr);
+
   uip_len += UIP_IPICMPH_LEN + UIP_ICMP6_ERROR_LEN;
-  
+
   if(uip_len > UIP_LINK_MTU)
-    uip_len = UIP_LINK_MTU; 
+    uip_len = UIP_LINK_MTU;
 
   memmove((void *)UIP_ICMP6_ERROR_BUF + UIP_ICMP6_ERROR_LEN,
           (void *)UIP_IP_BUF, uip_len - UIP_IPICMPH_LEN - UIP_ICMP6_ERROR_LEN);
@@ -158,7 +158,7 @@ uip_icmp6_error_output(u8_t type, u8_t code, u32_t param) {
     uip_len = 0;
     return;
   }
-  
+
   uip_ipaddr_copy(&UIP_IP_BUF->destipaddr, &UIP_IP_BUF->srcipaddr);
 
   if(uip_is_addr_mcast(&tmp_ipaddr)){
@@ -176,7 +176,7 @@ uip_icmp6_error_output(u8_t type, u8_t code, u32_t param) {
     uip_ipaddr_copy(&UIP_IP_BUF->srcipaddr, &tmp_ipaddr);
 #endif
   }
-  
+
   UIP_ICMP_BUF->type = type;
   UIP_ICMP_BUF->icode = code;
   UIP_ICMP6_ERROR_BUF->param = uip_htonl(param);

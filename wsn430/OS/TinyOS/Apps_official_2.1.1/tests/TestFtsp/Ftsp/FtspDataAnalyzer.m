@@ -25,7 +25,7 @@ while (row<=size(data1,1))
         end
         row = row + 1;
     end
-    
+
     if (row2>1)
         row2size=row2-1;
         rcvdsize=row-tmprow1;
@@ -57,4 +57,3 @@ else
     savedata = newdata(1:newsize,:);
     save data.out savedata -ASCII;
 end
-    

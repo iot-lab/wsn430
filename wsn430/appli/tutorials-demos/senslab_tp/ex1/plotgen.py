@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
 class SenslabPlot:
-    
+
     def __init__(self, nodeNum=1, t0=0, duration=-1):
         self.node = nodeNum
-        
+
         self.t0 = t0
         self.duration = duration
 
@@ -12,11 +12,11 @@ class SenslabPlot:
     	"""Return True if t is within the range defined by self.t0 and self.duration"""
 
 	return t >= self.t0 and (self.duration == -1 or t <= self.duration + t0)
-                
+
     def fetch_current(self):
         fileDesc = open("current.csv")
         max = 0.
-                
+
         values = fileDesc.readline()
         current = open("current.dat", "w")
         while values != "":
@@ -30,15 +30,15 @@ class SenslabPlot:
                         if i>max: max = i
                 values = fileDesc.readline()
             except: pass
-                
-            
+
+
         fileDesc.close()
         self.i_max = max*1.2
-    
+
     def fetch_voltage(self):
         fileDesc = open("voltage.csv")
         max = 0.
-     
+
         values = fileDesc.readline()
         voltage = open("voltage.dat", "w")
         while values != "":
@@ -52,19 +52,19 @@ class SenslabPlot:
                         if v>max: max = v
                 values = fileDesc.readline()
             except: pass
-                
+
 
         fileDesc.close()
         self.v_max = max*1.1
-    
-    
+
+
     def gen_cv_plot(self):
-        
+
         self.fetch_current()
         self.fetch_voltage()
-        
+
         gnu = open("plot.gnu", "w")
-        
+
         gnu.write("""
 set term png size 800, 600
 set output 'cv_plot.png'
@@ -89,7 +89,7 @@ plot 'current.dat' using 1:2 with lines title 'current' axis x1y1, \\
      'voltage.dat' using 1:2 with lines title 'voltage' axis x1y2
 """)
         gnu.close()
-        
+
         from subprocess import call
         call(["gnuplot", "plot.gnu"])
 
@@ -101,7 +101,7 @@ def print_usage():
 
 if __name__=='__main__':
     import sys, getpass, os
-    
+
     if len(sys.argv) not in [2, 4]:
         print_usage()
         sys.exit(1)
@@ -111,7 +111,7 @@ if __name__=='__main__':
         print_usage()
         print "<nodeNum> must be integer"
         sys.exit(1)
-    
+
     if len(sys.argv)==4:
         try:
             t0 = float(sys.argv[2])
@@ -123,6 +123,6 @@ if __name__=='__main__':
     else:
         t0 = 0
         dur = -1
-       
-    c = SenslabPlot(node, t0, dur)    
+
+    c = SenslabPlot(node, t0, dur)
     c.gen_cv_plot()

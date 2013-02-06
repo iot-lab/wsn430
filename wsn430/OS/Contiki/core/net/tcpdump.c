@@ -119,7 +119,7 @@ struct udpip_hdr {
    u16_t ipchksum;
   u8_t srcipaddr[4],
     destipaddr[4];
-  
+
   /* UDP header. */
   u16_t srcport,
     destport;
@@ -212,7 +212,7 @@ tcpdump_format(u8_t *packet, u16_t packetlen,
 	     n(IPBUF->srcipaddr[1], d(
              n(IPBUF->srcipaddr[0],
 	     buf)))))))))))))))) - buf;
-	     
+
       /*      return sprintf(buf, "%d.%d.%d.%d %d.%d.%d.%d ping",
 		     IPBUF->srcipaddr[0], IPBUF->srcipaddr[1],
 		     IPBUF->srcipaddr[2], IPBUF->srcipaddr[3],

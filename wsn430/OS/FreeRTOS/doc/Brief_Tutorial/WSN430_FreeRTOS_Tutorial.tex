@@ -75,7 +75,7 @@ A co-routine may be in the following states:
 	\item[Blocked:] the co-routine is waiting for an event to be Ready again.
 \end{description}
 
-The co-routines of an application are prioritized, that is when the scheduler have to choose a co-routine to execute it will take the one in the Ready state with the highest priority. When tasks and co-routines are use simultaneously in an application, any task will always take priority over co-routines. 
+The co-routines of an application are prioritized, that is when the scheduler have to choose a co-routine to execute it will take the one in the Ready state with the highest priority. When tasks and co-routines are use simultaneously in an application, any task will always take priority over co-routines.
 
 \section{Intertask Communication}
 \subsection{Queues}
@@ -133,9 +133,9 @@ Then we need some 'define' for simple LEDs handling:
 
 Then the file's prototypes:
 \begin{verbatim}
-/* 
+/*
  * The LEDs flashing tasks
- */ 
+ */
 static void vTaskLED0( void *pvParameters );
 static void vTaskLED1( void *pvParameters );
 static void vTaskLED2( void *pvParameters );
@@ -151,7 +151,7 @@ int main( void )
 {
   /* Setup the hardware ready for the demo. */
   prvSetupHardware();
-  
+
   /* Start the LEDs tasks  */
   xTaskCreate( vTaskLED0, "LED0", configMINIMAL_STACK_SIZE, \
      NULL, mainLED_TASK_PRIORITY, NULL );
@@ -299,19 +299,19 @@ static void vLEDTask(void* pvParameters)
     uint16_t led_state = 0;
     /* The LEDs are updated every 200 ticks, about 200 ms */
     const uint16_t blinkDelay = 200;
-    
+
     /* Initialize the LEDs */
     LEDS_INIT();
-    
+
     /* Infinite loop */
     while (1)
     {
         /* Set the LEDs according to the value of the led_state value */
         LEDS_SET(led_state);
-        
+
         /* Increment the variable */
         led_state += 1;
-        
+
         /* Block the task for the defined time */
         vTaskDelay(blinkDelay);
     }
@@ -330,23 +330,23 @@ static void vTempTask(void* pvParameters)
     uint16_t xLastWakeTime = xTaskGetTickCount();
     /* The display period is 1000 ticks, about 1s */
     const uint16_t xWakePeriod = 1000;
-    
+
     /* Initialize the uart port, and the temperature sensor */
     uart0_init(UART0_CONFIG_1MHZ_115200);
     ds1722_init();
     ds1722_set_res(8);
     ds1722_sample_cont();
-    
+
     /* Infinite loop */
     while(1)
     {
         /* Read the sensor and increment the sample count */
         msb = ds1722_read_MSB();
         samplecount++;
-        
+
         /* Print the result on the uart port */
         printf("Sample #%u: temperature = %u C\r\n", samplecount, msb);
-        
+
         /* Block until xWakePeriod ticks since previous call */
         vTaskDelayUntil(&xLastWakeTime, xWakePeriod);
     }
@@ -366,15 +366,15 @@ int main( void )
 {
     /* Setup the hardware. */
     prvSetupHardware();
-    
+
     /* Add the two tasks to the scheduler */
     xTaskCreate(vLEDTask, "LED", configMINIMAL_STACK_SIZE, NULL, 1, NULL );
     xTaskCreate(vTempTask, "Temperature", configMINIMAL_STACK_SIZE, NULL, 1, NULL );
-    
-    
+
+
     /* Start the scheduler. */
     vTaskStartScheduler();
-    
+
     /* As the scheduler has been started we should never get here! */
     return 0;
 }
@@ -396,18 +396,18 @@ int main( void )
 {
     /* Setup the hardware. */
     prvSetupHardware();
-    
+
     /* Create the Queue for communication between the tasks */
     xQueue = xQueueCreate( 5, sizeof(uint8_t) );
-    
+
     /* Add the two tasks to the scheduler */
     xTaskCreate(vPrintTask, "Print", configMINIMAL_STACK_SIZE, NULL, 1, NULL );
     xTaskCreate(vTempTask, "Temperature", configMINIMAL_STACK_SIZE, NULL, 1, NULL );
-    
-    
+
+
     /* Start the scheduler. */
     vTaskStartScheduler();
-    
+
     /* As the scheduler has been started we should never get here! */
     return 0;
 }
@@ -428,10 +428,10 @@ static void vPrintTask(void* pvParameters)
 {
     uint8_t temp_meas;
     uint16_t samplecount = 0;
-    
-    /* Initialize the uart port */   
+
+    /* Initialize the uart port */
     uart0_init(UART0_CONFIG_1MHZ_115200);
-    
+
     /* Infinite loop */
     while (1)
     {
@@ -454,24 +454,24 @@ static void vTempTask(void* pvParameters)
 {
     uint8_t msb;
     uint16_t xLastWakeTime = xTaskGetTickCount();
-    
+
     /* The sample period is 1000 ticks, about 1s */
     const uint16_t xWakePeriod = 1000;
-    
+
     /* Initialize the temperature sensor */
     ds1722_init();
     ds1722_set_res(8);
     ds1722_sample_cont();
-    
+
     /* Infinite loop */
     while(1)
     {
         /* Read the sensor */
         msb = ds1722_read_MSB();
-        
+
         /* Put the read value on the queue */
         xQueueSendToBack(xQueue, &msb, 0);
-        
+
         /* Block until xWakePeriod(=1000) ticks since previous call */
         vTaskDelayUntil(&xLastWakeTime, xWakePeriod);
     }
@@ -497,16 +497,16 @@ int main( void )
 {
     /* Setup the hardware. */
     prvSetupHardware();
-    
+
     /* Create the Semaphore for synchronization between UART and LED task */
     vSemaphoreCreateBinary( xSemaphore)
-    
+
     /* Add the only task to the scheduler */
     xTaskCreate(vLEDTask, "LED", configMINIMAL_STACK_SIZE, NULL, 1, NULL );
-    
+
     /* Start the scheduler. */
     vTaskStartScheduler();
-    
+
     /* As the scheduler has been started we should never get here! */
     return 0;
 }
@@ -522,10 +522,10 @@ The LED task initializes the LED driver, and enters its loop where it increments
 static void vLEDTask(void* pvParameters)
 {
     uint16_t leds_state = 0;
-    
+
     /* Initialize the LEDs */
     LEDS_INIT();
-    
+
     /* Infinite loop */
     while(1)
     {
@@ -576,24 +576,24 @@ int main( void )
 {
     /* Setup the hardware. */
     prvSetupHardware();
-    
+
     /* Create the Queues */
     xRadioQueue = xQueueCreate( 5, sizeof(uint8_t) );
     xFlashQueue = xQueueCreate( 5, sizeof(uint8_t) );
-    
+
     /* Create the Mutex */
     xSPIMutex = xSemaphoreCreateMutex();
-    
+
     /* Add the tasks to the scheduler */
     xTaskCreate(vTempTask, "Temperature", configMINIMAL_STACK_SIZE, NULL, 1, NULL );
     xTaskCreate(vFlashTask, "Flash",      configMINIMAL_STACK_SIZE, NULL, 1, NULL );
-    
+
     /* Create the Radio Task */
     vCreateRadioTask(xRadioQueue, xSPIMutex);
-    
+
     /* Start the scheduler. */
     vTaskStartScheduler();
-    
+
     /* As the scheduler takes been started we should never get here! */
     return 0;
 }
@@ -613,13 +613,13 @@ static void vTempTask(void* pvParameters)
     uint8_t msb;
     uint16_t xLastWakeTime = xTaskGetTickCount();
     uint16_t sampleCount = 0, sampleAvg = 0;
-    
+
     /* The sample period is 200 ticks, about 200 ms */
     const uint16_t xWakePeriod    = 200;
-    
+
     /* The maximum time waiting for the mutex is 100 ticks */
     const uint16_t xMaxMutexBlockTime = 100;
-    
+
     /* Initialize the temperature sensor */
     xSemaphoreTake(xSPIMutex, portMAX_DELAY);
     LED_GREEN_ON();
@@ -628,13 +628,13 @@ static void vTempTask(void* pvParameters)
     ds1722_sample_cont();
     LED_GREEN_OFF();
     xSemaphoreGive(xSPIMutex);
-    
+
     /* Infinite loop */
     while(1)
     {
         /* Block until xWakePeriod ticks since previous call */
         vTaskDelayUntil(&xLastWakeTime, xWakePeriod);
-        
+
         /* Try to take the mutex for xMaxMutexBlockTime ticks max */
         if ( xSemaphoreTake(xSPIMutex, xMaxMutexBlockTime) )
         {
@@ -642,15 +642,15 @@ static void vTempTask(void* pvParameters)
             /* If got the mutex : */
             /* Read the sensor */
             msb = ds1722_read_MSB();
-            
+
             /* Give the mutex back */
             xSemaphoreGive(xSPIMutex);
             LED_GREEN_OFF();
-            
+
             /* Do calculation */
             sampleAvg += msb;
             sampleCount += 1;
-            
+
             if (sampleCount == 4)
             {
                 sampleAvg >>= 2;
@@ -658,7 +658,7 @@ static void vTempTask(void* pvParameters)
                  * Don't block */
                 xQueueSendToBack(xFlashQueue, &sampleAvg, 0);
                 xQueueSendToBack(xRadioQueue, &sampleAvg, 0);
-                
+
                 /* Reset the variables */
                 sampleCount = 0;
                 sampleAvg = 0;
@@ -676,7 +676,7 @@ It then loops waiting for an item to be put in the queue, and copies it to a buf
 \begin{verbatim}
 /**
  * The Flash task function.
- * It waits for incoming data. It stores data from the queue 
+ * It waits for incoming data. It stores data from the queue
  * in a 256byte local buffer, and when it's full, writes it to the flash.
  * \param pvParameter NULL is passed as parameter.
  */
@@ -686,23 +686,23 @@ static void vFlashTask(void* pvParameters)
     uint8_t  buffer[256];
     uint16_t buffer_index = 0;
     uint16_t flash_page = 0;
-    
+
     /* Wait for the mutex to be free and take it */
     xSemaphoreTake(xSPIMutex, portMAX_DELAY);
-    
+
     /* Erase the flash */
     LED_RED_ON();
     printf("Flash takes mutex\r\n");
     m25p80_init();
     m25p80_erase_bulk();
     m25p80_load_page(0, buffer);
-    
+
     printf("Flash gives mutex\r\n");
     LED_RED_OFF();
-    
+
     /* Give the mutex back */
     xSemaphoreGive(xSPIMutex);
-    
+
     while (1)
     {
         /* Wait for an item to be put in the queue */
@@ -711,21 +711,21 @@ static void vFlashTask(void* pvParameters)
             /* Store this item in the buffer */
             buffer[buffer_index] = rx_item;
             buffer_index++;
-            
+
             if (buffer_index == 256)
             {
                 buffer_index = 0;
-                
+
                 xSemaphoreTake(xSPIMutex, portMAX_DELAY);
                 LED_RED_ON();
                 printf("Flash takes mutex\r\n");
-                
+
                 m25p80_save_page(flash_page, buffer);
-                
+
                 printf("Flash gives mutex\r\n");
                 LED_RED_OFF();
                 xSemaphoreGive(xSPIMutex);
-                
+
                 flash_page ++;
             }
         }
@@ -742,14 +742,14 @@ void vCreateRadioTask(xQueueHandle xQueue, xSemaphoreHandle xMutex)
     /* Stores the handles */
     xDataQueue = xQueue;
     xSPIMutex = xMutex;
-    
+
     /* Create a Semaphore for synchronization with radio interrupts */
     vSemaphoreCreateBinary(xTxSem);
     xSemaphoreTake(xTxSem, 0);
-    
+
     /* Add the radio task to the scheduler */
     xTaskCreate(vRadioTask, "Radio", configMINIMAL_STACK_SIZE, NULL, 1, NULL );
-    
+
 }
 
 /**
@@ -762,17 +762,17 @@ static void vRadioTask(void* pvParameters)
     uint8_t tx_buffer[4];
     uint16_t tx_buffer_index = 0;
     uint8_t tx_length = 4;
-    
+
     /* Take the mutex */
     xSemaphoreTake(xSPIMutex, portMAX_DELAY);
     LED_BLUE_ON();
     printf("Radio takes mutex\r\n");
-    
+
     /* Initialize the radio chip driver, and configure the radio */
-    
+
     cc1101_init();
     cc1101_cmd_idle();
-    
+
     cc1101_cfg_append_status(CC1101_APPEND_STATUS_DISABLE);
     cc1101_cfg_crc_autoflush(CC1101_CRC_AUTOFLUSH_DISABLE);
     cc1101_cfg_white_data(CC1101_DATA_WHITENING_ENABLE);
@@ -798,14 +798,14 @@ static void vRadioTask(void* pvParameters)
     table[0] = 0xC2; // 10dBm
     cc1101_cfg_patable(table, 1);
     cc1101_cfg_pa_power(0);
-    
+
     /* Give the mutex back */
     xSemaphoreGive(xSPIMutex);
     LED_BLUE_OFF();
     printf("Radio gives mutex\r\n");
-    
+
     uint8_t data_item;
-    
+
     /* Enter the infinite loop */
     while (1)
     {
@@ -815,17 +815,17 @@ static void vRadioTask(void* pvParameters)
             /* Copy the item in the packet buffer */
             tx_buffer[tx_buffer_index] = data_item;
             tx_buffer_index ++;
-            
+
             /* Check if the buffer is full */
             if (tx_buffer_index == 4)
             {
                 tx_buffer_index = 0;
-                
+
                 /* Take the semaphore and send the packet */
                 xSemaphoreTake(xSPIMutex, portMAX_DELAY);
                 LED_BLUE_ON();
                 printf("Radio takes mutex\r\n");
-                
+
                 cc1101_cmd_idle();
                 cc1101_cmd_flush_tx();
                 cc1101_cmd_calibrate();
@@ -835,20 +835,20 @@ static void vRadioTask(void* pvParameters)
                 cc1101_gdo0_int_clear();
                 cc1101_gdo0_int_enable();
                 cc1101_gdo0_register_callback(vEndOfTx_cb);
-                
+
                 cc1101_gdo2_int_disable();
-                
+
                 cc1101_fifo_put((&tx_length), 1);
                 cc1101_fifo_put(tx_buffer, tx_length);
-                
+
                 cc1101_cmd_tx();
-                
+
                 printf("Radio gives mutex\r\n");
                 LED_BLUE_OFF();
-                
+
                 /* Give the semaphore back */
                 xSemaphoreGive(xSPIMutex);
-                
+
                 /* Wait until the packet has been successfully sent */
                 while (! xSemaphoreTake(xTxSem, portMAX_DELAY));
             }
@@ -861,8 +861,8 @@ static void vRadioTask(void* pvParameters)
  */
 void vEndOfTx_cb(void)
 {
-    uint16_t xHigherPriorityTaskWoken; 
-    
+    uint16_t xHigherPriorityTaskWoken;
+
     /* Give the semaphore, indicating the task the packer is sent */
     xSemaphoreGiveFromISR(xTxSem, xHigherPriorityTaskWoken);
 }
@@ -1013,7 +1013,7 @@ void vCreateBlinkerTask(xQueueHandle xQueue, uint16_t usPriority)
 {
     /* Store the command queue handle */
     xCmdQueue = xQueue;
-    
+
     /* Create the task */
     xTaskCreate( vBlinkerTask, "blinker", configMINIMAL_STACK_SIZE, NULL, usPriority, NULL );
 }
@@ -1024,11 +1024,11 @@ This function just stores the queue handle in a variable, and creates the task w
 static void vBlinkerTask(void* pvParameters)
 {
     rxdata_t rx_data;
-    
+
     /* Configure and Initialize the LEDs */
     LEDS_INIT();
     LEDS_ON();
-    
+
     for (;;)
     {
         /* Wait until a command is received */
@@ -1125,7 +1125,7 @@ void vCreateSensorTask(xQueueHandle xSensorCmdQueue, xQueueHandle xMacDataQueue,
     /* Store the command and data queue handles */
     xCmdQueue = xSensorCmdQueue;
     xDataQueue = xMacDataQueue;
-    
+
     /* Create the task */
     xTaskCreate( vSensorTask, "sensor", configMINIMAL_STACK_SIZE, NULL, usPriority, NULL );
 }
@@ -1138,7 +1138,7 @@ static void vSensorTask(void* pvParameters)
 {
     portTickType xLastSampleTime;
     rxdata_t rx_data;
-    
+
     /* Setup the ds1722 temperature sensor */
     ds1722_init();
     ds1722_set_res(12);
@@ -1147,14 +1147,14 @@ static void vSensorTask(void* pvParameters)
     /* Setup the TSL2550 light sensor */
     tsl2550_init();
     tsl2550_powerup();
-    
+
     blockOnCmd = 1;
     activeSensors = SENSOR_NONE;
     packet.sequence = 0;
     filling_index = 0;
-    
+
     vParseAndExecute(0);
-    
+
     for (;;)
     {
         if (blockOnCmd)
@@ -1174,7 +1174,7 @@ static void vSensorTask(void* pvParameters)
                 //~ LED_GREEN_TOGGLE();
                 vSendData();
             }
-            
+
             if (xQueueReceive(xCmdQueue, (void*)&rx_data, 0))
             {
                 vParseAndExecute(rx_data.cmd);
@@ -1196,13 +1196,13 @@ static void vSampleSensors(void)
             packet.samples[(filling_index<<1)+1] = tsl2550_read_adc1();
             filling_index ++;
             break;
-        
+
         case SENSOR_TEMP:
             packet.samples[filling_index<<1]     = ds1722_read_MSB();
             packet.samples[(filling_index<<1)+1] = ds1722_read_LSB();
             filling_index ++;
             break;
-        
+
         case SENSOR_BOTH:
             packet.samples[(filling_index<<2)]   = tsl2550_read_adc0();
             packet.samples[(filling_index<<2)+1] = tsl2550_read_adc1();
@@ -1211,7 +1211,7 @@ static void vSampleSensors(void)
             filling_index ++;
             break;
     }
-    
+
     if (filling_index == samplePerPacket)
     {
         filling_index = 0;
@@ -1234,17 +1234,17 @@ static void vSendData(void)
     {
         tx_data.length = 3 + (samplePerPacket << 1);
     }
-    
+
     uint16_t i;
     for (i=0; i<tx_data.length; i++)
     {
         tx_data.data[i] = ((uint8_t*) (&packet))[i];
     }
-    
+
     tx_data.type = 0x32;
-    
+
     xQueueSendToBack(xDataQueue, &tx_data, 0);
-    
+
     packet.sequence ++;
     dataReady = 0;
 }
@@ -1255,21 +1255,21 @@ The sending function fills the packet description header, and recopy its content
 static void vParseAndExecute(uint8_t cmd)
 {
     blockOnCmd = 0;
-    
+
     activeSensors = (cmd & SENSOR_MASK);
-    
+
     if ( (cmd & SENSOR_MASK) == SENSOR_NONE)
     {
         blockOnCmd = 1;
     }
-    
+
     uint16_t rate;
     rate = ( (cmd & RATE_MASK) >> 4) + 2;
-    
+
     xSamplePeriod = (1000 >> rate);
-    
+
     samplePerPacket = (cmd & SEND_EVERY_MASK) + 1;
-    
+
     dataReady = 0;
     filling_index = 0;
 }
@@ -1297,15 +1297,15 @@ void vCreateMacTask( xQueueHandle xBlinkerCmdQueue, xQueueHandle xSensorCmdQueue
     xBlinkerQueue = xBlinkerCmdQueue;
     xSensorQueue = xSensorCmdQueue;
     xTXDataQueue = xMacDataQueue;
-    
+
     /* Create a Semaphore for waiting end of TX */
     vSemaphoreCreateBinary( xSendingSem );
     /* Make sure the semaphore is taken */
     xSemaphoreTake( xSendingSem, 0 );
-    
+
     /* Create a Queue for Received Frames */
     xRXFrameQueue = xQueueCreate(3, sizeof(rxframe_t));
-    
+
     /* Create the task */
     xTaskCreate( vMacTask, "MAC", configMINIMAL_STACK_SIZE, NULL, usPriority, NULL );
 }
@@ -1318,18 +1318,18 @@ static void vMacTask(void* pvParameters)
     /* Initialize the unique electronic signature and read it */
     ds2411_init();
     local_addr = ds2411_id.serial0;
-    
+
     /* Seed the random number generator */
     uint16_t seed;
     seed = ( ((uint16_t)ds2411_id.serial0) << 8) + (uint16_t)ds2411_id.serial1;
     srand(seed);
-    
-    /* Init the PHY layer module */ 
+
+    /* Init the PHY layer module */
     phy_init();
     phy_register_frame_received_handler(frame_received);
     phy_register_frame_sent_notifier(frame_sent);
     phy_start_rx();
-    
+
     for (;;)
     {
         /* Check if a frame has been received from the network */
@@ -1337,25 +1337,25 @@ static void vMacTask(void* pvParameters)
         {
             /* Enable RX again */
             phy_start_rx();
-            
+
             /* Parse the received frame */
             vParseFrame();
         }
-        
+
         /* Check if there is data to send on the network */
         if (pdTRUE == xQueueReceive(xTXDataQueue, (void*) &tx_data, 20))
         {
             //~ LED_RED_TOGGLE();
-            
+
             /* Send the frame */
             vSendFrame();
-            
+
             /* Wait until the frame is sent */
             xSemaphoreTake( xSendingSem, portMAX_DELAY);
-            
+
             /* Enable RX again */
             phy_start_rx();
-            
+
         }
     }
 }
@@ -1369,13 +1369,13 @@ After that, the task loop is entered, where the received frame queue is checked 
 static void frame_received(uint8_t frame[], uint16_t length)
 {
     portBASE_TYPE xHighPriorityTaskWoken;
-    
+
     /* Check if received length is not bigger than expected */
     if (length <= sizeof(rxframe_t))
     {
         /* Queue the received frame in the received frame queue */
         xQueueSendToBackFromISR(xRXFrameQueue, (void*)frame, &xHighPriorityTaskWoken);
-        
+
         /* If adding an element to the queue enabled a higher priority to execute,
          * force a context switch */
         if (xHighPriorityTaskWoken)
@@ -1391,11 +1391,11 @@ This callback verifies the received frame has a correct length, and if so put it
 static void frame_sent(void)
 {
     portBASE_TYPE xHighPriorityTaskWoken;
-    
+
     /* Give the semaphore to indicate to the task the frame has been sent */
     xSemaphoreGiveFromISR( xSendingSem, &xHighPriorityTaskWoken);
-    
-    
+
+
     /* If this enabled a higher priority to execute,
      * force a context switch */
     if (xHighPriorityTaskWoken)
@@ -1414,7 +1414,7 @@ static void vParseFrame(void)
     {
         return;
     }
-    
+
     /* Switch on the frame type , and pass the payload to the corresponding
      * Task via a queue. */
     switch (rx_frame.data[0])
@@ -1435,22 +1435,22 @@ This function checks a received frame, and verifies its fields to see if it's a 
 static void vSendFrame(void)
 {
     uint16_t frame_length;
-    
+
     /* Fill the frame header */
     tx_frame.src = local_addr;
     tx_frame.dst = 0xFF;
     tx_frame.datalen = tx_data.length +2;
-    
+
     /* Recopy the body of the message */
     uint16_t i;
     for (i=0; i<tx_frame.datalen; i++)
     {
         tx_frame.data[i] = ((uint8_t*)(&tx_data))[i];
     }
-    
+
     /* Compute the new length */
     frame_length = tx_frame.datalen + 3;
-    
+
     /* Send the frame. */
     phy_send_frame(&tx_frame, frame_length);
 }
@@ -1469,20 +1469,20 @@ int main( void )
 {
     /* Setup the hardware. */
     prvSetupHardware();
-    
+
     /* Create the 3 required queues */
     xBlinkerCmdQueue = xQueueCreate( 3, sizeof(rxdata_t) );
     xSensorCmdQueue = xQueueCreate( 3, sizeof(rxdata_t) );
     xMacDataQueue = xQueueCreate( 3, sizeof(txdata_t) );
-    
+
     /* Create the 3 tasks of the application */
     vCreateBlinkerTask(xBlinkerCmdQueue, 1);
     vCreateSensorTask(xSensorCmdQueue, xMacDataQueue, 2);
     vCreateMacTask(xBlinkerCmdQueue, xSensorCmdQueue, xMacDataQueue, 3);
-    
+
     /* Start the scheduler. */
     vTaskStartScheduler();
-    
+
     /* As the scheduler has been started we should never get here! */
     return 0;
 }
@@ -1491,10 +1491,10 @@ static void prvSetupHardware( void )
 {
     /* Stop the watchdog timer. */
     WDTCTL = WDTPW + WDTHOLD;
-    
+
     /* Setup MCLK 8MHz and SMCLK 1MHz */
     set_mcu_speed_xt2_mclk_8MHz_smclk_1MHz();
-    
+
     /* Enable Interrupts */
     eint();
 }
@@ -1529,7 +1529,7 @@ void vCreateInterfaceTask( xQueueHandle xTXQueue, xQueueHandle xRXQueue, uint16_
     /* Store the queue handled */
     xTXDataQueue = xTXQueue;
     xRXDataQueue = xRXQueue;
-        
+
     /* Create the task */
     xTaskCreate( vInterfaceTask, "interface", configMINIMAL_STACK_SIZE, NULL, usPriority, NULL );
 }
@@ -1540,10 +1540,10 @@ The function \verb$vInterfaceTask$ is the task itself. It first configure the ua
 \begin{verbatim}
 static void vInterfaceTask(void* pvParameters)
 {
-    
+
     uart0_init(UART0_CONFIG_8MHZ_115200);
     uart0_register_callback(char_received);
-    
+
     for (;;)
     {
         if ( xQueueReceive(xRXDataQueue, &rx_data, portMAX_DELAY) )
@@ -1591,10 +1591,10 @@ static void char_received(uint8_t c)
     {
         cmd[1] = c;
         first = 1;
-        
+
         /* Send the command to the MAC TX Queue */
         xQueueSendToBackFromISR( xTXDataQueue, cmd, &xHighPriorityTaskWoken);
-        
+
         /* If this enabled a higher priority to execute,
          * force a context switch */
         if (xHighPriorityTaskWoken)

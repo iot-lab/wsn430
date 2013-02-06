@@ -2,14 +2,14 @@
  * Copyright (c) 2006 Intel Corporation
  * All rights reserved.
  *
- * This file is distributed under the terms in the attached INTEL-LICENSE     
+ * This file is distributed under the terms in the attached INTEL-LICENSE
  * file. If you do not find these files, copies can be found by writing to
- * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
+ * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA,
  * 94704.  Attention:  Intel License Inquiry.
  */
 
 /**
- * MultihopOscilloscope demo application using the collection layer. 
+ * MultihopOscilloscope demo application using the collection layer.
  * See README.txt file in this directory and TEP 119: Collection.
  *
  * @author David Gay
@@ -18,11 +18,11 @@
 
 configuration MultihopOscilloscopeAppC { }
 implementation {
-  components MainC, MultihopOscilloscopeC, LedsC, new TimerMilliC(), 
+  components MainC, MultihopOscilloscopeC, LedsC, new TimerMilliC(),
     new DemoSensorC() as Sensor;
 
   //MainC.SoftwareInit -> Sensor;
-  
+
   MultihopOscilloscopeC.Boot -> MainC;
   MultihopOscilloscopeC.Timer -> TimerMilliC;
   MultihopOscilloscopeC.Read -> Sensor;
@@ -53,7 +53,7 @@ implementation {
 
   MultihopOscilloscopeC.UARTMessagePool -> UARTMessagePoolP;
   MultihopOscilloscopeC.UARTQueue -> UARTQueueP;
-  
+
   components new PoolC(message_t, 20) as DebugMessagePool,
     new QueueC(message_t*, 20) as DebugSendQueue,
     new SerialAMSenderC(AM_LQI_DEBUG) as DebugSerialSender,

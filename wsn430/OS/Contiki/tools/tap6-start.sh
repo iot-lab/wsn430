@@ -42,7 +42,7 @@ check_root()
 }
 check_connectivity()
 {
-	PORT=$(( 30000 + $1 )) 
+	PORT=$(( 30000 + $1 ))
 
 	echo -n "Checking connectivity to node serial link."
 
@@ -85,7 +85,7 @@ check_connectivity()
 trap control_c SIGINT
 
 get_args $@
-check_root 
+check_root
 check_connectivity $1
 
 # start being verbose, read each command

@@ -275,7 +275,7 @@ struct uip_udp_conn *udp_broadcast_new(u16_t port, void *appstate);
 CCIF void tcpip_poll_udp(struct uip_udp_conn *conn);
 
 /** @} */
- 
+
 /**
  * \name ICMPv6 functions
  * @{

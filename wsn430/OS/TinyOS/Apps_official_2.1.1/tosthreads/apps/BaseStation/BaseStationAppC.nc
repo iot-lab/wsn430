@@ -32,7 +32,7 @@
 /**
  * BaseStation is a reimplementation of the standard BaseStation application using
  * the TOSThreads thread library.  It transparently forwards any AM messages it
- * receives from its radio interface to its serial interface and vice versa. 
+ * receives from its radio interface to its serial interface and vice versa.
  *
  * <p>On the serial link, BaseStation sends and receives simple active
  * messages (not particular radio packets): on the radio link, it
@@ -73,22 +73,22 @@ implementation
              BaseStationC,
              new BaseSendReceiveP() as RadioReceiveSerialSendP,
              new BaseSendReceiveP() as SerialReceiveRadioSendP,
-             
+
              new ThreadC(BOOT_THREAD_STACK_SIZE) as BootThread,
              new ThreadC(RADIO_RECEIVE_THREAD_STACK_SIZE) as RadioReceiveThread,
              new ThreadC(RADIO_SNOOP_THREAD_STACK_SIZE) as RadioSnoopThread,
              new ThreadC(SERIAL_SEND_THREAD_STACK_SIZE) as SerialSendThread,
              new ThreadC(SERIAL_RECEIVE_THREAD_STACK_SIZE) as SerialReceiveThread,
              new ThreadC(RADIO_SEND_THREAD_STACK_SIZE) as RadioSendThread,
-             
+
              new PoolC(message_t, BASE_STATION_MSG_QUEUE_SIZE) as RadioReceivePool,
              new QueueC(message_t*, BASE_STATION_MSG_QUEUE_SIZE) as RadioReceiveQueue,
              new PoolC(message_t, BASE_STATION_MSG_QUEUE_SIZE) as SerialReceivePool,
              new QueueC(message_t*, BASE_STATION_MSG_QUEUE_SIZE) as SerialReceiveQueue,
-             
-             ThreadSynchronizationC,             
+
+             ThreadSynchronizationC,
              LedsC;
-  
+
   BaseStationC.Boot -> MainC;
   RadioReceiveSerialSendP.Boot -> BaseStationC;
   SerialReceiveRadioSendP.Boot -> BaseStationC;
@@ -98,38 +98,38 @@ implementation
   RadioReceiveSerialSendP.SnoopThread -> RadioSnoopThread;
   RadioReceiveSerialSendP.SendThread -> SerialSendThread;
   SerialReceiveRadioSendP.ReceiveThread -> SerialReceiveThread;
-  SerialReceiveRadioSendP.SendThread -> RadioSendThread;  
-  
+  SerialReceiveRadioSendP.SendThread -> RadioSendThread;
+
   RadioReceiveSerialSendP.Pool -> RadioReceivePool;
   RadioReceiveSerialSendP.Queue -> RadioReceiveQueue;
-  SerialReceiveRadioSendP.Pool -> SerialReceivePool;  
+  SerialReceiveRadioSendP.Pool -> SerialReceivePool;
   SerialReceiveRadioSendP.Queue -> SerialReceiveQueue;
-  
+
   RadioReceiveSerialSendP.ConditionVariable -> ThreadSynchronizationC;
   RadioReceiveSerialSendP.Mutex -> ThreadSynchronizationC;
   RadioReceiveSerialSendP.Leds -> LedsC;
   SerialReceiveRadioSendP.ConditionVariable -> ThreadSynchronizationC;
   SerialReceiveRadioSendP.Mutex -> ThreadSynchronizationC;
   SerialReceiveRadioSendP.Leds -> LedsC;
-  
-  components BlockingActiveMessageC as BlockingRadioActiveMessageC,             
+
+  components BlockingActiveMessageC as BlockingRadioActiveMessageC,
              BlockingSerialActiveMessageC;
-             
+
   BaseStationC.BlockingRadioAMControl -> BlockingRadioActiveMessageC;
   BaseStationC.BlockingSerialAMControl -> BlockingSerialActiveMessageC;
-  
+
   RadioReceiveSerialSendP.ReceivePacket -> BlockingRadioActiveMessageC;
   RadioReceiveSerialSendP.SendPacket -> BlockingSerialActiveMessageC;
   RadioReceiveSerialSendP.ReceiveAMPacket -> BlockingRadioActiveMessageC;
-  RadioReceiveSerialSendP.SendAMPacket -> BlockingSerialActiveMessageC;             
+  RadioReceiveSerialSendP.SendAMPacket -> BlockingSerialActiveMessageC;
   RadioReceiveSerialSendP.BlockingReceiveAny -> BlockingRadioActiveMessageC.BlockingReceiveAny;
   RadioReceiveSerialSendP.BlockingSnoopAny -> BlockingRadioActiveMessageC.BlockingSnoopAny;
   RadioReceiveSerialSendP.BlockingAMSend -> BlockingSerialActiveMessageC;
-  
+
   SerialReceiveRadioSendP.ReceivePacket -> BlockingSerialActiveMessageC;
   SerialReceiveRadioSendP.SendPacket -> BlockingRadioActiveMessageC;
   SerialReceiveRadioSendP.ReceiveAMPacket -> BlockingSerialActiveMessageC;
-  SerialReceiveRadioSendP.SendAMPacket -> BlockingRadioActiveMessageC;             
+  SerialReceiveRadioSendP.SendAMPacket -> BlockingRadioActiveMessageC;
   SerialReceiveRadioSendP.BlockingReceiveAny -> BlockingSerialActiveMessageC.BlockingReceiveAny;
   SerialReceiveRadioSendP.BlockingAMSend -> BlockingRadioActiveMessageC;
 }

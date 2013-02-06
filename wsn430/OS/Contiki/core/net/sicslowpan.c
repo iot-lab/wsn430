@@ -51,9 +51,9 @@
  * FOR HC-06 COMPLIANCE TODO:
  * -Add compression options to UDP, currently only supports
  *  both ports compressed or both ports elided
- *  
+ *
  * -Verify TC/FL compression works
- *  
+ *
  * -Add stateless multicast option
  */
 
@@ -255,7 +255,7 @@ static struct timer reass_timer;
 
 /** Addresses contexts for IPHC. */
 #if SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS > 0
-static struct sicslowpan_addr_context 
+static struct sicslowpan_addr_context
 addr_contexts[SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS];
 #endif
 
@@ -319,7 +319,7 @@ addr_context_lookup_by_prefix(uip_ipaddr_t *ipaddr)
 static struct sicslowpan_addr_context*
 addr_context_lookup_by_number(u8_t number)
 {
-/* Remove code to avoid warnings and save flash if no context is used */ 
+/* Remove code to avoid warnings and save flash if no context is used */
 #if SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS > 0
   int i;
   for(i = 0; i < SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS; i++) {
@@ -471,11 +471,11 @@ compress_hdr_hc06(rimeaddr_t *rime_destaddr)
    * We have to process both in the same time as the offset of traffic class
    * depends on the presence of version and flow label
    */
- 
+
   /* hc06 format of tc is ECN | DSCP , original is DSCP | ECN */
   tmp = (UIP_IP_BUF->vtc << 4) | (UIP_IP_BUF->tcflow >> 4);
   tmp = ((tmp & 0x03) << 6) | (tmp >> 2);
-  
+
   if(((UIP_IP_BUF->tcflow & 0x0F) == 0) &&
      (UIP_IP_BUF->flow == 0)) {
     /* flow label can be compressed */
@@ -516,7 +516,7 @@ compress_hdr_hc06(rimeaddr_t *rime_destaddr)
     iphc0 |= SICSLOWPAN_IPHC_NH_C;
   }
 #endif /*UIP_CONF_UDP*/
-#ifdef SICSLOWPAN_NH_COMPRESSOR 
+#ifdef SICSLOWPAN_NH_COMPRESSOR
   if(SICSLOWPAN_NH_COMPRESSOR.is_compressable(UIP_IP_BUF->proto)) {
     iphc0 |= SICSLOWPAN_IPHC_NH_C;
   }
@@ -925,7 +925,7 @@ uncompress_hdr_hc06(u16_t ip_len)
   }
 
   rime_hdr_len = hc06_ptr - rime_ptr;
-  
+
   /* IP length field. */
   if(ip_len == 0) {
     /* This is not a fragmented packet */
@@ -936,7 +936,7 @@ uncompress_hdr_hc06(u16_t ip_len)
     SICSLOWPAN_IP_BUF->len[0] = (ip_len - UIP_IPH_LEN) >> 8;
     SICSLOWPAN_IP_BUF->len[1] = (ip_len - UIP_IPH_LEN) & 0x00FF;
   }
-  
+
   /* length field in UDP header */
   if(SICSLOWPAN_IP_BUF->proto == UIP_PROTO_UDP) {
     memcpy(&SICSLOWPAN_UDP_BUF->udplen, &SICSLOWPAN_IP_BUF->len[0], 2);
@@ -1068,7 +1068,7 @@ compress_hdr_hc1(rimeaddr_t *rime_destaddr)
            UIP_HTONS(UIP_UDP_BUF->destport) <  SICSLOWPAN_UDP_PORT_MAX) {
           /* HC1 encoding */
           RIME_HC1_HC_UDP_PTR[RIME_HC1_HC_UDP_HC1_ENCODING] = 0xFB;
-        
+
           /* HC_UDP encoding, ttl, src and dest ports, checksum */
           RIME_HC1_HC_UDP_PTR[RIME_HC1_HC_UDP_UDP_ENCODING] = 0xE0;
           RIME_HC1_HC_UDP_PTR[RIME_HC1_HC_UDP_TTL] = UIP_IP_BUF->ttl;
@@ -1116,7 +1116,7 @@ uncompress_hdr_hc1(u16_t ip_len)
   SICSLOWPAN_IP_BUF->vtc = 0x60;
   SICSLOWPAN_IP_BUF->tcflow = 0;
   SICSLOWPAN_IP_BUF->flow = 0;
-  
+
   /* src and dest ip addresses */
   uip_ip6addr(&SICSLOWPAN_IP_BUF->srcipaddr, 0xfe80, 0, 0, 0, 0, 0, 0, 0);
   uip_sd6_set_addr_iid(&SICSLOWPAN_IP_BUF->srcipaddr,
@@ -1124,9 +1124,9 @@ uncompress_hdr_hc1(u16_t ip_len)
   uip_ip6addr(&SICSLOWPAN_IP_BUF->destipaddr, 0xfe80, 0, 0, 0, 0, 0, 0, 0);
   uip_sd6_set_addr_iid(&SICSLOWPAN_IP_BUF->destipaddr,
 		       (uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
-  
+
   uncomp_hdr_len += UIP_IPH_LEN;
-  
+
   /* Next header field */
   switch(RIME_HC1_PTR[RIME_HC1_ENCODING] & 0x06) {
     case SICSLOWPAN_HC1_NH_ICMP6:
@@ -1172,7 +1172,7 @@ uncompress_hdr_hc1(u16_t ip_len)
       /* this shouldn't happen, drop */
       return;
   }
-  
+
   /* IP length field. */
   if(ip_len == 0) {
     /* This is not a fragmented packet */
@@ -1223,7 +1223,7 @@ compress_hdr_ipv6(rimeaddr_t *rime_destaddr)
 /** @} */
 #endif /* SICSLOWPAN_COMPRESSION == SICSLOWPAN_COMPRESSION_IPV6 */
 
- 
+
 
 /*--------------------------------------------------------------------*/
 /** \name Input/output functions common to all compression schemes
@@ -1278,7 +1278,7 @@ output(uip_lladdr_t *localdest)
 {
   /* The MAC address of the destination of the packet */
   rimeaddr_t dest;
-  
+
 
   /* init */
   uncomp_hdr_len = 0;
@@ -1298,7 +1298,7 @@ output(uip_lladdr_t *localdest)
     packetbuf_set_attr(PACKETBUF_ATTR_PACKET_TYPE,
                        PACKETBUF_ATTR_PACKET_TYPE_STREAM);
   }
-    
+
   /*
    * The destination address will be tagged to each outbound
    * packet. If the argument localdest is NULL, we are sending a
@@ -1309,9 +1309,9 @@ output(uip_lladdr_t *localdest)
   } else {
     rimeaddr_copy(&dest, (const rimeaddr_t *)localdest);
   }
-  
+
   PRINTFO("sicslowpan output: sending packet len %d\n", uip_len);
-  
+
   /* Try to compress the headers */
 #if SICSLOWPAN_COMPRESSION == SICSLOWPAN_COMPRESSION_HC1
   compress_hdr_hc1(&dest);
@@ -1323,7 +1323,7 @@ output(uip_lladdr_t *localdest)
   compress_hdr_hc06(&dest);
 #endif /* SICSLOWPAN_COMPRESSION == SICSLOWPAN_COMPRESSION_HC06 */
   PRINTFO("sicslowpan output: header of len %d\n", rime_hdr_len);
-  
+
   if(uip_len - uncomp_hdr_len > MAC_MAX_PAYLOAD - rime_hdr_len) {
 #if SICSLOWPAN_CONF_FRAG
     struct queuebuf *q;
@@ -1337,7 +1337,7 @@ output(uip_lladdr_t *localdest)
 
 
     PRINTFO("Fragmentation sending packet len %d\n", uip_len);
-    
+
     /* Create 1st Fragment */
     PRINTFO("sicslowpan output: 1rst fragment ");
 
@@ -1374,7 +1374,7 @@ output(uip_lladdr_t *localdest)
 
     /* set processed_ip_len to what we already sent from the IP payload*/
     processed_ip_len = rime_payload_len + uncomp_hdr_len;
-    
+
     /*
      * Create following fragments
      * Datagram tag is already in the buffer, we need to set the
@@ -1389,7 +1389,7 @@ output(uip_lladdr_t *localdest)
     while(processed_ip_len < uip_len) {
       PRINTFO("sicslowpan output: fragment ");
       RIME_FRAG_PTR[RIME_FRAG_OFFSET] = processed_ip_len >> 3;
-      
+
       /* Copy payload and send */
       if(uip_len - processed_ip_len < rime_payload_len) {
         /* last fragment */
@@ -1411,7 +1411,7 @@ output(uip_lladdr_t *localdest)
       q = NULL;
       processed_ip_len += rime_payload_len;
     }
-    
+
     /* end: reset global variables  */
     my_tag++;
     processed_ip_len = 0;
@@ -1573,8 +1573,8 @@ input(void)
              RIME_HC1_PTR[RIME_HC1_DISPATCH]);
       return;
   }
-   
-    
+
+
 #if SICSLOWPAN_CONF_FRAG
  copypayload:
 #endif /*SICSLOWPAN_CONF_FRAG*/
@@ -1591,7 +1591,7 @@ input(void)
   }
   rime_payload_len = packetbuf_datalen() - rime_hdr_len;
   memcpy((void *)SICSLOWPAN_IP_BUF + uncomp_hdr_len + (u16_t)(frag_offset << 3), rime_ptr + rime_hdr_len, rime_payload_len);
-  
+
   /* update processed_ip_len if fragment, sicslowpan_len otherwise */
 
 #if SICSLOWPAN_CONF_FRAG
@@ -1659,10 +1659,10 @@ sicslowpan_init(void)
   tcpip_set_outputfunc(output);
 
 #if SICSLOWPAN_COMPRESSION == SICSLOWPAN_COMPRESSION_HC06
-#if SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS > 0 
+#if SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS > 0
   addr_contexts[0].used = 1;
   addr_contexts[0].number = 0;
-  addr_contexts[0].prefix[0] = 0xaa; 
+  addr_contexts[0].prefix[0] = 0xaa;
   addr_contexts[0].prefix[1] = 0xaa;
 #endif /* SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS > 0 */
 #if SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS > 1

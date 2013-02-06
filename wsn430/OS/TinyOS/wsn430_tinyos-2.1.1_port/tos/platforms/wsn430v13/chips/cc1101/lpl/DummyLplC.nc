@@ -28,7 +28,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE
  */
- 
+
 /**
  * Dummy low power listening interface used when LowPowerListening is not
  * compiled in with the application.
@@ -46,7 +46,7 @@ configuration DummyLplC {
     interface SplitControl;
     interface State as SendState;
   }
-  
+
   uses {
     interface Send as SubSend;
     interface Receive as SubReceive;
@@ -57,12 +57,12 @@ configuration DummyLplC {
 implementation {
   components DummyLplP;
   components new StateC();
-  
+
   Send = SubSend;
   Receive = SubReceive;
   SplitControl = SubControl;
   LowPowerListening = DummyLplP;
   SendState = StateC;
-  
+
 }
 

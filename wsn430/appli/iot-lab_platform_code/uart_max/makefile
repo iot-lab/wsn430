@@ -34,8 +34,8 @@ a.out : $(OBJ) makefile
 	$(JTAG) -e $(NAME).elf
 
 $(OBJ) : %.o : %.c makefile
-	$(CC) -c $(CFLAGS) $< -o $@	
-	
+	$(CC) -c $(CFLAGS) $< -o $@
+
 clean :
 	rm -f ${NAME}.elf ${NAME}.hex ${OBJ}
-	
+

@@ -120,4 +120,4 @@ int rudolph0_version(struct rudolph0_conn *c);
 #endif /* __RUDOLPH0_H__ */
 /** @} */
 /** @} */
-    
+

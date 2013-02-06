@@ -17,7 +17,7 @@ int main(int argc, char **argv)
     fprintf(stderr, "Usage: %s <host> <port> - print received packets\n", argv[0]);
     exit(2);
   }
-  
+
   fd = open_sf_source(argv[1], atoi(argv[2]));
 
   if (fd < 0) {
@@ -32,7 +32,7 @@ int main(int argc, char **argv)
     char* myPacket = (char*)malloc(len);
     memcpy(myPacket, packet, len);
     free((void*)packet);
-    
+
     if (!packet)
       exit(0);
     else {
@@ -40,8 +40,8 @@ int main(int argc, char **argv)
       void* payload = (void*)myPacket + (spacket_data_offsetbits(0) / 8);
       tmsg_t* dataMsg = new_tmsg(payload, len - SPACKET_SIZE);
       void* data = payload + (dissemination_message_data_offsetbits(0) / 8);
-      
-      
+
+
       for (i = 0; i < len; i++)
 	printf("%02x ", packet[i]);
       putchar('\n');

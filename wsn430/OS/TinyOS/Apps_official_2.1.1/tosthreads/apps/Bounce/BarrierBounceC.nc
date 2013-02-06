@@ -28,27 +28,27 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
- 
+
 /**
- * This application is derived from a similar application in the TinyThread 
+ * This application is derived from a similar application in the TinyThread
  * implementation by William P. McCartney from Cleveland State University (2006)
  *
  * This application implements a threaded approach to bouncing messages back and forth
- * between two motes.  To run it you will need to burn one mote with node ID 0, and a 
- * second mote with node ID 1.  Three different threads run that each send a 
+ * between two motes.  To run it you will need to burn one mote with node ID 0, and a
+ * second mote with node ID 1.  Three different threads run that each send a
  * message and then wait to receive a message before sending their next one.  After
  * each message reception, an LED is toggled to indicate that it was received.  Thread
- * 0 blinks led0, thread 1 blinks led1, and thread 2 blinks led2.  The three 
- * threads run independently, and three different messages are bounced back and 
+ * 0 blinks led0, thread 1 blinks led1, and thread 2 blinks led2.  The three
+ * threads run independently, and three different messages are bounced back and
  * forth between the two motes in an unsynchronized fashion.  In contrast to the simple
  * Bounce application also found in this directory, once a thread receives a message
- * it waits on a Barrier before continuing on and turning on its led.  A synchronization 
+ * it waits on a Barrier before continuing on and turning on its led.  A synchronization
  * thread is used to wait until all three messages have been received before unblocking
- * the barrier.  In this way, messages are still bounced back and forth between the 
- * two motes in an asynchronous fashion, but all leds come on at the same time 
+ * the barrier.  In this way, messages are still bounced back and forth between the
+ * two motes in an asynchronous fashion, but all leds come on at the same time
  * because of the Barrier and the synchronization thread.  The effect is that all three
  * leds on one mote flash in unison, followed by all three on the other mote back
- * and forth forever.  
+ * and forth forever.
  *
  * @author Kevin Klues <klueska@cs.stanford.edu>
  */
@@ -62,15 +62,15 @@ module BarrierBounceC {
     interface Thread as BounceThread0;
     interface BlockingAMSend as BlockingAMSend0;
     interface BlockingReceive as BlockingReceive0;
-    
+
     interface Thread as BounceThread1;
     interface BlockingAMSend as BlockingAMSend1;
     interface BlockingReceive as BlockingReceive1;
-    
+
     interface Thread as BounceThread2;
     interface BlockingAMSend as BlockingAMSend2;
     interface BlockingReceive as BlockingReceive2;
-    
+
     interface Thread as SyncThread;
 
     interface Leds;
@@ -80,7 +80,7 @@ module BarrierBounceC {
 implementation {
   message_t m0,m1,m2;
   barrier_t b0;
-  
+
   event void Boot.booted() {
     //Reset all barriers used in this program at initialization
     call Barrier.reset(&b0, 4);
@@ -88,7 +88,7 @@ implementation {
     //Start the sync thread to power up the AM layer
     call SyncThread.start(NULL);
   }
-  
+
   event void BounceThread0.run(void* arg) {
     for(;;) {
       call Leds.led0Off();
@@ -100,7 +100,7 @@ implementation {
       }
     }
   }
-  
+
   event void BounceThread1.run(void* arg) {
     for(;;) {
       call Leds.led1Off();
@@ -112,8 +112,8 @@ implementation {
       }
     }
   }
-  
-  event void BounceThread2.run(void* arg) { 
+
+  event void BounceThread2.run(void* arg) {
     for(;;) {
       call Leds.led2Off();
       call BlockingAMSend2.send(!TOS_NODE_ID, &m2, 0);
@@ -124,7 +124,7 @@ implementation {
       }
     }
   }
-  
+
   event void SyncThread.run(void* arg) {
     //Once the am layer is powered on, start the rest of
     //  the threads
@@ -132,7 +132,7 @@ implementation {
     call BounceThread0.start(NULL);
     call BounceThread1.start(NULL);
     call BounceThread2.start(NULL);
-    
+
     for(;;) {
       call Barrier.block(&b0);
       call Barrier.reset(&b0, 4);

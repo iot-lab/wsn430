@@ -243,10 +243,10 @@ uint16_t phy_get_estimate_tx_duration(uint8_t length) {
 	uint16_t duration;
 	length += OVERHEAD;
 	uint16_t length16 = length;
-	
+
 	// TX MAX DURATION corresponds to a frame a 125 payload bytes,
 	// hence 134 real bytes
-	
+
 	duration = (TX_MAX_DURATION * length16) / (PHY_MAX_LENGTH +OVERHEAD);
 
 	if (duration < (TX_MAX_DURATION / 8)) {
@@ -256,7 +256,7 @@ uint16_t phy_get_estimate_tx_duration(uint8_t length) {
 	}
 	return duration;
 }
-	
+
 static void cc1101_task(void* param) {
 	// Initialize the radio
 	cc1101_driver_init();
@@ -370,7 +370,7 @@ static void handle_received_frame(void) {
 	}
 
 	rx_data_length = rx_length;
-	
+
 	// Add 2 to the length for the status bytes
 	rx_length += PHY_FOOTER_LENGTH;
 	rx_ptr = rx_data;

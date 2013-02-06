@@ -102,11 +102,11 @@ static void
 send(void *ptr)
 {
   struct ipolite_conn *c = ptr;
-  
+
   PRINTF("%d.%d: ipolite: send queuebuf %p\n",
 	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
 	 c->q);
-  
+
   if(c->q != NULL) {
     queuebuf_to_packetbuf(c->q);
     queuebuf_free(c->q);

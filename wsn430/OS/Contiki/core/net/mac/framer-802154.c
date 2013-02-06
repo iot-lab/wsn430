@@ -145,7 +145,7 @@ create(void)
 
   /* Set the source PAN ID to the global variable. */
   params.src_pid = mac_src_pan_id;
-  
+
   /*
    * Set up the source address using only the long address mode for
    * phase 1.

@@ -22,7 +22,7 @@ uint16_t char_rx(uint8_t c);
 uint16_t alarm(void);
 
 // printf's putchar
-int16_t putchar(int16_t c) 
+int16_t putchar(int16_t c)
 {
 	return uart0_putchar(c);
 }

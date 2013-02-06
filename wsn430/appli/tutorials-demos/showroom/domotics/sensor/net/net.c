@@ -21,13 +21,13 @@ static uint8_t packet[64];
 void vSendSensorData(uint16_t dataLength, uint8_t* data)
 {
     packet[0] = SENSOR_PORT_NUMBER;
-    
+
     uint16_t i;
     for (i=0;i<dataLength;i++)
     {
         packet[i+1] = data[i];
     }
-    
+
     xSendPacket(dataLength+1, packet);
 }
 
@@ -37,7 +37,7 @@ void vPacketReceived(uint16_t pktLength, uint8_t* pkt)
     {
         return;
     }
-    
+
     switch (pkt[0])
     {
         case '1': //0x31:

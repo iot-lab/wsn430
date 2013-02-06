@@ -19,35 +19,35 @@ void ina209_init(void)
     // MANDATORY - Set P2.1 as input for SMBus-Alert signal from INA209 chips
     P2SEL &= ~0x02; // P2.1 as GPIO
     P2DIR &= ~0x02; // P2.1 as input
-    
+
     /* Initialize the I2C */
     i2c0_init();
                         // MSB | LSB
     uint8_t config[]  = {0x14, 0xCF};
-    /* 
+    /*
      * Configuration is:
      * 16V Bus Full Scale Range
      * +/-160mV Shunt Voltage Range
      * 12bit sampling for Bus and Shunt ADCs, 2sample average
      * Continuous Sampling for both
      */
-    
+
     //~ uint8_t calib[]   = {0x28, 0x00};
     uint8_t calib[]   = {0x28, 0x5F};
     /*
      * Theoretical calibration is: 0x2800
      * Corrected calibration (after measure) is 0x285F (for 103mA)
      */
-    
+
     /*
      * Bus Voltage is 13bit aligned on left, and its LSB is 4mV.
      * Current LSB is 4uA
      * Power LSB is 80uW
      */
-    
+
     i2c0_write(DC_INA209_ADDRESS, CONFIGURATION_REGISTER, 2, config);
     i2c0_write(DC_INA209_ADDRESS, CALIBRATION_REGISTER, 2, calib);
-    
+
     i2c0_write(BATT_INA209_ADDRESS, CONFIGURATION_REGISTER, 2, config);
     i2c0_write(BATT_INA209_ADDRESS, CALIBRATION_REGISTER, 2, calib);
 }

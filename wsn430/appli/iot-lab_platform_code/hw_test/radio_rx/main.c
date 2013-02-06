@@ -37,50 +37,50 @@ int main( void )
 {
     /* Stop the watchdog timer. */
     WDTCTL = WDTPW + WDTHOLD;
-    
+
     // Setup Clock
     set_mcu_speed_xt2_mclk_8MHz_smclk_1MHz();
     set_aclk_div(8);
-    
-    // Setup UART0    
+
+    // Setup UART0
     uart0_init(UART0_CONFIG_1MHZ_115200);
     printf("UART0 initialized\r\n");
-    
+
     // Setup LEDs
     LEDS_INIT();
     LEDS_ON();
     printf("LEDs initialized\r\n");
-    
+
     // Setup CC1101
     radio_init();
     printf("CC1101 initialized\r\n");
-    
+
     /* Enable Interrupts */
     eint();
-    
+
     printf("WSN430v1.4 TestBench Radio RX program started\r\n");
-    
-    
+
+
     LEDS_OFF();
     LED_RED_ON();
-    
+
     flag = 0;
-    
+
     while (1)
     {
         radio_rx();
-        
+
         LED_BLUE_OFF();
         LED_GREEN_OFF();
         while (flag == 0);
         LED_BLUE_ON();
         LED_GREEN_ON();
-        
+
         flag = 0;
-        
+
         radio_read_frame();
     }
-    
+
     return 0;
 }
 
@@ -149,17 +149,17 @@ void radio_read_frame(void)
     {
         return;
     }
-    
+
     /* Check Length is correct */
     cc1101_fifo_get( &rxlen, 1);
     if (rxlen > 64)
     {
         return ;
     }
-    
+
     /* Check Addresses are correct */
     cc1101_fifo_get( rxframe, rxlen);
-    
+
     int i;
     printf("Message received:\r\n");
     for (i=0;i<rxlen;i++)
@@ -194,22 +194,22 @@ uint16_t rxok_cb(void)
     {
         flag = 1;
     }
-    
+
     return 1;
 }
 
 void radio_read_frame(void)
 {
     cc2420_fifo_get(&rxlen, 1);
-        
+
     if ( rxlen < 128 )
     {
         cc2420_fifo_get(rxframe, rxlen);
-        
+
         // check CRC
         if ( (rxframe[rxlen-1] & 0x80) != 0 )
         {
-            
+
             int i;
             printf("Message received:\r\n");
             for (i=0;i<rxlen-2;i++)

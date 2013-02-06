@@ -25,27 +25,27 @@ Description:
 
   To use this application:
 
-  (i)   Program one node (the "parrot") with this application using 
+  (i)   Program one node (the "parrot") with this application using
         the typical command (e.g. make telosb install)
   (ii)  Program a second node with the BlinkToRadio application.
-  (iii) Turn the parrot node on.  The red LED will turn on briefly, 
+  (iii) Turn the parrot node on.  The red LED will turn on briefly,
         indicating that the flash volume is being erased.
-  (iv)  Turn the second node on.  Nothing should happen on the second 
+  (iv)  Turn the second node on.  Nothing should happen on the second
         node but the blue (yellow) LED on the parrot node should start
-        to blink, indicating it is receiving packets and logging them 
+        to blink, indicating it is receiving packets and logging them
         to flash.
-  (v)   After a few tens of seconds, focus you attention on the second 
-        node's LEDs and then power cycle the parrot node.  The LEDs on 
-        the second node should rapidly flash as if they were displaying 
-        the three low-order bits of a counter.  At the same time, the 
-        green LED on the parrot node should flicker rapidly, in unison 
-        with the LEDs on the second node, indicating that packets are 
+  (v)   After a few tens of seconds, focus you attention on the second
+        node's LEDs and then power cycle the parrot node.  The LEDs on
+        the second node should rapidly flash as if they were displaying
+        the three low-order bits of a counter.  At the same time, the
+        green LED on the parrot node should flicker rapidly, in unison
+        with the LEDs on the second node, indicating that packets are
         being transmitted.
-  (vi)  Repeat step (v) a few times and notice that the parrot's blue 
-        (yellow) LED turns on and doesn't turn off until just a bit 
-        after the red LED, indicating that one or more packets were 
-        received (the LED turned on) but these packets were not logged 
-        (since the LED does not turn off) because the log is being 
+  (vi)  Repeat step (v) a few times and notice that the parrot's blue
+        (yellow) LED turns on and doesn't turn off until just a bit
+        after the red LED, indicating that one or more packets were
+        received (the LED turned on) but these packets were not logged
+        (since the LED does not turn off) because the log is being
         erased.
 
 Tools:

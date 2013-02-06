@@ -50,7 +50,7 @@ mac_call_sent_callback(mac_callback_t sent, void *ptr, int status, int num_tx)
   switch(status) {
   case MAC_TX_COLLISION:
     PRINTF("mac: collision after %d tx\n", num_tx);
-    break; 
+    break;
   case MAC_TX_NOACK:
     PRINTF("mac: noack after %d tx\n", num_tx);
     break;

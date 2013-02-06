@@ -19,11 +19,11 @@
  * OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR
  * MODIFICATIONS."
  */
- 
+
 /**
- * SharedResourceC is used to provide a generic configuration around 
- * the SharedResourceP component so that new instantiations of 
- * it provide a single set of interfaces that are all properly associated 
+ * SharedResourceC is used to provide a generic configuration around
+ * the SharedResourceP component so that new instantiations of
+ * it provide a single set of interfaces that are all properly associated
  * with one another rather than requiring the user to deal with the complexity
  * of doing this themselves.
  *
@@ -31,7 +31,7 @@
  * @version $Revision: 1.1 $
  * @date $Date: 2007/07/13 23:43:17 $
  */
- 
+
 #define UQ_SHARED_RESOURCE   "Shared.Resource"
 generic configuration SharedResourceC() {
 	provides interface Resource;
@@ -41,7 +41,7 @@ generic configuration SharedResourceC() {
 }
 implementation {
   components SharedResourceP;
-  
+
   enum {
     RESOURCE_ID = unique(UQ_SHARED_RESOURCE)
   };

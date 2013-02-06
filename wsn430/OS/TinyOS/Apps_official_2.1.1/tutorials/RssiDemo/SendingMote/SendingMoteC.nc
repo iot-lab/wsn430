@@ -39,12 +39,12 @@
 module SendingMoteC {
   uses interface Boot;
   uses interface Timer<TMilli> as SendTimer;
-  
+
   uses interface AMSend as RssiMsgSend;
   uses interface SplitControl as RadioControl;
 } implementation {
   message_t msg;
-  
+
   event void Boot.booted(){
     call RadioControl.start();
   }
@@ -57,7 +57,7 @@ module SendingMoteC {
 
 
   event void SendTimer.fired(){
-    call RssiMsgSend.send(AM_BROADCAST_ADDR, &msg, sizeof(RssiMsg));    
+    call RssiMsgSend.send(AM_BROADCAST_ADDR, &msg, sizeof(RssiMsg));
   }
 
   event void RssiMsgSend.sendDone(message_t *m, error_t error){}

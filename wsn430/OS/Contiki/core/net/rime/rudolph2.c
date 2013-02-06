@@ -110,7 +110,7 @@ format_data(struct rudolph2_conn *c, int chunk)
 {
   struct rudolph2_hdr *hdr;
   int len;
-  
+
   packetbuf_clear();
   hdr = packetbuf_dataptr();
   hdr->type = TYPE_DATA;
@@ -130,16 +130,16 @@ write_data(struct rudolph2_conn *c, int chunk, uint8_t *data, int datalen)
   if(c->flags & FLAG_IS_STOPPED) {
     return;
   }
-  
+
   if(chunk == 0) {
     c->cb->write_chunk(c, 0, RUDOLPH2_FLAG_NEWFILE, data, 0);
   }
-  
+
   PRINTF("%d.%d: get %d bytes\n",
 	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	 datalen);
 
-  
+
   if(datalen < RUDOLPH2_DATASIZE) {
     PRINTF("%d.%d: get %d bytes, file complete\n",
 	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
@@ -197,7 +197,7 @@ send_next(struct rudolph2_conn *c)
   } else {
     interval = SEND_INTERVAL;
   }
-  
+
   len = send_data(c, interval);
 
   if(len < RUDOLPH2_DATASIZE) {
@@ -205,7 +205,7 @@ send_next(struct rudolph2_conn *c)
   } else {
     c->flags &= ~FLAG_LAST_SENT;
   }
-  
+
   if(c->nacks == 0 &&
      len == RUDOLPH2_DATASIZE &&
      c->snd_nxt + 1 < c->rcv_nxt) {
@@ -228,7 +228,7 @@ sent(struct polite_conn *polite)
       send_data(c, STEADY_INTERVAL);
     }
     }*/
-  
+
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -251,7 +251,7 @@ timed_send(void *ptr)
   struct rudolph2_conn *c = (struct rudolph2_conn *)ptr;
   clock_time_t interval;
   int len;
-  
+
   if((c->flags & FLAG_IS_STOPPED) == 0 &&
      (c->flags & FLAG_LAST_RECEIVED)) {
     /*    if(c->snd_nxt + 1 < c->rcv_nxt) {
@@ -266,16 +266,16 @@ timed_send(void *ptr)
     } else {
       interval = SEND_INTERVAL;
     }
-  
+
 
     len = send_data(c, interval);
-    
+
     if(len < RUDOLPH2_DATASIZE) {
       c->flags |= FLAG_LAST_SENT;
     } else {
       c->flags &= ~FLAG_LAST_SENT;
     }
-    
+
     if(c->nacks == 0 &&
        len == RUDOLPH2_DATASIZE &&
      c->snd_nxt + 1 < c->rcv_nxt) {
@@ -333,7 +333,7 @@ recv(struct polite_conn *polite)
 	PRINTF("%d.%d: got chunk %d snd_nxt %d rcv_nxt %d\n",
 	       rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	       hdr->chunk, c->snd_nxt, c->rcv_nxt);
-	
+
 	if(hdr->chunk == c->rcv_nxt) {
 	  int len;
 	  packetbuf_hdrreduce(sizeof(struct rudolph2_hdr));

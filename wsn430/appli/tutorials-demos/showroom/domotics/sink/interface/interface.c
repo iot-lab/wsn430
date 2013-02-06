@@ -36,7 +36,7 @@ void vCreateInterfaceTask( uint16_t usPriority )
 {
     xCmdQueue = xQueueCreate(2, sizeof(cmd));
     xRXQueue = xQueueCreate(1, sizeof(packet));
-    
+
     /* Create the task */
     xTaskCreate( vInterfaceTask, "interface", configMINIMAL_STACK_SIZE, NULL, usPriority, NULL );
 }
@@ -46,14 +46,14 @@ static void vInterfaceTask(void* pvParameters)
     uart0_init(UART0_CONFIG_1MHZ_115200);
     uart0_register_callback(char_received);
     printf("Radio Monitor, Sink\r\n");
-    
+
     for (;;)
     {
         if ( xQueueReceive(xRXQueue, packet, 50) )
         {
             vPrintData();
         }
-        
+
         if ( xQueueReceive(xCmdQueue, cmd, 50) )
         {
             if (cmd[0] == BLINKER_CMD || cmd[0] == SENSOR_CMD)
@@ -72,7 +72,7 @@ static void vInterfaceTask(void* pvParameters)
                 }
                 printf("\r\n");
             }
-        
+
         }
     }
 }
@@ -80,13 +80,13 @@ static void vInterfaceTask(void* pvParameters)
 static void vPrintData(void)
 {
     uint16_t i;
-    
+
     #define SENSOR_PORT_NUMBER 0x0
     if ( packet[0]!=SENSOR_PORT_NUMBER)
     {
         return;
-    } 
-    
+    }
+
     printf("From=%x\tLength=%u\t", packet_from, packet_length);
     for (i=0;i<packet_length; i++)
     {
@@ -110,12 +110,12 @@ static void char_received(uint8_t c)
         else if (c == LIST_CMD)
         {
             dat[0] = c;
-            
+
             /* Send the command to the MAC TX Queue */
             xQueueSendToBackFromISR( xCmdQueue, dat, &xHighPriorityTaskWoken);
-            
+
             LED_GREEN_TOGGLE();
-            
+
             /* If this enabled a higher priority to execute,
              * force a context switch */
             if (xHighPriorityTaskWoken)
@@ -128,16 +128,16 @@ static void char_received(uint8_t c)
     {
         dat[index] = c;
         index ++;
-        
+
         if (index == 3)
         {
             index = 0;
-            
+
             /* Send the command to the MAC TX Queue */
             xQueueSendToBackFromISR( xCmdQueue, dat, &xHighPriorityTaskWoken);
-            
+
             LED_GREEN_TOGGLE();
-            
+
             /* If this enabled a higher priority to execute,
              * force a context switch */
             if (xHighPriorityTaskWoken)

@@ -5,8 +5,8 @@ Description:
 
 MultihopOscilloscope is a simple data-collection demo. This variant,
 MultihopOscilloscopeLqi, works only on platforms that have the CC2420.
-Rather than use CTP, it uses MultihopLqi (lib/net/lqi), which is 
-much lighter weight but not quite as efficient or reliable. 
+Rather than use CTP, it uses MultihopLqi (lib/net/lqi), which is
+much lighter weight but not quite as efficient or reliable.
 
 The application periodically samples
 the default sensor and broadcasts a message every few readings. These readings
@@ -47,5 +47,5 @@ TEP 113: Serial Communications, TEP 119: Collection.
 
 Notes:
 
-MultihopOscilloscope configures a mote whose TOS_NODE_ID modulo 500 is zero 
+MultihopOscilloscope configures a mote whose TOS_NODE_ID modulo 500 is zero
 to be a collection root.

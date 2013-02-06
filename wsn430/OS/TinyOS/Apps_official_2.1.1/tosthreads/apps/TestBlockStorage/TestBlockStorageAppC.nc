@@ -23,11 +23,11 @@
 /**
  * This application is used to test the threaded version of the API for performing
  * block storage.
- * 
+ *
  * This application first checks the size of the block storage volume, and
  * erases it. Then, it randomly writes records, followed by a verification
  * with read.
- * 
+ *
  * Successful running of this application results in LED0 being ON
  * throughout the duration of the erase, write, and read sequence. Finally,
  * if all tests pass, LED1 is turned ON. Otherwise, all three LEDs are
@@ -48,7 +48,7 @@ implementation
              new ThreadC(500) as TinyThread1,
              new BlockingBlockStorageC(VOLUME_TESTBLOCKSTORAGE1) as BlockingBlockStorage1,
              RandomC;
-             
+
   TestBlockStorageP.Boot -> MainC;
   TestBlockStorageP.Leds -> LedsC;
   TestBlockStorageP.BlockingBlock1 -> BlockingBlockStorage1;

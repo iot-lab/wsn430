@@ -14,13 +14,13 @@ So far there are a few limitations:
 
 To compile in the default Ack LPL version, #define the preprocessor variable:
   LOW_POWER_LISTENING
-  
+
 To compile in the PacketLink (auto-retransmission) layer, #define:
   PACKET_LINK
-  
+
 To remove all acknowledgements, #define (or use CC2420Config in 2.0.2)
   CC2420_NO_ACKNOWLEDGEMENTS
-  
+
 To use hardware auto-acks instead of software acks, #define:
   CC2420_HW_ACKNOWLEDGEMENTS
 

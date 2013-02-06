@@ -71,7 +71,7 @@ PROCESS_THREAD(shell_blink_process, ev, data)
 	on = 1;
 	PROCESS_WAIT_UNTIL(etimer_expired(&etimer));
 	etimer_reset(&etimer);
-	
+
 	leds_toggle(LEDS_ALL);
 	on = 0;
 	PROCESS_WAIT_UNTIL(etimer_expired(&etimer));
@@ -109,7 +109,7 @@ PROCESS_THREAD(shell_blink_process, ev, data)
       etimer_set(&etimer, CLOCK_SECOND / 16);
     }
   }
-  
+
 
   PROCESS_END();
 }

@@ -39,6 +39,6 @@ for i in range(0, 225):
     m.addNoiseTraceReading(-105)
   m.createNoiseModel()
   m.bootAtTime((t.ticksPerSecond() / 50) * i + 43);
- 
+
 while (t.time() / t.ticksPerSecond() < 600):
   t.runNextEvent()

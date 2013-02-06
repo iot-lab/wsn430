@@ -14,16 +14,16 @@ class DelivRssi:
 
 if __name__ == '__main__':
 	import sys
-	
+
 	usage = "%s folderpath" % sys.argv[0]
 	if len(sys.argv) != 2:
 		print usage
 		sys.exit()
 	else:
 		path = sys.argv[1]
-	
+
 	if not path.endswith('/'):
 		path += '/'
 	d = DelivRssi(path)
-	
+
 	plt.show()

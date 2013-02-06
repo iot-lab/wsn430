@@ -2,14 +2,14 @@
  * Copyright (c) 2006 Intel Corporation
  * All rights reserved.
  *
- * This file is distributed under the terms in the attached INTEL-LICENSE     
+ * This file is distributed under the terms in the attached INTEL-LICENSE
  * file. If you do not find these files, copies can be found by writing to
- * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
+ * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA,
  * 94704.  Attention:  Intel License Inquiry.
  */
 
 /**
- * MultihopOscilloscope demo application using the collection layer. 
+ * MultihopOscilloscope demo application using the collection layer.
  * See README.txt file in this directory and TEP 119: Collection.
  *
  * @author David Gay
@@ -26,7 +26,7 @@ module MultihopOscilloscopeC {
     interface SplitControl as RadioControl;
     interface SplitControl as SerialControl;
     interface StdControl as RoutingControl;
-    
+
     // Interfaces for communication, multihop and serial:
     interface Send;
     interface Receive as Snoop;
@@ -70,7 +70,7 @@ implementation {
      notion of time). */
   bool suppress_count_change;
 
-  // 
+  //
   // On bootup, initialize radio and serial communications, and our
   // own state variables.
   //
@@ -199,13 +199,13 @@ implementation {
   //
   // Overhearing other traffic in the network.
   //
-  event message_t* 
+  event message_t*
   Snoop.receive(message_t* msg, void* payload, uint8_t len) {
     oscilloscope_t *omsg = payload;
 
     report_received();
 
-    // If we receive a newer version, update our interval. 
+    // If we receive a newer version, update our interval.
     if (omsg->version > local.version) {
       local.version = omsg->version;
       local.interval = omsg->interval;
@@ -240,7 +240,7 @@ implementation {
         else
           report_problem();
       }
-      
+
       reading = 0;
       /* Part 2 of cheap "time sync": increment our count if we didn't
          jump ahead. */
@@ -272,8 +272,8 @@ implementation {
 
 
   // Use LEDs to report various status issues.
-  static void fatal_problem() { 
-    call Leds.led0On(); 
+  static void fatal_problem() {
+    call Leds.led0On();
     call Leds.led1On();
     call Leds.led2On();
     call Timer.stop();

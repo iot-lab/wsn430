@@ -194,12 +194,12 @@
 #define UIP_CONF_IPV6_QUEUE_PKT       0
 #endif
 
-#ifndef UIP_CONF_IPV6_CHECKS 
+#ifndef UIP_CONF_IPV6_CHECKS
 /** Do we do IPv6 consistency checks (highly recommended, default: yes) */
 #define UIP_CONF_IPV6_CHECKS          1
 #endif
 
-#ifndef UIP_CONF_IPV6_REASSEMBLY 
+#ifndef UIP_CONF_IPV6_REASSEMBLY
 /** Do we do IPv6 fragmentation (default: no) */
 #define UIP_CONF_IPV6_REASSEMBLY      0
 #endif
@@ -209,14 +209,14 @@
 #define UIP_CONF_NETIF_MAX_ADDRESSES  3
 #endif
 
-#ifndef UIP_CONF_ND6_MAX_PREFIXES 
+#ifndef UIP_CONF_ND6_MAX_PREFIXES
 /** Default number of IPv6 prefixes associated to the node's interface */
 #define UIP_CONF_ND6_MAX_PREFIXES     3
 #endif
 
-#ifndef UIP_CONF_ND6_MAX_NEIGHBORS 
+#ifndef UIP_CONF_ND6_MAX_NEIGHBORS
 /** Default number of neighbors that can be stored in the %neighbor cache */
-#define UIP_CONF_ND6_MAX_NEIGHBORS    4  
+#define UIP_CONF_ND6_MAX_NEIGHBORS    4
 #endif
 
 #ifndef UIP_CONF_ND6_MAX_DEFROUTERS
@@ -482,14 +482,14 @@
 /**
  * If we use IPHC compression, how many address contexts do we support
  */
-#ifndef SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS 
+#ifndef SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS
 #define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS 1
 #endif
 
 /**
  * Do we support 6lowpan fragmentation
  */
-#ifndef SICSLOWPAN_CONF_FRAG  
+#ifndef SICSLOWPAN_CONF_FRAG
 #define SICSLOWPAN_CONF_FRAG  0
 #endif
 

@@ -13,13 +13,13 @@ transmissions.
 Criteria for a successful test:
 
 Assuming one coordinator and one device has been installed, the coordinator
-should briefly flash LED1 every 3 seconds. The device should briefly flash 
-LED2 every 1 second. 
+should briefly flash LED1 every 3 seconds. The device should briefly flash
+LED2 every 1 second.
 
 
 Tools: NONE
 
-Usage: 
+Usage:
 
 1. Install the coordinator:
 
@@ -34,8 +34,8 @@ You can change some of the configuration parameters in app_profile.h
 Known bugs/limitations:
 
 - Many TinyOS 2 platforms do not have a clock that satisfies the
-  precision/accuracy requirements of the IEEE 802.15.4 standard (e.g. 
-  62.500 Hz, +-40 ppm in the 2.4 GHz band); in this case the MAC timing 
+  precision/accuracy requirements of the IEEE 802.15.4 standard (e.g.
+  62.500 Hz, +-40 ppm in the 2.4 GHz band); in this case the MAC timing
   is not standard compliant
 
 $Id: README.txt,v 1.3 2010/01/05 17:12:56 janhauer Exp $o

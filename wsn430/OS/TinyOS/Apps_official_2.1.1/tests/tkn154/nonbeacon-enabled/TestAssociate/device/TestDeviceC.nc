@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2008, Technische Universitaet Berlin
  * All rights reserved.
  *
@@ -59,7 +59,7 @@ module TestDeviceC
     m_capabilityInformation.ReceiverOnWhenIdle = 0;
     m_capabilityInformation.Reserved = 0;
     m_capabilityInformation.SecurityCapability = 0;
-    m_capabilityInformation.AllocateAddress = 1;    
+    m_capabilityInformation.AllocateAddress = 1;
     call MLME_RESET.request(TRUE);
   }
 
@@ -86,7 +86,7 @@ module TestDeviceC
           coordAdr,
           m_capabilityInformation,
           NULL  // security
-          );    
+          );
   }
 
   event void MLME_ASSOCIATE.confirm    (
@@ -96,7 +96,7 @@ module TestDeviceC
                         )
   {
     if ( status == IEEE154_SUCCESS ){
-      // we are now associated - set a timer for disassociation 
+      // we are now associated - set a timer for disassociation
       call Leds.led1On();
       call DisassociateTimer.startOneShot(312500U);
     } else {
@@ -137,7 +137,7 @@ module TestDeviceC
                           uint64_t DeviceAddress,
                           ieee154_CapabilityInformation_t CapabilityInformation,
                           ieee154_security_t *security
-                        ){}  
+                        ){}
 
   event void MLME_DISASSOCIATE.indication (
                           uint64_t DeviceAddress,

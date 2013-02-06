@@ -28,7 +28,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE
  */
- 
+
 /**
  * Test for radio acknowledgements
  * Program all motes up with ID 1
@@ -37,7 +37,7 @@
  *   Led2 = Sent a message
  * @author David Moss
  */
- 
+
 module TestAcksP {
   uses {
     interface Boot;
@@ -51,37 +51,37 @@ module TestAcksP {
 }
 
 implementation {
-  
+
   /** Message to transmit */
   message_t myMsg;
-  
-  enum {  
+
+  enum {
     DELAY_BETWEEN_MESSAGES = 50,
   };
-  
-  
+
+
   /***************** Prototypes ****************/
   task void send();
-  
+
   /***************** Boot Events ****************/
   event void Boot.booted() {
     call SplitControl.start();
   }
-  
+
   /***************** SplitControl Events ****************/
   event void SplitControl.startDone(error_t error) {
     post send();
   }
-  
+
   event void SplitControl.stopDone(error_t error) {
   }
-  
+
   /***************** Receive Events ****************/
   event message_t *Receive.receive(message_t *msg, void *payload, uint8_t len) {
     call Leds.led2Toggle();
     return msg;
   }
-  
+
   /***************** AMSend Events ****************/
   event void AMSend.sendDone(message_t *msg, error_t error) {
     if(call PacketAcknowledgements.wasAcked(msg)) {
@@ -91,19 +91,19 @@ implementation {
       call Leds.led0Toggle();
       call Leds.led1Off();
     }
-    
+
     if(DELAY_BETWEEN_MESSAGES > 0) {
       call Timer.startOneShot(DELAY_BETWEEN_MESSAGES);
     } else {
       post send();
     }
   }
-  
+
   /***************** Timer Events ****************/
   event void Timer.fired() {
     post send();
   }
-  
+
   /***************** Tasks ****************/
   task void send() {
     call PacketAcknowledgements.requestAck(&myMsg);

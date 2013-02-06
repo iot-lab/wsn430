@@ -185,7 +185,7 @@ parse_name(unsigned char *query)
 
   do {
     n = *query++;
-    
+
     while(n > 0) {
       /*      printf("%c", *query);*/
       ++query;
@@ -210,7 +210,7 @@ check_entries(void)
   uint8_t i;
   uint8_t n;
   register struct namemap *namemapptr;
-  
+
   for(i = 0; i < RESOLV_ENTRIES; ++i) {
     namemapptr = &names[i];
     if(namemapptr->state == STATE_NEW ||
@@ -279,7 +279,7 @@ newdata(void)
   static u8_t nquestions, nanswers;
   static u8_t i;
   register struct namemap *namemapptr;
-  
+
   hdr = (struct dns_hdr *)uip_appdata;
   /*  printf("ID %d\n", uip_htons(hdr->id));
   printf("Query %d\n", hdr->flags1 & DNS_FLAG1_RESPONSE);
@@ -351,7 +351,7 @@ newdata(void)
         for(i = 0; i < 4; i++) {
           namemapptr->ipaddr.u8[i] = ans->ipaddr[i];
         }
-	
+
 	resolv_found(namemapptr->name, &namemapptr->ipaddr);
 	return;
       } else {
@@ -369,7 +369,7 @@ newdata(void)
 PROCESS_THREAD(resolv_process, ev, data)
 {
   int i;
-  
+
   PROCESS_BEGIN();
 
   for(i = 0; i < RESOLV_ENTRIES; ++i) {
@@ -377,11 +377,11 @@ PROCESS_THREAD(resolv_process, ev, data)
   }
   resolv_conn = NULL;
   resolv_event_found = process_alloc_event();
-  
-  
+
+
   while(1) {
     PROCESS_WAIT_EVENT();
-    
+
     if(ev == PROCESS_EVENT_TIMER) {
       if(resolv_conn != NULL) {
         tcpip_poll_udp(resolv_conn);
@@ -392,7 +392,7 @@ PROCESS_THREAD(resolv_process, ev, data)
 	uip_udp_remove(resolv_conn);
       }
       resolv_conn = udp_new((uip_ipaddr_t *)data, UIP_HTONS(53), NULL);
-      
+
     } else if(ev == tcpip_event) {
       if(uip_udp_conn->rport == UIP_HTONS(53)) {
 	if(uip_poll()) {
@@ -404,7 +404,7 @@ PROCESS_THREAD(resolv_process, ev, data)
       }
     }
   }
-  
+
   PROCESS_END();
 }
 /*-----------------------------------------------------------------------------------*/
@@ -420,10 +420,10 @@ resolv_query(const char *name)
   static u8_t i;
   static u8_t lseq, lseqi;
   register struct namemap *nameptr;
-      
+
   lseq = lseqi = 0;
   nameptr = 0;                //compiler warning if not initialized
-  
+
   for(i = 0; i < RESOLV_ENTRIES; ++i) {
     nameptr = &names[i];
     if(nameptr->state == STATE_UNUSED) {
@@ -468,7 +468,7 @@ resolv_lookup(const char *name)
 {
   static u8_t i;
   struct namemap *nameptr;
-  
+
   /* Walk through the list to see if the name is in there. If it is
      not, we return NULL. */
   for(i = 0; i < RESOLV_ENTRIES; ++i) {
@@ -511,11 +511,11 @@ resolv_conf(const uip_ipaddr_t *dnsserver)
   static uip_ipaddr_t server;
   uip_ipaddr_copy(&server, dnsserver);
   process_post(&resolv_process, EVENT_NEW_SERVER, &server);
-  
+
   /*  if(resolv_conn != NULL) {
     uip_udp_remove(resolv_conn);
   }
-  
+
   resolv_conn = udp_new(dnsserver, 53, NULL);*/
 }
 /*-----------------------------------------------------------------------------------*/

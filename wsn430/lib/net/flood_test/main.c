@@ -22,38 +22,38 @@ uint16_t char_rx(uint8_t c);
 int main (void)
 {
     WDTCTL = WDTPW+WDTHOLD;                   // Stop watchdog timer
-    
+
     set_mcu_speed_xt2_mclk_8MHz_smclk_1MHz();
     set_aclk_div(1);
-    
+
     LEDS_INIT();
     LEDS_OFF();
     LED_BLUE_ON();
-    
+
     uart0_init(UART0_CONFIG_1MHZ_115200);
     uart0_register_callback(char_rx);
     printf("-----------------------------------\n");
     printf("FLOOD test\r\n");
     eint();
-    
+
     net_init();
     net_register_rx_cb(packet_received);
-    
+
     printf("I'm %.4x\n", node_addr);
-    
+
     timerA_init();
     timerA_start_ACLK_div(TIMERA_DIV_8);
     timerA_register_cb(TIMERA_ALARM_CCR0, send_packet);
-    
+
     if (node_addr == 0xcc8b) {
         timerA_set_alarm_from_now(TIMERA_ALARM_CCR0, 4096, 0);
     }
-    
+
     while(1)
     {
         LPM1;
     }
-    
+
     return 0;
 }
 
@@ -66,7 +66,7 @@ uint16_t packet_received(uint8_t packet[], uint16_t length, uint16_t src_addr)
         printf("%c", packet[i]);
     printf("\n");
     LED_BLUE_ON();
-    
+
     return 0;
 }
 
@@ -78,7 +78,7 @@ uint16_t send_packet(void) {
     count ++;
     printf("sending: %s\n", msg);
     net_send(msg, len, NET_BROADCAST);
-    
+
     return 0;
 }
 #include "cc1101.h"
@@ -93,8 +93,8 @@ uint16_t char_rx(uint8_t c) {
             printf("rxb=%x\n", cc1101_status_rxbytes());
         }
     }
-    
+
     c0=c;
-    
+
     return 0;
 }

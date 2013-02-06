@@ -1,19 +1,19 @@
 /*
  * Copyright (c) 2002, Adam Dunkels.
- * All rights reserved. 
+ * All rights reserved.
  *
- * Redistribution and use in source and binary forms, with or without 
- * modification, are permitted provided that the following conditions 
- * are met: 
- * 1. Redistributions of source code must retain the above copyright 
- *    notice, this list of conditions and the following disclaimer. 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above
  *    copyright notice, this list of conditions and the following
  *    disclaimer in the documentation and/or other materials provided
- *    with the distribution. 
+ *    with the distribution.
  * 3. The name of the author may not be used to endorse or promote
  *    products derived from this software without specific prior
- *    written permission.  
+ *    written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS
  * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -25,7 +25,7 @@
  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.  
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * This file is part of the Contiki desktop environment for the C64.
  *
@@ -63,14 +63,14 @@ static struct ctk_label loglabel =
 PROCESS_THREAD(webserver_process, ev, data)
 {
   PROCESS_BEGIN();
-  
+
   ctk_window_new(&mainwindow, LOG_WIDTH, LOG_HEIGHT+1, "Web server");
-  
+
   CTK_WIDGET_ADD(&mainwindow, &message);
   CTK_WIDGET_ADD(&mainwindow, &loglabel);
-  
+
   httpd_init();
-  
+
   ctk_window_open(&mainwindow);
 
   while(1) {
@@ -80,7 +80,7 @@ PROCESS_THREAD(webserver_process, ev, data)
        ev == PROCESS_EVENT_EXIT) {
       ctk_window_close(&mainwindow);
       process_exit(&webserver_process);
-      LOADER_UNLOAD();    
+      LOADER_UNLOAD();
     } else if(ev == tcpip_event) {
       httpd_appcall(data);
     }
@@ -93,7 +93,7 @@ void
 webserver_log_file(uip_ipaddr_t *requester, char *file)
 {
   int size;
-  
+
   /* Scroll previous entries upwards */
   memcpy(log, &log[LOG_WIDTH], LOG_WIDTH * (LOG_HEIGHT - 1));
 
@@ -104,10 +104,10 @@ webserver_log_file(uip_ipaddr_t *requester, char *file)
 		 requester->u8[1],
 		 requester->u8[2],
 		 requester->u8[3]);
-  
-  /* Copy filename into last line. */		 
+
+  /* Copy filename into last line. */
   strncpy(&log[LOG_WIDTH * (LOG_HEIGHT - 1) + size], file, LOG_WIDTH - size);
-	   
+
   /* Update log display. */
   CTK_WIDGET_REDRAW(&loglabel);
 }
@@ -118,9 +118,9 @@ webserver_log(char *msg)
   /* Scroll previous entries upwards */
   memcpy(log, &log[LOG_WIDTH], LOG_WIDTH * (LOG_HEIGHT - 1));
 
-  /* Copy filename into last line. */		 
+  /* Copy filename into last line. */
   strncpy(&log[LOG_WIDTH * (LOG_HEIGHT - 1)], msg, LOG_WIDTH);
-  
+
   /* Update log display. */
   CTK_WIDGET_REDRAW(&loglabel);
 }

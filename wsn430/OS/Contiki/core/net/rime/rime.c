@@ -111,13 +111,13 @@ input(void)
 
   RIMESTATS_ADD(rx);
   c = chameleon_parse();
-  
+
   for(s = list_head(sniffers); s != NULL; s = list_item_next(s)) {
     if(s->input_callback != NULL) {
       s->input_callback();
     }
   }
-  
+
   if(c != NULL) {
     abc_input(c);
   }
@@ -132,7 +132,7 @@ init(void)
 
   rime_mac = &NETSTACK_MAC;
   chameleon_init();
-  
+
   /* XXX This is initializes the transmission of announcements but it
    * is not currently certain where this initialization is supposed to
    * be. Also, the times are arbitrarily set for now. They should
@@ -152,11 +152,11 @@ packet_sent(void *ptr, int status, int num_tx)
 {
   struct channel *c = ptr;
 
-  
+
   switch(status) {
   case MAC_TX_COLLISION:
     PRINTF("rime: collision after %d tx\n", num_tx);
-    break; 
+    break;
   case MAC_TX_NOACK:
     PRINTF("rime: noack after %d tx\n", num_tx);
     break;
@@ -166,7 +166,7 @@ packet_sent(void *ptr, int status, int num_tx)
   default:
     PRINTF("rime: error %d after %d tx\n", status, num_tx);
   }
-  
+
   if(status == MAC_TX_OK) {
     struct rime_sniffer *s;
     /* Call sniffers, but only if the packet was sent. */
@@ -176,7 +176,7 @@ packet_sent(void *ptr, int status, int num_tx)
       }
     }
   }
-  
+
   abc_sent(c, status, num_tx);
 }
 /*---------------------------------------------------------------------------*/

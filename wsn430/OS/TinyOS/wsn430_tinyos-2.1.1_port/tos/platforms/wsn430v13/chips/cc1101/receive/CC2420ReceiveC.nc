@@ -51,7 +51,7 @@ implementation {
   components CC2420PacketC;
   components new CC1101SpiC() as Spi;
   components CC2420ControlC;
-  
+
   components HplCC1101PinsC as Pins;
   components HplCC1101InterruptsC as InterruptsC;
 
@@ -64,23 +64,23 @@ implementation {
   PacketIndicator = CC1101ReceiveP.PacketIndicator;
 
   MainC.SoftwareInit -> CC1101ReceiveP;
-  
+
   CC1101ReceiveP.CSN -> Pins.CSN;
   CC1101ReceiveP.FIFO -> Pins.GDO2;
   CC1101ReceiveP.InterruptFIFO -> InterruptsC.InterruptGDO2;
-  
-  
+
+
   CC1101ReceiveP.SpiResource -> Spi;
   CC1101ReceiveP.RXFIFO -> Spi.RXFIFO;
   CC1101ReceiveP.SFRX -> Spi.SFRX;
   CC1101ReceiveP.SRX -> Spi.SRX;
   CC1101ReceiveP.SFTX -> Spi.SFTX;
   CC1101ReceiveP.SIDLE -> Spi.SIDLE;
-  
+
   CC1101ReceiveP.PKTSTATUS -> Spi.PKTSTATUS;
   CC1101ReceiveP.MARCSTATE -> Spi.MARCSTATE;
   CC1101ReceiveP.RXBYTES -> Spi.RXBYTES;
-  
+
   CC1101ReceiveP.CC2420Packet -> CC2420PacketC;
   CC1101ReceiveP.CC2420PacketBody -> CC2420PacketC;
   CC1101ReceiveP.PacketTimeStamp -> CC2420PacketC;

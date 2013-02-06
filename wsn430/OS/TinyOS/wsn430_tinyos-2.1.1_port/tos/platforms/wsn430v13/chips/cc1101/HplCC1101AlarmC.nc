@@ -41,9 +41,9 @@ generic configuration HplCC1101AlarmC() {
 
   provides interface Init;
   provides interface Alarm<T32khz,uint32_t> as Alarm32khz32;
-  
+
   //provides interface Counter<T32khz,uint32_t> as Counter32khz32;
-  
+
 }
 
 implementation {
@@ -52,8 +52,8 @@ implementation {
 
   Init = Alarm32khz32C;
   Alarm32khz32 = Alarm32khz32C;
-  
+
   //components new Counter32khz32C();
   //Counter32khz32 = Counter32khz32C;
-  
+
 }

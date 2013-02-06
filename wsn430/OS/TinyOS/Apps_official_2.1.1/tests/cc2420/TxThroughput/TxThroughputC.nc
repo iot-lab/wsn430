@@ -28,7 +28,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE
  */
- 
+
 #include "TxThroughput.h"
 
 /**
@@ -38,7 +38,7 @@
  *
  * @author David Moss
  */
- 
+
 configuration TxThroughputC {
 }
 
@@ -52,7 +52,7 @@ implementation {
       new AMSenderC(AM_THROUGHPUTMSG),
       new TimerMilliC(),
       LedsC;
-  
+
   TxThroughputP.Boot -> MainC;
   TxThroughputP.SerialSplitControl -> SerialActiveMessageC;
   TxThroughputP.RadioSplitControl -> ActiveMessageC;
@@ -61,5 +61,5 @@ implementation {
   TxThroughputP.PacketAcknowledgements -> ActiveMessageC;
   TxThroughputP.Timer -> TimerMilliC;
   TxThroughputP.Leds -> LedsC;
-  
+
 }

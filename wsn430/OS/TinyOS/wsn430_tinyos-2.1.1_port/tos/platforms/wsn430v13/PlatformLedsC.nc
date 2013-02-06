@@ -1,5 +1,5 @@
 #include "hardware.h"
- 
+
 configuration PlatformLedsC {
     provides interface GeneralIO as Led0;
     provides interface GeneralIO as Led1;
@@ -13,7 +13,7 @@ implementation
                 , new Msp430GpioC() as Led0Impl
                 , new Msp430GpioC() as Led1Impl
                 , new Msp430GpioC() as Led2Impl;
-    
+
     components PlatformP;
 
     Init = PlatformP.LedsInit;
@@ -27,4 +27,4 @@ implementation
     Led2 = Led2Impl;
     Led2Impl -> GeneralIOC.Port56;
 }
- 
+

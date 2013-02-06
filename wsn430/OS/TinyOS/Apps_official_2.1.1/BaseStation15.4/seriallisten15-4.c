@@ -53,14 +53,14 @@ int main(int argc, char **argv)
 	    argv[2], argv[3]);
     exit(1);
   }
-	      
+
   for (;;)
     {
       int len, i, plen;
       short fcf;
       const unsigned char *packet = read_serial_packet(src, &len);
       int intraPan = 0;
-      
+
       if (!packet)
 	exit(0);
       else if (packet[0] != TOS_SERIAL_802_15_4_ID) {
@@ -72,12 +72,12 @@ int main(int argc, char **argv)
       if (plen != len) {
 	printf("Packet format error: read packet length (%hhx) is different than expected from frame (%hhx).\n", plen, len);
       }
-      
+
       i = 2;
       // Read in FCF and i+=2
       fcf = packet[i+1] << 8 | packet[i];
       i += 2;
-      
+
 
       {
 	if ((fcf & 0x7) == 0x01) {
@@ -102,18 +102,18 @@ int main(int argc, char **argv)
 	char seqno = packet[i++];
 	printf("  Sequence number: 0x%hhx\n", seqno);
       }
-      
+
       {
 	char addrLen = (fcf >> 10) & 0x3;
 	short saddr = 0;
 	long long laddr = 0;
 
 	// 16- and 64-bit destinations have a PAN ID
-	if (addrLen == 2 || addrLen == 3) { 
+	if (addrLen == 2 || addrLen == 3) {
 	  short destPan = packet[i++] << 8 | packet[i++];
 	  printf("  Destination PAN: 0x%02hx\n", destPan);
 	}
-	
+
 	switch (addrLen) {
 	case 0:
 	  printf("  Destination address: none\n");
@@ -140,7 +140,7 @@ int main(int argc, char **argv)
 	}
       }
 
-      
+
       {
 	char addrLen = (fcf >> 14) & 0x3;
 	short saddr = 0;
@@ -151,7 +151,7 @@ int main(int argc, char **argv)
 	  i += 2;
 	  printf("  Source PAN: 0x%02hx\n", srcPan);
 	}
-	
+
 	switch (addrLen) {
 	case 0:
 	  printf("  Source address: none\n");
@@ -181,7 +181,7 @@ int main(int argc, char **argv)
       if (iframes) {
 	printf("  I-Frame: %s\n", (packet[i++] == 0x3f)? "yes":"no");
       }
-      
+
       printf("  AM type: 0x%02hhx\n", packet[i++]);
 
       if (i >= plen) {

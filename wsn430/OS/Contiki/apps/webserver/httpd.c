@@ -32,7 +32,7 @@
  *
  * $Id$
  */
- 
+
 #include <stdio.h>
 #include <string.h>
 
@@ -78,7 +78,7 @@ generate(void *state)
     s->len = s->file.len;
   }
   memcpy(uip_appdata, s->file.data, s->len);
-  
+
   return s->len;
 }
 /*---------------------------------------------------------------------------*/
@@ -86,13 +86,13 @@ static
 PT_THREAD(send_file(struct httpd_state *s))
 {
   PSOCK_BEGIN(&s->sout);
-  
+
   do {
     PSOCK_GENERATOR_SEND(&s->sout, generate, s);
     s->file.len -= s->len;
     s->file.data += s->len;
   } while(s->file.len > 0);
-      
+
   PSOCK_END(&s->sout);
 }
 /*---------------------------------------------------------------------------*/
@@ -102,7 +102,7 @@ PT_THREAD(send_part_of_file(struct httpd_state *s))
   PSOCK_BEGIN(&s->sout);
 
   PSOCK_SEND(&s->sout, (uint8_t *)s->file.data, s->len);
-  
+
   PSOCK_END(&s->sout);
 }
 /*---------------------------------------------------------------------------*/
@@ -128,7 +128,7 @@ static
 PT_THREAD(handle_script(struct httpd_state *s))
 {
   char *ptr;
-  
+
   PT_BEGIN(&s->scriptpt);
 
   while(s->file.len > 0) {
@@ -146,7 +146,7 @@ PT_THREAD(handle_script(struct httpd_state *s))
 		       httpd_cgi(s->scriptptr)(s, s->scriptptr));
       }
       next_scriptstate(s);
-      
+
       /* The script is over, so we reset the pointers and continue
 	 sending the rest of the file. */
       s->file.data = s->scriptptr;
@@ -178,7 +178,7 @@ PT_THREAD(handle_script(struct httpd_state *s))
       s->file.len -= s->len;
     }
   }
-  
+
   PT_END(&s->scriptpt);
 }
 /*---------------------------------------------------------------------------*/
@@ -216,9 +216,9 @@ static
 PT_THREAD(handle_output(struct httpd_state *s))
 {
   char *ptr;
-  
+
   PT_BEGIN(&s->outputpt);
- 
+
   if(!httpd_fs_open(s->filename, &s->file)) {
     strcpy(s->filename, http_404_html);
     httpd_fs_open(s->filename, &s->file);
@@ -250,7 +250,7 @@ PT_THREAD(handle_input(struct httpd_state *s))
   PSOCK_BEGIN(&s->sin);
 
   PSOCK_READTO(&s->sin, ISO_space);
-  
+
   if(strncmp(s->inputbuf, http_get, 4) != 0) {
     PSOCK_CLOSE_EXIT(&s->sin);
   }
@@ -281,7 +281,7 @@ PT_THREAD(handle_input(struct httpd_state *s))
       webserver_log(s->inputbuf);
     }
   }
-  
+
   PSOCK_END(&s->sin);
 }
 /*---------------------------------------------------------------------------*/

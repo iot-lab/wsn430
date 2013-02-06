@@ -47,11 +47,11 @@ import net.tinyos.util.PrintStreamMessenger;
 public class TestPacketLink implements MessageListener {
 
   private MoteIF moteIF;
-  
+
   private static final short CMD_DROPPED_PACKET = 0;
-  
+
   private static final short CMD_DUPLICATE_PACKET = 1;
-  
+
   /**
    * Constructor
    * @param moteIF
@@ -69,11 +69,11 @@ public class TestPacketLink implements MessageListener {
       System.out.println("Duplicate packet from source " + msg.get_src());
     }
   }
-  
+
   private static void usage() {
     System.err.println("usage: TestSerial [-comm <source>]");
   }
-  
+
   public static void main(String[] args) throws Exception {
     String source = null;
     if (args.length == 2) {
@@ -87,9 +87,9 @@ public class TestPacketLink implements MessageListener {
       usage();
       System.exit(1);
     }
-    
+
     PhoenixSource phoenix;
-    
+
     if (source == null) {
       phoenix = BuildSource.makePhoenix(PrintStreamMessenger.err);
     }

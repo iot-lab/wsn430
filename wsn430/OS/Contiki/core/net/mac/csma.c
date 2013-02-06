@@ -119,7 +119,7 @@ packet_sent(void *ptr, int status, int num_transmissions)
   int num_tx;
 
   //  printf("packet_sent %p\n", q);
-  
+
   switch(status) {
   case MAC_TX_OK:
   case MAC_TX_NOACK:
@@ -136,13 +136,13 @@ packet_sent(void *ptr, int status, int num_transmissions)
   sent = q->sent;
   cptr = q->cptr;
   num_tx = q->transmissions;
-  
+
   if(status == MAC_TX_COLLISION ||
      status == MAC_TX_NOACK) {
 
     /* If the transmission was not performed because of a collision or
        noack, we must retransmit the packet. */
-    
+
     switch(status) {
     case MAC_TX_COLLISION:
       PRINTF("csma: rexmit collision %d\n", q->transmissions);
@@ -199,9 +199,9 @@ send_packet(mac_callback_t sent, void *ptr)
 {
   struct queued_packet *q;
   static uint16_t seqno;
-  
+
   packetbuf_set_attr(PACKETBUF_ATTR_MAC_SEQNO, seqno++);
-  
+
   /* Remember packet for later. */
   q = memb_alloc(&packet_memb);
   if(q != NULL) {

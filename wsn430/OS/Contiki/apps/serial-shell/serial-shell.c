@@ -83,12 +83,12 @@ PROCESS_THREAD(serial_shell_process, ev, data)
 
   shell_init();
   shell_start();
-  
+
   while(1) {
     PROCESS_WAIT_EVENT_UNTIL(ev == serial_line_event_message && data != NULL);
     shell_input(data, strlen(data));
   }
-  
+
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/

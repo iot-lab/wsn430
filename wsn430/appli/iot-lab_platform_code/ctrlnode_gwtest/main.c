@@ -57,10 +57,10 @@ int cmd_ready = 0;
 int main( void )
 {
     uint16_t vdc, idc, vbatt, ibatt;
-    
+
     /* Setup the hardware. */
     setupHardware();
-    
+
     while (1)
     {
         // low power until command received
@@ -71,11 +71,11 @@ int main( void )
             int j;
             for (j=0; j<RESP_FRAME_LEN; j++)
                 resp.data[j] = 0;
-            
+
             resp.sync = SYNC_BYTE;
             resp.cmd = cmd.cmd;
             resp.end = END_BYTE;
-            
+
             switch (cmd.cmd) {
                 case CMD_PING:
                     resp.payload[0] = 1;
@@ -96,9 +96,9 @@ int main( void )
                     set_opennode_battery_supply_off();
                     resp.payload[0] = 1;
                     break;
-                    
+
                 case CMD_MEAS_DC:
-                
+
                     vdc = ina209_read_dc_voltage();
                     resp.payload[0] = (vdc>>8)&0xFF;
                     resp.payload[1] = vdc&0xFF;
@@ -106,9 +106,9 @@ int main( void )
                     resp.payload[2] = (idc>>8)&0xFF;
                     resp.payload[3] = idc&0xFF;
                     break;
-                    
+
                 case CMD_MEAS_BATT:
-                    
+
                     vbatt = ina209_read_batt_voltage();
                     resp.payload[0] = (vbatt>>8)&0xFF;
                     resp.payload[1] = vbatt&0xFF;
@@ -117,17 +117,17 @@ int main( void )
                     resp.payload[3] = ibatt&0xFF;
                     break;
             }
-            
+
             for (j=0; j<RESP_FRAME_LEN; j++)
             {
                 uart1_putchar(resp.data[j]);
             }
-            
+
         }
-        
+
     }
-    
-    
+
+
     return 0;
 }
 
@@ -135,7 +135,7 @@ int main( void )
 uint16_t char_received(uint8_t c)
 {
     static int ix = 0;
-    
+
     if ( (ix == 0) && (c == SYNC_BYTE) && (cmd_ready == 0) )
     {
         cmd.data[ix] = c;
@@ -147,7 +147,7 @@ uint16_t char_received(uint8_t c)
         ix++;
         return 0;
     } else if ( (ix == 2) && (c == END_BYTE) ) {
-        
+
         cmd.data[ix] = c;
         cmd_ready = 1;
         ix = 0;
@@ -156,7 +156,7 @@ uint16_t char_received(uint8_t c)
         ix = 0;
         return 0;
     }
-    
+
     return 0;
 }
 
@@ -167,27 +167,27 @@ static void setupHardware( void )
 {
     /* Stop the watchdog timer. */
     WDTCTL = WDTPW + WDTHOLD;
-    
+
     /* Setup MCLK 8MHz and SMCLK 1MHz */
     set_mcu_speed_xt2_mclk_8MHz_smclk_1MHz();
-    
-    
+
+
     /* Initialize the LEDs */
     LEDS_INIT();
     LEDS_ON();
-    
+
     // setup IOs for relays control
     setup_senslabgw_ios();
     set_opennode_main_supply_off();
     set_opennode_battery_supply_off();
-    
+
     // setup uart
     uart1_init(UART1_CONFIG_1MHZ_115200);
     uart1_register_callback(char_received);
-    
+
     // setup ina209
     ina209_init();
-    
+
     /* Enable Interrupts */
     eint();
 }

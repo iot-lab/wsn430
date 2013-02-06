@@ -19,11 +19,11 @@
  * OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR
  * MODIFICATIONS."
  */
- 
+
 /**
  * The SharedResourceImplP component is used to wrap all of the operations
- * from a dedicated resource so that access to them is protected when 
- * it is used as a shared resource.  It uses the ArbiterInfo interface 
+ * from a dedicated resource so that access to them is protected when
+ * it is used as a shared resource.  It uses the ArbiterInfo interface
  * provided by an Arbiter to accomplish this.
  *
  * @author Kevin Klues (klueska@cs.wustl.edu)
@@ -42,11 +42,11 @@ module SharedResourceImplP {
 }
 implementation {
   uint8_t current_id = 0xFF;
-  
+
   event void ResourceOperations.operationDone(error_t error) {
   	signal SharedResourceOperations.operationDone[current_id](error);
   }
-  
+
   command error_t SharedResourceOperations.operation[uint8_t id]() {
   	if(call ArbiterInfo.userId() == id && call ResourceOperations.operation() == SUCCESS) {
       current_id = id;
@@ -54,7 +54,7 @@ implementation {
   	}
   	return FAIL;
   }
-  
+
   default event void SharedResourceOperations.operationDone[uint8_t id](error_t error) {}
 }
 

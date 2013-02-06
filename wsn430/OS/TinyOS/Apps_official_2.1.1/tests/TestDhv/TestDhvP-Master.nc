@@ -45,9 +45,9 @@ implementation {
       // ... CHANGES
     }
   }
-  
+
   event void SerialControl.stopDone(error_t err) {
-    
+
   }
 
   event void Boot.booted() {
@@ -78,13 +78,13 @@ implementation {
     dhvTestMsgPtr->count = count;
     dhvTestMsgPtr->isOk = okBit;
     call SerialSend.send(0, &testMsg, sizeof(dhv_test_msg_t));
-    
+
 
     if(newCount == count) {
       dbg("TestDhvP","Dissemination COMPLETE!\n");
       call Leds.set(7);
     }
-    
+
   }
 
   event void SerialSend.sendDone(message_t* message, error_t err) {

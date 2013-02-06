@@ -281,7 +281,7 @@ void mac_ethernetToLowpan(uint8_t * ethHeader)
   //Remove header from length before passing onward
   if(uip_len > UIP_LLH_LEN) {
     uip_len -= UIP_LLH_LEN;
-    
+
     //Some IP packets have link layer in them, need to change them around!
     if (usbstick_mode.translate) {
       /*     uint8_t transReturn = */

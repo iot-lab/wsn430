@@ -105,13 +105,13 @@ implementation {
   enum {
     CLIENT_ID = unique( "CC1101Spi.Resource" ),
   };
-  
+
   components HplCC1101PinsC as Pins;
   components CC1101SpiWireC as Spi;
-  
+
   ChipSpiResource = Spi.ChipSpiResource;
   Resource = Spi.Resource[ CLIENT_ID ];
-  
+
   // commands
   SRES = Spi.Strobe[ CC1101_SRES ];
   SFSTXON = Spi.Strobe[ CC1101_SFSTXON ];

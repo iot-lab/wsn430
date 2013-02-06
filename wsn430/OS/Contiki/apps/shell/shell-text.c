@@ -76,7 +76,7 @@ PROCESS_THREAD(shell_echo_process, ev, data)
   PROCESS_BEGIN();
 
   shell_output(&echo_command, data, (int)strlen(data), "\n", 1);
-  
+
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
@@ -120,7 +120,7 @@ PROCESS_THREAD(shell_hd_process, ev, data)
     if(bufptr != buf) {
       shell_output_str(&hd_command, buf, "");
     }
-    
+
   }
   PROCESS_END();
 }
@@ -155,7 +155,7 @@ PROCESS_THREAD(shell_binprint_process, ev, data)
 
     /* XXX need to check if input->len1 == 1 here, and then shift this
        byte into the sequence of 16-bitters below. */
-    
+
     ptr = (uint16_t *)input->data2;
     for(i = 0; i < input->len2 && i < input->len2 - 1; i += 2) {
       bufptr += sprintf(bufptr, "%u ", *ptr);
@@ -165,11 +165,11 @@ PROCESS_THREAD(shell_binprint_process, ev, data)
       }
       ptr++;
     }
-    
+
     if(bufptr != buf) {
       shell_output_str(&binprint_command, buf, "");
     }
-    
+
   }
   PROCESS_END();
 }
@@ -178,16 +178,16 @@ PROCESS_THREAD(shell_size_process, ev, data)
 {
   struct shell_input *input;
   static unsigned long size;
-  
+
   PROCESS_BEGIN();
   size = 0;
-  
+
   while(1) {
     PROCESS_WAIT_EVENT_UNTIL(ev == shell_event_input);
     input = data;
 
     size += input->len1 + input->len2;
-    
+
     if(input->len1 + input->len2 == 0) {
       char buf[10];
       snprintf(buf, sizeof(buf), "%lu", size);

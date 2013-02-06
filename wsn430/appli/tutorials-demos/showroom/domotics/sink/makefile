@@ -36,7 +36,7 @@ $(WSN430_DRIVERS_PATH)/spi1.c \
 $(WSN430_DRIVERS_PATH)/clock.c \
 $(WSN430_DRIVERS_PATH)/timerB.c \
 $(WSN430_DRIVERS_PATH)/ds2411.c \
-$(WSN430_DRIVERS_PATH)/uart0.c 
+$(WSN430_DRIVERS_PATH)/uart0.c
 
 #
 # Define all object files.
@@ -47,8 +47,8 @@ a.out : $(OBJ) makefile
 	$(CC) $(OBJ) $(CFLAGS)
 
 $(OBJ) : %.o : %.c makefile
-	$(CC) -c $(CFLAGS) $< -o $@	
-	
+	$(CC) -c $(CFLAGS) $< -o $@
+
 clean :
 	rm -f ${NAME}.elf ${OBJ}
-	
+

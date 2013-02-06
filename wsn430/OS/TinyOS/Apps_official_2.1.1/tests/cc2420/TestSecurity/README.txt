@@ -12,11 +12,11 @@ Test the CC2420 hardware security support
 
 Applications:
 
-1. RadioCountToLeds1/ 
+1. RadioCountToLeds1/
 
 This application is a modification to the RadioCountToLeds/
 application with CC2420 security features added to outgoing
-packets. The packets are decrypted at the receiver node. 
+packets. The packets are decrypted at the receiver node.
 
 > INSTALL
 

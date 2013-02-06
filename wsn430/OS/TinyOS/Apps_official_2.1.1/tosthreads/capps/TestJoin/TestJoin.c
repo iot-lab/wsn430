@@ -28,15 +28,15 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
- 
+
 /**
  * TestJoin is a simple application used to test the basic functionality of
- * the join() system call for waiting on a set of threads in a TOSThreads 
+ * the join() system call for waiting on a set of threads in a TOSThreads
  * based application.
- * 
+ *
  * Upon a successful burn, you should see all LEDs toggle in the following pattern,
  * repeating every 8 seconds:
- * 
+ *
  * 0s: (110) LED0  ON, LED1  ON, LED2 OFF  <br>
  * 1s: (000) LED0 OFF, LED1 OFF, LED2 OFF  <br>
  * 2s: (010) LED0 OFF, LED1  ON, LED2 OFF  <br>

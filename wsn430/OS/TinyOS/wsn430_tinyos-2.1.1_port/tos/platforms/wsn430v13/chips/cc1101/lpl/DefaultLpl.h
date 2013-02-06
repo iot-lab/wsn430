@@ -28,7 +28,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE
  */
- 
+
  /**
   * @author David Moss
   * @author Tony O'Donovan
@@ -52,11 +52,11 @@ typedef enum {
  * We round this up to err on the side of better performance ratios
  * This includes the acknowledgement wait period and backoffs,
  * which can typically be much longer than the transmission.
- * 
+ *
  * Measured by Tony O'Donovan
  */
 #ifndef DUTY_ON_TIME
-#define DUTY_ON_TIME 11 
+#define DUTY_ON_TIME 11
 #endif
 
 /**
@@ -67,7 +67,7 @@ typedef enum {
  * The on-time had to increase from the original version to allow multiple
  * transmitters to co-exist.  This is due to using ack's, which then requires us
  * to extend the backoff period.  In networks that transmit frequently, possibly
- * with multiple transmitters, this power scheme makes sense.  
+ * with multiple transmitters, this power scheme makes sense.
  *
  * In networks that transmit very infrequently or without multiple transmitters,
  * it makes more sense to go with no acks and no backoffs and make the

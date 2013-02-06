@@ -193,9 +193,9 @@ slip_poll_handler(uint8_t *outbuf, uint16_t blen)
       state = STATE_TWOPACKETS;	/* Interrupts do nothing. */
       rxbuf[begin] = 0;
       rxbuf[begin + 1] = 0;
-      
+
       rxbuf_init();
-      
+
       /* this is just a test so far... just to see if it works */
       slip_arch_writeb('!');
       slip_arch_writeb('M');

@@ -20,7 +20,7 @@ Transmitter nearby:
 
 
 Since the Java side has to convert the readings into a CLI bar
-graph, it's scaled by some (possibly non-linear) factor.  
+graph, it's scaled by some (possibly non-linear) factor.
 
 
 Tools:

@@ -2,15 +2,15 @@
 
 ## Variables
 ##
-## 
-## ELF       = 
-## PLATFORM  = 
-## 
+##
+## ELF       =
+## PLATFORM  =
+##
 ## VERBOSE   = 2
 ## LOGFILE   = wsim.log
 ## TRACEFILE = wsim.trc
 ## GUI       = yes
-## 
+##
 ## MODE      = time
 ## TIME      = 30s
 
@@ -27,11 +27,11 @@ fi
 
 ##
 
-# if echo $SHELL | grep -q bash ; then 
+# if echo $SHELL | grep -q bash ; then
 #     echo shell bash
 # else
 #     echo shell non bash
-# fi 
+# fi
 
 ##
 
@@ -85,7 +85,7 @@ do_trace_if_any()
 
 create_fifo()
 {
-    if [ ! -e $1 ] ; then 
+    if [ ! -e $1 ] ; then
         mkfifo $1
     fi
 }
@@ -94,7 +94,7 @@ wsim_serial_opt()
 {
     case "${SERIAL[$1]}" in
 	"stdout" | "stderr")
-	    SERIAL_OPT[$1]="--serial$1_io=${SERIAL[$1]}" 
+	    SERIAL_OPT[$1]="--serial$1_io=${SERIAL[$1]}"
 	    ;;
 	"wconsole")
 	    create_fifo fromwsim$1
@@ -159,7 +159,7 @@ run_wsim_cmdline()
 	    ;;
 	*)
 	    ;;
-    esac 
+    esac
 
     case "${GUI}" in
 	"yes")

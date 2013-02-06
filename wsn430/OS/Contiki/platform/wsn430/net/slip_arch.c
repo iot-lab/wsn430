@@ -65,7 +65,7 @@ putchar(int c)
   }
 
   slip_arch_writeb((char)c);
-  
+
   /*
    * Line buffered output, a newline marks the end of debug output and
    * implicitly flushes debug output.

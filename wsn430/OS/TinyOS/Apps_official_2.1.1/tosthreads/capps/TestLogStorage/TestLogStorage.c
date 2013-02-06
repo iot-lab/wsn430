@@ -40,12 +40,12 @@
  * sensors specific to the tmote onboard suite. In this way, the LogStorage
  * functionality can be tested in conjunction with the sending facility in a
  * platform independent way.
- * 
+ *
  * Readings are taken from the dummy sensor and logged to flash as one record in an
  * infinite loop. Records are then read out of flash and and sent out over the
  * serial interface in separate infinite loop.  Before the application starts
  * running, the entire contents of the flash drive are erased.
- * 
+ *
  * A successful test will result in LED0 remaining solid for approximately 6s while
  * the flash is being erased.  After that LED0 will toggle with each successful
  * sensor readings logged to flash, at a rate of 3000ms.  Also, LED1 will begin
@@ -67,7 +67,7 @@
 #define NUM_SENSORS              1
 #define SAMPLING_PERIOD       3000
 #define SENDING_PERIOD       10000
-#define AM_SENSOR_DATA_MSG    0x25   
+#define AM_SENSOR_DATA_MSG    0x25
 
 //Data structure for storing sensor data
 typedef struct sensor_data {
@@ -99,7 +99,7 @@ void tosthread_main(void* arg) {
   barrier_reset(&sense_barrier, NUM_SENSORS+1);
   sending_sensor_data = serialGetPayload(&send_msg, sizeof(sensor_data_t));
   storing_sensor_data.seq_no = 0;
-  
+
   amSerialStart();
   led0Toggle();
   volumeLogErase(VOLUME_TESTLOGSTORAGE);
@@ -133,12 +133,12 @@ void store_thread(void* arg) {
   for(;;) {
     barrier_block(&send_barrier);
     barrier_reset(&send_barrier, NUM_SENSORS + 1);
-    
+
     mutex_lock(&log_mutex);
       sensor_data_len = sizeof(sensor_data_t);
       while( volumeLogAppend(VOLUME_TESTLOGSTORAGE, &storing_sensor_data, &sensor_data_len, &sensor_records_lost) != SUCCESS );
     mutex_unlock(&log_mutex);
-    
+
     storing_sensor_data.seq_no++;
     led0Toggle();
 
@@ -149,7 +149,7 @@ void store_thread(void* arg) {
 }
 void send_thread(void* arg) {
   storage_len_t sensor_data_len;
-  
+
   for(;;) {
     tosthread_sleep(SENDING_PERIOD);
 
@@ -158,7 +158,7 @@ void send_thread(void* arg) {
       mutex_lock(&log_mutex);
         while( volumeLogRead(VOLUME_TESTLOGSTORAGE, sending_sensor_data, &sensor_data_len) != SUCCESS );
       mutex_unlock(&log_mutex);
-      
+
       while( amSerialSend(AM_BROADCAST_ADDR, &send_msg, sizeof(sensor_data_t), AM_SENSOR_DATA_MSG) != SUCCESS );
       led1Toggle();
     }

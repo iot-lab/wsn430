@@ -33,7 +33,7 @@
  * @author Kevin Klues <klueska@cs.stanford.edu>
  * @date July 24, 2007
  */
- 
+
 #include "LowPowerSensingConstants.h"
 module LowPowerSensingBaseC {
   uses {
@@ -68,7 +68,7 @@ implementation {
     sample_msg_payload = (serial_sample_msg_t*)call SerialPacket.getPayload(&sample_msg, sizeof(serial_sample_msg_t));
     call RadioAMControl.start();
   }
-  
+
   event void RadioAMControl.startDone(error_t error) {
     call SerialAMControl.start();
   }
@@ -102,7 +102,7 @@ implementation {
     else {
       sample_msg_payload->src_addr = call RadioAMPacket.source(msg);
       sample_msg_payload->sample = *((nx_sensor_sample_t*)payload);
-      dest_addr = call SerialAMPacket.destination(msg); 
+      dest_addr = call SerialAMPacket.destination(msg);
       serialSending = TRUE;
       call SerialSampleMsgSend.send(dest_addr, &sample_msg, sizeof(*sample_msg_payload));
     }

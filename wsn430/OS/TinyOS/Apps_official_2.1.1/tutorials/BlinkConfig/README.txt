@@ -14,9 +14,9 @@ Description:
     (i)   Program a mote with this application (e.g. make telos install)
     (ii)  Wait until the red LED turns off (writing to flash is done)
     (iii) Power cycle the mote and wait until the red LED turns off.
-    (iv)  Repeat step (iii) and notice that the blink rate of the blue 
-          (yellow) LED doubles each time the mote is power cycled.  The 
-          blink rate cycles through the following values: 1Hz, 2Hz, 4Hz, 
+    (iv)  Repeat step (iii) and notice that the blink rate of the blue
+          (yellow) LED doubles each time the mote is power cycled.  The
+          blink rate cycles through the following values: 1Hz, 2Hz, 4Hz,
           and 8Hz.
 
   The first two times this application is installed, the green LED

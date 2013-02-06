@@ -129,14 +129,14 @@ PROCESS_THREAD(udp_client_process, ev, data)
   PROCESS_PAUSE();
 
   set_global_address();
-  
+
   PRINTF("UDP client process started\n");
 
   print_local_addresses();
 
   /* new connection with remote host */
-  client_conn = udp_new(NULL, UIP_HTONS(UDP_SERVER_PORT), NULL); 
-  udp_bind(client_conn, UIP_HTONS(UDP_CLIENT_PORT)); 
+  client_conn = udp_new(NULL, UIP_HTONS(UDP_SERVER_PORT), NULL);
+  udp_bind(client_conn, UIP_HTONS(UDP_CLIENT_PORT));
 
   PRINTF("Created a connection with the server ");
   PRINT6ADDR(&client_conn->ripaddr);
@@ -149,7 +149,7 @@ PROCESS_THREAD(udp_client_process, ev, data)
     if(ev == tcpip_event) {
       tcpip_handler();
     }
-    
+
     if(etimer_expired(&periodic)) {
       etimer_reset(&periodic);
       ctimer_set(&backoff_timer, SEND_TIME, send_packet, NULL);

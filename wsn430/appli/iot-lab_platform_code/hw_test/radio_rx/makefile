@@ -40,8 +40,8 @@ a.out : $(OBJ) makefile
 	$(CC) $(OBJ) $(CFLAGS)
 
 $(OBJ) : %.o : %.c makefile
-	$(CC) -c $(CFLAGS) $< -o $@	
-	
+	$(CC) -c $(CFLAGS) $< -o $@
+
 clean :
 	rm -f ${NAME}.elf ${OBJ}
-	
+

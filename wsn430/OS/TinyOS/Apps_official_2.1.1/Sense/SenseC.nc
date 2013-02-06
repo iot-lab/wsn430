@@ -34,7 +34,7 @@
  */
 
 /**
- * 
+ *
  * Sensing demo application. See README.txt file in this directory for usage
  * instructions and have a look at tinyos-2.x/doc/html/tutorial/lesson5.html
  * for a general tutorial on sensing in TinyOS.
@@ -57,17 +57,17 @@ implementation
 {
   // sampling frequency in binary milliseconds
   #define SAMPLING_FREQUENCY 100
-  
+
   event void Boot.booted() {
     call Timer.startPeriodic(SAMPLING_FREQUENCY);
   }
 
-  event void Timer.fired() 
+  event void Timer.fired()
   {
     call Read.read();
   }
 
-  event void Read.readDone(error_t result, uint16_t data) 
+  event void Read.readDone(error_t result, uint16_t data)
   {
     if (result == SUCCESS){
       if (data & 0x0004)

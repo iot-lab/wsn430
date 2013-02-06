@@ -22,19 +22,19 @@
 // $Id: BaseStationP.nc,v 1.5 2009/09/19 21:13:26 sdhsdh Exp $
 
 /*									tab:4
- * "Copyright (c) 2000-2005 The Regents of the University  of California.  
+ * "Copyright (c) 2000-2005 The Regents of the University  of California.
  * All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation for any purpose, without fee, and without written agreement is
  * hereby granted, provided that the above copyright notice, the following
  * two paragraphs and the author appear in all copies of this software.
- * 
+ *
  * IN NO EVENT SHALL THE UNIVERSITY OF CALIFORNIA BE LIABLE TO ANY PARTY FOR
  * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING OUT
  * OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF THE UNIVERSITY OF
  * CALIFORNIA HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * THE UNIVERSITY OF CALIFORNIA SPECIFICALLY DISCLAIMS ANY WARRANTIES,
  * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
  * AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
@@ -44,9 +44,9 @@
  * Copyright (c) 2002-2005 Intel Corporation
  * All rights reserved.
  *
- * This file is distributed under the terms in the attached INTEL-LICENSE     
+ * This file is distributed under the terms in the attached INTEL-LICENSE
  * file. If you do not find these files, copies can be found by writing to
- * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
+ * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA,
  * 94704.  Attention:  Intel License Inquiry.
  */
 
@@ -56,8 +56,8 @@
  * @author David Gay
  * Revision:	$Id: BaseStationP.nc,v 1.5 2009/09/19 21:13:26 sdhsdh Exp $
  */
-  
-/* 
+
+/*
  * BaseStationP bridges packets between a serial channel and the radio.
  * Messages moving from serial to radio will be tagged with the group
  * ID compiled into the TOSBase, and messages moving from radio to
@@ -159,7 +159,7 @@ implementation
 
     echo_busy = TRUE;
     // delay sending the reply for a bit
-    // the pc seems to usually drop the packet if we don't do this; 
+    // the pc seems to usually drop the packet if we don't do this;
     call ConfigureTimer.startOneShot(100);
   }
 
@@ -218,7 +218,7 @@ implementation
   uint8_t count = 0;
 
   message_t* receive(message_t* msg, void* payload, uint8_t len);
-  
+
   event message_t *RadioReceive.receive(message_t *msg,
                                            void *payload,
                                            uint8_t len) {
@@ -238,7 +238,7 @@ implementation
 	  uartQueue[uartIn] = msg;
 
 	  uartIn = (uartIn + 1) % UART_QUEUE_LEN;
-	
+
 	  if (uartIn == uartOut)
 	    uartFull = TRUE;
 
@@ -251,7 +251,7 @@ implementation
       else
 	dropBlink();
     }
-    
+
     return ret;
   }
 
@@ -330,7 +330,7 @@ implementation
     if (reflectToken) {
       //call UartTokenReceive.ReflectToken(Token);
     }
-    
+
     return ret;
   }
 
@@ -338,7 +338,7 @@ implementation
     uint8_t len;
     ieee154_saddr_t addr;
     message_t* msg;
-    
+
     dbg ("base", "radioSendTask()\n");
     atomic
       if (radioIn == radioOut && !radioFull)
@@ -373,7 +373,7 @@ implementation
   event void RadioSend.sendDone(message_t* msg, error_t error) {
     CHECK_NODE_ID;
     dbg("base", "sendDone()\n");
-    
+
     //if (!call PacketLink.wasDelivered(msg))
     // failBlink();
     if (error != SUCCESS)
@@ -387,7 +387,7 @@ implementation
 	    if (radioFull)
 	      radioFull = FALSE;
 	  }
-    
+
     post radioSendTask();
   }
 
@@ -411,7 +411,7 @@ implementation
       break;
     case CONFIG_SET_PARM:
       call CC2420Config.setChannel(cmd->rf.channel);
-      // IPAddress calls sync() for you, I think, so we'll put it second 
+      // IPAddress calls sync() for you, I think, so we'll put it second
       call IPAddress.setShortAddr(cmd->rf.addr);
       call CC2420Config.sync();
       radioRetries = cmd->retx.retries;
@@ -445,4 +445,4 @@ implementation
       echo_busy = FALSE;
   }
 #endif
-}  
+}

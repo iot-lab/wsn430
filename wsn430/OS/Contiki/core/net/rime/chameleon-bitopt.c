@@ -83,7 +83,7 @@ get_bits_in_byte(uint8_t *from, int bitpos, int vallen)
 	(((shifted_val << bitpos) >> 8) & bitmask[vallen]) >> (8 - vallen),
 	vallen
 	);*/
-  
+
   return (((shifted_val << bitpos) >> 8) & bitmask[vallen]) >> (8 - vallen);
 }
 /*---------------------------------------------------------------------------*/
@@ -91,8 +91,8 @@ void
 get_bits(uint8_t *to, uint8_t *from, int bitpos, int vallen)
 {
   int i, bits;
-  
-  
+
+
   if(vallen < 8) {
     *to = get_bits_in_byte(from, bitpos, vallen);
   } else {
@@ -124,10 +124,10 @@ static int
 header_size(const struct packetbuf_attrlist *a)
 {
   int size, len;
-  
+
   /* Compute the total size of the final header by summing the size of
      all attributes that are used on this channel. */
-  
+
   size = 0;
   for(; a->type != PACKETBUF_ATTR_NONE; ++a) {
 #if CHAMELEON_WITH_MAC_LINK_ADDRESSES
@@ -202,13 +202,13 @@ printbin(int n, int digits)
 {
   int i;
   char output[128];
-  
+
   for(i = 0; i < digits; ++i) {
     output[digits - i - 1] = (n & 1) + '0';
     n >>= 1;
   }
   output[i] = 0;
-  
+
   printf(output);
 }
 
@@ -242,7 +242,7 @@ pack_header(struct channel *c)
   int byteptr, bitptr, len;
   uint8_t *hdrptr;
   struct bitopt_hdr *hdr;
-  
+
   /* Compute the total size of the final header by summing the size of
      all attributes that are used on this channel. */
 
@@ -257,9 +257,9 @@ pack_header(struct channel *c)
 
   hdrptr = ((uint8_t *)packetbuf_hdrptr()) + sizeof(struct bitopt_hdr);
   memset(hdrptr, 0, hdrbytesize);
-  
+
   byteptr = bitptr = 0;
-  
+
   for(a = c->attrlist; a->type != PACKETBUF_ATTR_NONE; ++a) {
 #if CHAMELEON_WITH_MAC_LINK_ADDRESSES
     if(a->type == PACKETBUF_ADDR_SENDER ||
@@ -308,7 +308,7 @@ unpack_header(void)
   uint8_t *hdrptr;
   struct bitopt_hdr *hdr;
   struct channel *c;
-  
+
 
   /* The packet has a header that tells us what channel the packet is
      for. */

@@ -30,12 +30,12 @@
  */
 
 /**
- * This application stresses the blocking send and receive commands for the TinyOS 
- * thread implementation.  Three threads are run, each thread toggling a different 
- * colored LED. If a node has TOS_NODE_ID == 0 it will try and receive in 
- * an infinite loop, toggling one of the three Leds upon reception.  If it has 
+ * This application stresses the blocking send and receive commands for the TinyOS
+ * thread implementation.  Three threads are run, each thread toggling a different
+ * colored LED. If a node has TOS_NODE_ID == 0 it will try and receive in
+ * an infinite loop, toggling one of the three Leds upon reception.  If it has
  * TOS_NODE_ID == 1, it will try to send in an infinite loop, toggling one of the three
- * Leds upon the completion of a send.  Thread 0 toggles the Led0, Thread 1 toggles 
+ * Leds upon the completion of a send.  Thread 0 toggles the Led0, Thread 1 toggles
  * Led1, and Thread 2 toggles Led2.
  *
  * @author Kevin Klues <klueska@cs.stanford.edu>
@@ -51,11 +51,11 @@ module RadioStressC {
     interface Thread as RadioStressThread0;
     interface BlockingAMSend as BlockingAMSend0;
     interface BlockingReceive as BlockingReceive0;
-    
+
     interface Thread as RadioStressThread1;
     interface BlockingAMSend as BlockingAMSend1;
     interface BlockingReceive as BlockingReceive1;
-    
+
     interface Thread as RadioStressThread2;
     interface BlockingAMSend as BlockingAMSend2;
     interface BlockingReceive as BlockingReceive2;
@@ -68,7 +68,7 @@ implementation {
   message_t m0;
   message_t m1;
   message_t m2;
-  
+
   event void Boot.booted() {
     call RadioStressThread0.start(NULL);
     call RadioStressThread1.start(NULL);
@@ -89,7 +89,7 @@ implementation {
       }
     }
   }
-  
+
   event void RadioStressThread1.run(void* arg) {
     call BlockingAMControl.start();
     for(;;) {
@@ -104,7 +104,7 @@ implementation {
       }
     }
   }
-  
+
   event void RadioStressThread2.run(void* arg) {
     call BlockingAMControl.start();
     for(;;) {

@@ -25,19 +25,19 @@
 
 /*
  * Copyright (c) 2001, Adam Dunkels.
- * All rights reserved. 
+ * All rights reserved.
  *
- * Redistribution and use in source and binary forms, with or without 
- * modification, are permitted provided that the following conditions 
- * are met: 
- * 1. Redistributions of source code must retain the above copyright 
- *    notice, this list of conditions and the following disclaimer. 
- * 2. Redistributions in binary form must reproduce the above copyright 
- *    notice, this list of conditions and the following disclaimer in the 
- *    documentation and/or other materials provided with the distribution. 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
  * 3. The name of the author may not be used to endorse or promote
  *    products derived from this software without specific prior
- *    written permission.  
+ *    written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS
  * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -49,7 +49,7 @@
  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.  
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * This file is part of the uIP TCP/IP stack.
  *
@@ -59,7 +59,7 @@
 
 /*
  * This is a generic implementation of the SLIP protocol over an RS232
- * (serial) device. 
+ * (serial) device.
  *
  * Huge thanks to Ullrich von Bassewitz <uz@cc65.org> of cc65 fame for
  * and endless supply of bugfixes, insightsful comments and
@@ -127,7 +127,7 @@ slipdev_send(void)
   return UIP_FW_OK;
 }
 /*-----------------------------------------------------------------------------------*/
-/** 
+/**
  * Poll the SLIP device for an available packet.
  *
  * This function will poll the SLIP device to see if a packet is
@@ -144,13 +144,13 @@ u16_t
 slipdev_poll(void)
 {
   u8_t c;
-  
+
   while(slipdev_char_poll(&c)) {
     switch(c) {
     case SLIP_ESC:
       lastc = c;
       break;
-      
+
     case SLIP_END:
       lastc = c;
       /* End marker found, we copy our input buffer to the uip_buf
@@ -159,8 +159,8 @@ slipdev_poll(void)
       tmplen = len;
       len = 0;
       return tmplen;
-      
-    default:     
+
+    default:
       if(lastc == SLIP_ESC) {
 	lastc = c;
 	/* Previous read byte was an escape byte, so this byte will be
@@ -176,14 +176,14 @@ slipdev_poll(void)
       } else {
 	lastc = c;
       }
-      
+
       slip_buf[len] = c;
       ++len;
-      
+
       if(len > UIP_BUFSIZE) {
 	len = 0;
       }
-    
+
       break;
     }
   }
@@ -195,7 +195,7 @@ slipdev_poll(void)
  *
  * This function does not initialize the underlying RS232 device, but
  * only the SLIP part.
- */ 
+ */
 /*-----------------------------------------------------------------------------------*/
 void
 slipdev_init(void)

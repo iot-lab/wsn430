@@ -36,7 +36,7 @@
 
 #include "SensorSample.h"
 #include "Storage.h"
-generic configuration SamplePeriodicLogC(uint32_t sampling_period, 
+generic configuration SamplePeriodicLogC(uint32_t sampling_period,
                                                         volume_id_t volume) {
   provides{
     interface SampleLogRead<sensor_sample_t>;
@@ -53,7 +53,7 @@ implementation {
   PeriodicLogger.Sensor[1] -> HumidityTempC.Temperature;
   PeriodicLogger.Sensor[2] -> PhotoActiveC;
   PeriodicLogger.Sensor[3] -> TotalSolarC;
-  
+
   //Don't change........ just copy
   components MainC;
   components new LogStorageC(volume, TRUE);

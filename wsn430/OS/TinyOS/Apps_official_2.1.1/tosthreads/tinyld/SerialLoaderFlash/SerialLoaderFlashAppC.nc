@@ -28,13 +28,13 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
- 
+
 /**
  * SerialLoaderFlash is similar to SerialLoader in that it receives
  * loadable programs from the serial port. However, SerialLoaderFlash
  * stores them on the external flash. Then, when it receives the command to
  * load the code, it makes the call to the dynamic loader.
- * 
+ *
  * @author Kevin Klues (klueska@cs.stanford.edu)
  * @author Chieh-Jan Mike Liang <cliang4@cs.jhu.edu>
  */
@@ -43,11 +43,11 @@
 
 configuration SerialLoaderFlashAppC {}
 
-implementation {  
+implementation {
   components DynamicLoaderC,
              new FlashVolumeManagerC(0xAB),
              new BlockStorageC(VOLUME_MICROEXEIMAGE) as ImageVolume;
-  
+
   FlashVolumeManagerC.BlockRead -> ImageVolume;
   FlashVolumeManagerC.BlockWrite -> ImageVolume;
   FlashVolumeManagerC.DynamicLoader -> DynamicLoaderC;

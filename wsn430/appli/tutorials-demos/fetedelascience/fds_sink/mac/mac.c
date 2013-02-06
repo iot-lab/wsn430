@@ -50,7 +50,7 @@ void vCreateMacTask( uint16_t usPriority)
 {
     /* Create an Event Queue */
     xEvent = xQueueCreate(5, sizeof(uint8_t));
-    
+
     /* Create the task */
     xTaskCreate( vMacTask, "MAC", configMINIMAL_STACK_SIZE, NULL, usPriority, NULL );
 }
@@ -60,13 +60,13 @@ static void vMacTask(void* pvParameters)
     uint16_t rx_count;
     uint8_t event;
     vInitMac();
-    
+
     for (;;)
     {
         vStartRx();
-        
+
         rx_count = 0;
-        
+
         while ( xQueueReceive(xEvent, &event, 15000) == pdTRUE)
         {
             if (event == EVENT_FRAME_RECEIVED)
@@ -76,7 +76,7 @@ static void vMacTask(void* pvParameters)
                 vParseFrame();
                 LED_GREEN_OFF();
             }
-            
+
             if (rx_count == 128)
             {
                 break;
@@ -91,7 +91,7 @@ static void vInitMac(void)
     /* Leds */
     LEDS_INIT();
     LEDS_OFF();
-    
+
     /* Initialize the radio driver */
     cc1101_init();
     cc1101_cmd_idle();
@@ -121,7 +121,7 @@ static void vInitMac(void)
     table[0] = 0xC2; // 10dBm
     cc1101_cfg_patable(table, 1);
     cc1101_cfg_pa_power(0);
-    
+
 }
 
 static void vStartRx(void)
@@ -153,7 +153,7 @@ static void vParseFrame(void)
     }
 
     cc1101_fifo_get(&(rx_frame.length), 1);
-    
+
     if (rx_frame.length > sizeof(rx_frame)-1)
     {
         cc1101_cmd_flush_rx();
@@ -162,16 +162,16 @@ static void vParseFrame(void)
     }
 
     cc1101_fifo_get(&(rx_frame.addr), rx_frame.length);
-    
+
     uint8_t rssi;
     cc1101_fifo_get(&rssi, 1);
-    
+
     cc1101_cmd_flush_rx();
     cc1101_cmd_rx();
-    
+
     /* Compare RSSI */
     rssi += 0x80;
-    
+
     printf("node=%.2x|rssi=%d|temp=%d:%d|light=%d:%d", \
                 rx_frame.addr, rssi, rx_frame.temp[0], \
                 rx_frame.temp[1], rx_frame.light[0], \
@@ -189,9 +189,9 @@ static uint16_t xRxOk_cb(void)
 {
     uint16_t xHigherPriorityTaskWoken;
     uint8_t event = EVENT_FRAME_RECEIVED;
-    
+
     xQueueSendToBackFromISR(xEvent, &event, &xHigherPriorityTaskWoken);
-    
+
     if (xHigherPriorityTaskWoken)
     {
         vPortYield();

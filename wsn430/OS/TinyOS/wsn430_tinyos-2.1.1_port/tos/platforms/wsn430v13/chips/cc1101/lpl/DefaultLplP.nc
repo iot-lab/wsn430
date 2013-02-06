@@ -51,7 +51,7 @@ module DefaultLplP {
     interface Send;
     interface Receive;
   }
-  
+
   uses {
     interface Send as SubSend;
     interface CC2420Transmit as Resend;
@@ -73,13 +73,13 @@ module DefaultLplP {
 }
 
 implementation {
-  
+
   /** The message currently being sent */
   norace message_t *currentSendMsg;
-  
+
   /** The length of the current send message */
   uint8_t currentSendLen;
-  
+
   /** TRUE if the radio is duty cycling and not always on */
   bool dutyCycling;
 
@@ -92,7 +92,7 @@ implementation {
     S_ON,
     S_TURNING_OFF,
   };
-  
+
   /**
    * Send States
    */
@@ -100,30 +100,30 @@ implementation {
     S_IDLE,
     S_SENDING,
   };
-  
+
   enum {
     ONE_MESSAGE = 0,
   };
-  
+
   /***************** Prototypes ***************/
   task void send();
   task void resend();
   task void startRadio();
   task void stopRadio();
-  
+
   void initializeSend();
   void startOffTimer();
-  
+
   /***************** Init Commands ***************/
   command error_t Init.init() {
     dutyCycling = FALSE;
     return SUCCESS;
   }
-  
+
   /***************** LowPowerListening Commands ***************/
   /**
    * Set this this node's radio wakeup interval, in milliseconds.
-   * Once every interval, the node will sleep and perform an Rx check 
+   * Once every interval, the node will sleep and perform an Rx check
    * on the radio.  Setting the wakeup interval to 0 will keep the radio
    * always on.
    *
@@ -132,32 +132,32 @@ implementation {
   command void LowPowerListening.setLocalWakeupInterval(uint16_t intervalMs) {
     call PowerCycle.setSleepInterval(intervalMs);
   }
-  
+
   /**
    * @return the local node's wakeup interval, in [ms]
    */
   command uint16_t LowPowerListening.getLocalWakeupInterval() {
     return call PowerCycle.getSleepInterval();
   }
-  
+
   /**
    * Configure this outgoing message so it can be transmitted to a neighbor mote
    * with the specified wakeup interval.
    * @param msg Pointer to the message that will be sent
    * @param intervalMs The receiving node's wakeup interval, in [ms]
    */
-  command void LowPowerListening.setRemoteWakeupInterval(message_t *msg, 
+  command void LowPowerListening.setRemoteWakeupInterval(message_t *msg,
       uint16_t intervalMs) {
     (call CC2420PacketBody.getMetadata(msg))->rxInterval = intervalMs;
   }
-  
+
   /**
    * @return the destination node's wakeup interval configured in this message
    */
   command uint16_t LowPowerListening.getRemoteWakeupInterval(message_t *msg) {
     return (call CC2420PacketBody.getMetadata(msg))->rxInterval;
   }
-  
+
   /***************** Send Commands ***************/
   /**
    * Each call to this send command gives the message a single
@@ -171,26 +171,26 @@ implementation {
       // Everything is off right now, start SplitControl and try again
       return EOFF;
     }
-    
+
     if(call SendState.requestState(S_LPL_SENDING) == SUCCESS) {
       currentSendMsg = msg;
       currentSendLen = len;
-      
+
       // In case our off timer is running...
       call OffTimer.stop();
       call SendDoneTimer.stop();
-      
+
       if(call RadioPowerState.getState() == S_ON) {
         initializeSend();
         return SUCCESS;
-        
+
       } else {
         post startRadio();
       }
-      
+
       return SUCCESS;
     }
-    
+
     return EBUSY;
   }
 
@@ -201,11 +201,11 @@ implementation {
       startOffTimer();
       return call SubSend.cancel(msg);
     }
-    
+
     return FAIL;
   }
-  
-  
+
+
   command uint8_t Send.maxPayloadLength() {
     return call SubSend.maxPayloadLength();
   }
@@ -213,28 +213,28 @@ implementation {
   command void *Send.getPayload(message_t* msg, uint8_t len) {
     return call SubSend.getPayload(msg, len);
   }
-  
-  
+
+
   /***************** RadioBackoff Events ****************/
   async event void RadioBackoff.requestInitialBackoff(message_t *msg) {
-    if((call CC2420PacketBody.getMetadata(msg))->rxInterval 
+    if((call CC2420PacketBody.getMetadata(msg))->rxInterval
         > ONE_MESSAGE) {
-      call RadioBackoff.setInitialBackoff( call Random.rand16() 
+      call RadioBackoff.setInitialBackoff( call Random.rand16()
           % (0x4 * CC2420_BACKOFF_PERIOD) + CC2420_MIN_BACKOFF);
     }
   }
-  
+
   async event void RadioBackoff.requestCongestionBackoff(message_t *msg) {
-    if((call CC2420PacketBody.getMetadata(msg))->rxInterval 
+    if((call CC2420PacketBody.getMetadata(msg))->rxInterval
         > ONE_MESSAGE) {
-      call RadioBackoff.setCongestionBackoff( call Random.rand16() 
+      call RadioBackoff.setCongestionBackoff( call Random.rand16()
           % (0x3 * CC2420_BACKOFF_PERIOD) + CC2420_MIN_BACKOFF);
     }
   }
-  
+
   async event void RadioBackoff.requestCca(message_t *msg) {
   }
-  
+
 
   /***************** DutyCycle Events ***************/
   /**
@@ -247,23 +247,23 @@ implementation {
     // Wait long enough to see if we actually receive a packet, which is
     // just a little longer in case there is more than one lpl transmitter on
     // the channel.
-    
+
     startOffTimer();
   }
-  
-  
+
+
   /***************** SubControl Events ***************/
   event void SubControl.startDone(error_t error) {
     if(!error) {
       call RadioPowerState.forceState(S_ON);
-      
+
       if(call SendState.getState() == S_LPL_FIRST_MESSAGE
           || call SendState.getState() == S_LPL_SENDING) {
         initializeSend();
       }
     }
   }
-    
+
   event void SubControl.stopDone(error_t error) {
     if(!error) {
 
@@ -271,17 +271,17 @@ implementation {
           || call SendState.getState() == S_LPL_SENDING) {
         // We're in the middle of sending a message; start the radio back up
         post startRadio();
-        
-      } else {        
+
+      } else {
         call OffTimer.stop();
         call SendDoneTimer.stop();
       }
     }
   }
-  
+
   /***************** SubSend Events ***************/
   event void SubSend.sendDone(message_t* msg, error_t error) {
-   
+
     switch(call SendState.getState()) {
     case S_LPL_SENDING:
       if(call SendDoneTimer.isRunning()) {
@@ -291,24 +291,24 @@ implementation {
         }
       }
       break;
-      
+
     case S_LPL_CLEAN_UP:
       /**
        * We include this state so upper layers can't send a different message
        * before the last message gets done sending
        */
       break;
-      
+
     default:
       break;
-    }  
-    
+    }
+
     call SendState.toIdle();
     call SendDoneTimer.stop();
     startOffTimer();
     signal Send.sendDone(msg, error);
   }
-  
+
   /***************** SubReceive Events ***************/
   /**
    * If the received message is new, we signal the receive event and
@@ -317,14 +317,14 @@ implementation {
    * that this message should be ignored, especially if the destination address
    * as the broadcast address
    */
-  event message_t *SubReceive.receive(message_t* msg, void* payload, 
+  event message_t *SubReceive.receive(message_t* msg, void* payload,
       uint8_t len) {
     startOffTimer();
     return signal Receive.receive(msg, payload, len);
   }
-  
+
   /***************** Timer Events ****************/
-  event void OffTimer.fired() {    
+  event void OffTimer.fired() {
     /*
      * Only stop the radio if the radio is supposed to be off permanently
      * or if the duty cycle is on and our sleep interval is not 0
@@ -332,11 +332,11 @@ implementation {
     if(call SplitControlState.getState() == S_OFF
         || (call PowerCycle.getSleepInterval() > 0
             && call SplitControlState.getState() != S_OFF
-                && call SendState.getState() == S_LPL_NOT_SENDING)) { 
+                && call SendState.getState() == S_LPL_NOT_SENDING)) {
       post stopRadio();
     }
   }
-  
+
   /**
    * When this timer is running, that means we're sending repeating messages
    * to a node that is receive check duty cycling.
@@ -347,7 +347,7 @@ implementation {
       call SendState.forceState(S_LPL_CLEAN_UP);
     }
   }
-  
+
   /***************** Resend Events ****************/
   /**
    * Signal that a message has been sent
@@ -358,27 +358,27 @@ implementation {
   async event void Resend.sendDone( message_t* p_msg, error_t error ) {
     // This is actually caught by SubSend.sendDone
   }
-  
-  
+
+
   /***************** Tasks ***************/
   task void send() {
     if(call SubSend.send(currentSendMsg, currentSendLen) != SUCCESS) {
       post send();
     }
   }
-  
+
   task void resend() {
     if(call Resend.resend(TRUE) != SUCCESS) {
       post resend();
     }
   }
-  
+
   task void startRadio() {
     if(call SubControl.start() != SUCCESS) {
       post startRadio();
     }
   }
-  
+
   task void stopRadio() {
     if(call SendState.getState() == S_LPL_NOT_SENDING) {
       if(call SubControl.stop() != SUCCESS) {
@@ -386,12 +386,12 @@ implementation {
       }
     }
   }
-  
+
   /***************** Functions ***************/
   void initializeSend() {
-    if(call LowPowerListening.getRemoteWakeupInterval(currentSendMsg) 
+    if(call LowPowerListening.getRemoteWakeupInterval(currentSendMsg)
       > ONE_MESSAGE) {
-    
+
       if((call CC2420PacketBody.getHeader(currentSendMsg))->dest == IEEE154_BROADCAST_ADDR) {
         call PacketAcknowledgements.noAck(currentSendMsg);
       } else {
@@ -402,14 +402,14 @@ implementation {
       call SendDoneTimer.startOneShot(
           call LowPowerListening.getRemoteWakeupInterval(currentSendMsg) + 20);
     }
-        
+
     post send();
   }
-  
-  
+
+
   void startOffTimer() {
     call OffTimer.startOneShot(call SystemLowPowerListening.getDelayAfterReceive());
   }
-  
+
 }
 

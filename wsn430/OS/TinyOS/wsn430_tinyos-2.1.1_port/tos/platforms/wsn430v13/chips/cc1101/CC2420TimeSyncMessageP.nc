@@ -34,7 +34,7 @@ module CC2420TimeSyncMessageP
 
         interface TimeSyncPacket<T32khz, uint32_t> as TimeSyncPacket32khz;
         interface TimeSyncPacket<TMilli, uint32_t> as TimeSyncPacketMilli;
-        
+
         interface Receive[am_id_t id];
         interface Receive as Snoop[am_id_t id];
     }

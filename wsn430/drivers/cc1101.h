@@ -1,23 +1,23 @@
 /*
  * Copyright  2008-2009 INRIA/SensTools
- * 
+ *
  * <dev-team@sentools.info>
- * 
+ *
  * This software is a set of libraries designed to develop applications
  * for the WSN430 embedded hardware platform.
- * 
+ *
  * This software is governed by the CeCILL license under French law and
- * abiding by the rules of distribution of free software.  You can  use, 
+ * abiding by the rules of distribution of free software.  You can  use,
  * modify and/ or redistribute the software under the terms of the CeCILL
  * license as circulated by CEA, CNRS and INRIA at the following URL
- * "http://www.cecill.info". 
- * 
+ * "http://www.cecill.info".
+ *
  * As a counterpart to the access to the source code and  rights to copy,
  * modify and redistribute granted by the license, users are provided only
  * with a limited warranty  and the software's author,  the holder of the
  * economic rights,  and the successive licensors  have only  limited
- * liability. 
- * 
+ * liability.
+ *
  * In this respect, the user's attention is drawn to the risks associated
  * with loading,  using,  modifying and/or developing or reproducing the
  * software by the user in light of its specific status of free software,
@@ -25,10 +25,10 @@
  * therefore means  that it is reserved for developers  and  experienced
  * professionals having in-depth computer knowledge. Users are therefore
  * encouraged to load and test the software's suitability as regards their
- * requirements in conditions enabling the security of their systems and/or 
- * data to be ensured and,  more generally, to use and operate it in the 
- * same conditions as regards security. 
- * 
+ * requirements in conditions enabling the security of their systems and/or
+ * data to be ensured and,  more generally, to use and operate it in the
+ * same conditions as regards security.
+ *
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
@@ -38,9 +38,9 @@
  * \ingroup wsn430
  * @{
  * This module allows the user to control the CC1101 radio chip.
- * 
+ *
  * The CC1101 is a sub 1GHz radio chip offering a wide
- * range of configuration options, such as frequency, bandwidth, 
+ * range of configuration options, such as frequency, bandwidth,
  * datarate, modulation, power, etc...
  * It may be fine-tuned to do many wireless network protocols.
  */
@@ -226,7 +226,7 @@ void cc1101_cmd_idle(void);
 
 /**
  * \brief Configure the gdo0 output pin.
- * 
+ *
  * Example : use 0x06 for sync/eop or 0x0 for rx fifo threshold
  * \param cfg the configuration value
  */
@@ -235,7 +235,7 @@ void cc1101_cmd_idle(void);
 
 /**
  * \brief Configure the gdo2 output pin.
- * 
+ *
  * Example : use 0x06 for sync/eop or 0x0 for rx fifo threshold
  * \param cfg the configuration value
  */
@@ -244,12 +244,12 @@ void cc1101_cmd_idle(void);
 
 /**
  * \brief Set the threshold for both RX and TX FIFOs.
- * corresponding values are : 
- * 
+ * corresponding values are :
+ *
  * value   0 |  1 |  2 |  3 |  4 |  5 |  6 |  7 |  8 |  9 | 10 | 11 | 12 | 13 | 14 | 15 \n
  * TX     61 | 57 | 53 | 49 | 45 | 41 | 37 | 33 | 29 | 25 | 21 | 17 | 13 |  9 |  5 | 1 \n
  * RX      4 |  8 | 12 | 16 | 20 | 24 | 28 | 32 | 36 | 40 | 44 | 48 | 52 | 56 | 60 | 64
- * 
+ *
  * \param cfg the configuration value
  */
 #define cc1101_cfg_fifo_thr(cfg) \
@@ -273,7 +273,7 @@ void cc1101_cmd_idle(void);
   reg = cc1101_read_reg(CC1101_REG_PKTCTRL1); \
   reg = (reg & 0x1F) | (((cfg) << 5) & 0xE0); \
   cc1101_write_reg(CC1101_REG_PKTCTRL1, reg); \
-} while (0) 
+} while (0)
 
 /**
  * \name CRC Autoflush configuration constants
@@ -309,7 +309,7 @@ void cc1101_cmd_idle(void);
 /**
  * \brief enable/disable the appending of 2 information bytes at the end of
  * a received packet.
- * 
+ *
  * Two extra bytes need to be read from the RXFIFO if the appending is set.
  * The first contains the RSSI of the received signal, the second contains
  * the CRC result on the most significant bit, and the LQI on the 7 others.
@@ -583,7 +583,7 @@ void cc1101_cmd_idle(void);
 /**
  * \brief Set the minimum number of preamble bytes to be tramsitted \n
  * Setting :      0  |  1  |  2  |  3  |  4  |  5  |  6  |  7 \n
- * nb. of bytes : 2  |  3  |  4  |  6  |  8  |  12 |  16 |  24 
+ * nb. of bytes : 2  |  3  |  4  |  6  |  8  |  12 |  16 |  24
  * \param cfg the configuration value
  */
 #define cc1101_cfg_num_preamble(cfg) do { \
@@ -673,7 +673,7 @@ void cc1101_cmd_idle(void);
  */
 #define CC1101_RXOFF_MODE_IDLE     0x00
 #define CC1101_RXOFF_MODE_FSTXON   0x01 /* freq synth on, ready to Tx */
-#define CC1101_RXOFF_MODE_TX       0x02 
+#define CC1101_RXOFF_MODE_TX       0x02
 #define CC1101_RXOFF_MODE_STAY_RX  0x03
 /**
  * @}
@@ -854,7 +854,7 @@ void cc1101_cmd_idle(void);
     cc1101_read_status(CC1101_REG_WORTIME1)
 
 /**
- * \brief read the low byte of the WOR timer 
+ * \brief read the low byte of the WOR timer
  */
 #define cc1101_status_wortime0() \
     cc1101_read_status(CC1101_REG_WORTIME0)

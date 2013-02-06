@@ -70,7 +70,7 @@ received(struct runicast_conn *uc, const rimeaddr_t *from, uint8_t seqno)
   struct data_hdr *msg = packetbuf_dataptr();
   rimeaddr_t *nexthop;
 
-  PRINTF("data_packet_received from %d.%d towards %d.%d len %d\n", 
+  PRINTF("data_packet_received from %d.%d towards %d.%d len %d\n",
          from->u8[0], from->u8[1],
 	 msg->dest.u8[0], msg->dest.u8[1],
 	 packetbuf_datalen());
@@ -130,13 +130,13 @@ rmh_send(struct rmh_conn *c, rimeaddr_t *to, uint8_t num_rexmit, uint8_t max_hop
 {
   rimeaddr_t *nexthop;
   struct data_hdr *hdr;
-  
+
   c->num_rexmit = num_rexmit;
-  
+
   if(c->cb->forward == NULL) {
     return 0;
   }
-  
+
   nexthop = c->cb->forward(c, &rimeaddr_node_addr, to, NULL, 0);
   if(nexthop == NULL) {
     PRINTF("rmh_send: no route\n");
@@ -144,7 +144,7 @@ rmh_send(struct rmh_conn *c, rimeaddr_t *to, uint8_t num_rexmit, uint8_t max_hop
   } else {
     PRINTF("rmh_send: sending data\n");
 
-    
+
     if(packetbuf_hdralloc(sizeof(struct data_hdr))) {
       hdr = packetbuf_hdrptr();
       rimeaddr_copy(&hdr->dest, to);

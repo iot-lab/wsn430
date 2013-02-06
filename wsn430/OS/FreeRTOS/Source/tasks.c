@@ -33,9 +33,9 @@
     FreeRTOS is distributed in the hope that it will be useful, but WITHOUT
     ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
     FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-    more details. You should have received a copy of the GNU General Public 
-    License and the FreeRTOS license exception along with FreeRTOS; if not it 
-    can be viewed here: http://www.freertos.org/a00114.html and also obtained 
+    more details. You should have received a copy of the GNU General Public
+    License and the FreeRTOS license exception along with FreeRTOS; if not it
+    can be viewed here: http://www.freertos.org/a00114.html and also obtained
     by writing to Richard Barry, contact details for whom are available on the
     FreeRTOS WEB site.
 
@@ -82,8 +82,8 @@ typedef struct tskTaskControlBlock
 
 	#if ( portUSING_MPU_WRAPPERS == 1 )
 		xMPU_SETTINGS xMPUSettings;				/*< The MPU settings are defined as part of the port layer.  THIS MUST BE THE SECOND MEMBER OF THE STRUCT. */
-	#endif	
-	
+	#endif
+
 	xListItem				xGenericListItem;	/*< List item used to place the TCB in ready and blocked queues. */
 	xListItem				xEventListItem;		/*< List item used to place the TCB in event lists. */
 	unsigned portBASE_TYPE	uxPriority;			/*< The priority of the task where 0 is the lowest priority. */
@@ -1914,7 +1914,7 @@ static void prvInitialiseTCBVariables( tskTCB *pxTCB, const signed char * const 
 	void vTaskAllocateMPURegions( xTaskHandle xTaskToModify, const xMemoryRegion * const xRegions )
 	{
 	tskTCB *pxTCB;
-	
+
 		if( xTaskToModify == pxCurrentTCB )
 		{
 			xTaskToModify = NULL;
@@ -2047,8 +2047,8 @@ tskTCB *pxNewTCB;
 			{
 				usStackRemaining = usTaskCheckFreeStackSpace( ( unsigned char * ) pxNextTCB->pxStack );
 			}
-			#endif			
-			
+			#endif
+
 			sprintf( pcStatusString, ( char * ) "%s\t\t%c\t%u\t%u\t%u\r\n", pxNextTCB->pcTaskName, cStatus, ( unsigned int ) pxNextTCB->uxPriority, usStackRemaining, ( unsigned int ) pxNextTCB->uxTCBNumber );
 			strcat( ( char * ) pcWriteBuffer, ( char * ) pcStatusString );
 

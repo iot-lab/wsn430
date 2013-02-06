@@ -44,7 +44,7 @@ tn-injector.o: tn-injector.c test_network_msg.c
 	gcc $(TFLAGS) $(CFLAGS) -c -o $@ $<
 
 #test_network_msg.c:
-#	mig -o test_network_msg.h c -target=$(PLATFORM) $(CFLAGS) $(TFLAGS) TestNetwork.h TestNetworkMsg 
+#	mig -o test_network_msg.h c -target=$(PLATFORM) $(CFLAGS) $(TFLAGS) TestNetwork.h TestNetworkMsg
 
 #set_rate_msg.c:
 #	mig -o set_rate_msg.h c -target=$(PLATFORM) $(CFLAGS) $(TFLAGS) $(TOSDIR)/lib/net/DisseminationEngine.h dissemination_message

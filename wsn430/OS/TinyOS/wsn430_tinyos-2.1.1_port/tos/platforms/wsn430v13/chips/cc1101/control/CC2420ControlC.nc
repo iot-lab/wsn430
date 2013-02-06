@@ -45,11 +45,11 @@ configuration CC2420ControlC {
   provides interface CC2420Config;
   provides interface CC2420Power;
   provides interface Read<uint16_t> as ReadRssi;
-  
+
 }
 
 implementation {
-  
+
   components CC1101ControlP;
   Resource = CC1101ControlP;
   CC2420Config = CC1101ControlP;
@@ -58,7 +58,7 @@ implementation {
 
   components MainC;
   MainC.SoftwareInit -> CC1101ControlP;
-  
+
   components AlarmMultiplexC as Alarm;
   CC1101ControlP.StartupTimer -> Alarm;
 
@@ -71,7 +71,7 @@ implementation {
 
   components new CC1101SpiC() as Spi;
   CC1101ControlP.SpiResource -> Spi;
-  
+
   CC1101ControlP.IOCFG2 -> Spi.IOCFG2;
   CC1101ControlP.IOCFG0 -> Spi.IOCFG0;
   CC1101ControlP.FIFOTHR -> Spi.FIFOTHR;
@@ -89,7 +89,7 @@ implementation {
   CC1101ControlP.DEVIATN -> Spi.DEVIATN;
   CC1101ControlP.MCSM1 -> Spi.MCSM1;
   CC1101ControlP.MCSM0 -> Spi.MCSM0;
-  
+
   CC1101ControlP.SRES -> Spi.SRES;
   CC1101ControlP.SRX -> Spi.SRX;
   CC1101ControlP.SFRX -> Spi.SFRX;
@@ -97,7 +97,7 @@ implementation {
   CC1101ControlP.SIDLE -> Spi.SIDLE;
   CC1101ControlP.SXOFF -> Spi.SXOFF;
   CC1101ControlP.SPWD -> Spi.SPWD;
-  
+
   CC1101ControlP.RSSI -> Spi.RSSI;
   CC1101ControlP.MARCSTATE -> Spi.MARCSTATE;
 
@@ -107,7 +107,7 @@ implementation {
 
   components new CC1101SpiC() as RssiResource;
   CC1101ControlP.RssiResource -> RssiResource;
-  
+
   components ActiveMessageAddressC;
   CC1101ControlP.ActiveMessageAddress -> ActiveMessageAddressC;
 

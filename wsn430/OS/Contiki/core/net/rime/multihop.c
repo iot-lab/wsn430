@@ -134,7 +134,7 @@ multihop_send(struct multihop_conn *c, const rimeaddr_t *to)
   }
   packetbuf_compact();
   nexthop = c->cb->forward(c, &rimeaddr_node_addr, to, NULL, 0);
-  
+
   if(nexthop == NULL) {
     PRINTF("multihop_send: no route\n");
     return 0;

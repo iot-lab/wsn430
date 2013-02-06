@@ -6,7 +6,7 @@ Razvan Musaloiu-E. <razvanm@cs.jhu.edu>
 
 Description:
 
-This is a sample application for Deluge T2. The application is similar 
+This is a sample application for Deluge T2. The application is similar
 to Null, but it includes Deluge T2. The Makefile includes the
 DELUGE_LIGHT_BASESTATION flag to allow the nodes to be pinged using
 tos-deluge.

@@ -28,11 +28,11 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
- 
+
 /**
  * This application is used to test the threaded version of the API for accessing
  * the software based SineSensor usable by any platform for demonstration purposes.
- * 
+ *
  * This application simply takes sensor readings in an infinite loop from the
  * SineSensor and forwards them over the serial interface.  Upon successful
  * transmission, LED0 is toggled.
@@ -45,7 +45,7 @@ configuration TestSineSensorAppC {
 implementation {
   components MainC, TestSineSensorC;
   components new ThreadC(150) as MainThread;
-  
+
   components new BlockingSineSensorC();
   components BlockingSerialActiveMessageC;
   components new BlockingSerialAMSenderC(228);
@@ -57,7 +57,7 @@ implementation {
   TestSineSensorC.AMControl -> BlockingSerialActiveMessageC;
   TestSineSensorC.BlockingAMSend -> BlockingSerialAMSenderC;
   TestSineSensorC.Packet -> BlockingSerialAMSenderC;
-  
+
   components LedsC;
   TestSineSensorC.Leds -> LedsC;
 }

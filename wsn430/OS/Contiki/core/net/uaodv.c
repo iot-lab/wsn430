@@ -135,7 +135,7 @@ sendto(const uip_ipaddr_t *dest, const void *buf, int len)
      the this connection instead. THIS IS NOT A NICE WAY TO DO THIS,
      but it is currently nicer than the alternative (requesting a new
      poll, and remembering the state, etc.). */
-  
+
   uip_ipaddr_copy(&unicastconn->ripaddr, dest);
   uip_udp_conn = unicastconn;
   uip_udp_packet_send(unicastconn, buf, len);
@@ -209,7 +209,7 @@ send_rrep(uip_ipaddr_t *dest, uip_ipaddr_t *nexthop, uip_ipaddr_t *orig,
 	  u32_t *seqno, unsigned hop_count)
 {
   struct uaodv_msg_rrep *rm = (struct uaodv_msg_rrep *)uip_appdata;
-  
+
   print_debug("send RREP orig=%d.%d.%d.%d hops=%d\n",
 	      uip_ipaddr_to_quad(orig), hop_count);
 
@@ -228,7 +228,7 @@ static void
 send_rerr(uip_ipaddr_t *addr, u32_t *seqno)
 {
   struct uaodv_msg_rerr *rm = (struct uaodv_msg_rerr *)uip_appdata;
-  
+
   print_debug("send RERR for %d.%d.%d.%d\n", uip_ipaddr_to_quad(addr));
 
   rm->type = UAODV_RERR_TYPE;
@@ -250,7 +250,7 @@ handle_incoming_rreq(void)
   struct uaodv_msg_rreq *rm = (struct uaodv_msg_rreq *)uip_appdata;
   uip_ipaddr_t dest_addr, orig_addr;
   struct uaodv_rt_entry *rt, *fw = NULL;
-  
+
   print_debug("RREQ %d.%d.%d.%d -> %d.%d.%d.%d ttl=%u"
 	      " orig=%d.%d.%d.%d seq=%lu hops=%u dest=%d.%d.%d.%d seq=%lu\n",
 	      uip_ipaddr_to_quad(&BUF->srcipaddr),
@@ -315,7 +315,7 @@ handle_incoming_rreq(void)
     rt = uaodv_rt_add(&rm->orig_addr, uip_udp_sender(),
 		      rm->hop_count, &rm->orig_seqno);
   }
-    
+
   /* Check if it is for our address or a fresh route. */
   if(uip_ipaddr_cmp(&rm->dest_addr, &uip_hostaddr)
      || rm->flags & UAODV_RREQ_DESTONLY) {
@@ -578,7 +578,7 @@ PROCESS_THREAD(uaodv_process, ev, data)
 
   bcastconn = udp_broadcast_new(UIP_HTONS(UAODV_UDPPORT), NULL);
   unicastconn = udp_broadcast_new(UIP_HTONS(UAODV_UDPPORT), NULL);
-  
+
   while(1) {
     PROCESS_WAIT_EVENT();
 

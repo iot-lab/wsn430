@@ -28,19 +28,19 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE
  */
- 
+
 /**
  * Interface to obtain energy, byte, and packet receive check readings
  * @author David Moss
  */
- 
+
 interface ReceiveIndicator {
-  
+
   /**
    * @return TRUE if the indicator is showing we are actively receiving at this
    * level
    */
   command bool isReceiving();
-  
+
 }
 

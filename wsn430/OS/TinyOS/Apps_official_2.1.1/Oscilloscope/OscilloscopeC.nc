@@ -2,9 +2,9 @@
  * Copyright (c) 2006 Intel Corporation
  * All rights reserved.
  *
- * This file is distributed under the terms in the attached INTEL-LICENSE     
+ * This file is distributed under the terms in the attached INTEL-LICENSE
  * file. If you do not find these files, copies can be found by writing to
- * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
+ * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA,
  * 94704.  Attention:  Intel License Inquiry.
  */
 
@@ -74,7 +74,7 @@ implementation
 
     report_received();
 
-    /* If we receive a newer version, update our interval. 
+    /* If we receive a newer version, update our interval.
        If we hear from a future count, jump ahead but suppress our own change
     */
     if (omsg->version > local.version)

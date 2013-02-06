@@ -109,7 +109,7 @@ phase_update(const struct phase_list *list,
     if(mac_status == MAC_TX_OK) {
       e->time = time;
     }
-    
+
     /* If the neighbor didn't reply to us, it may have switched
        phase (rebooted). We try a number of transmissions to it
        before we drop it from the phase list. */
@@ -172,35 +172,35 @@ phase_wait(struct phase_list *list,
   if(e != NULL) {
     rtimer_clock_t wait, now, expected, additional_wait;
     clock_time_t ctimewait;
-    
+
     /* We expect phases to happen every CYCLE_TIME time
        units. The next expected phase is at time e->time +
        CYCLE_TIME. To compute a relative offset, we subtract
        with clock_time(). Because we are only interested in turning
        on the radio within the CYCLE_TIME period, we compute the
        waiting time with modulo CYCLE_TIME. */
-    
+
     /*      printf("neighbor phase 0x%02x (cycle 0x%02x)\n", e->time & (cycle_time - 1),
             cycle_time);*/
-    
+
     additional_wait = 2 * e->noacks * wait_before;
-    
+
     /*      if(e->noacks > 0) {
             printf("additional wait %d\n", additional_wait);
             }*/
-    
+
     now = RTIMER_NOW();
     wait = (rtimer_clock_t)((e->time - now) &
                             (cycle_time - 1));
     if(wait < wait_before + additional_wait) {
       wait += cycle_time;
     }
-    
+
     ctimewait = (CLOCK_SECOND * (wait - wait_before - additional_wait)) / RTIMER_ARCH_SECOND;
-    
+
     if(ctimewait > PHASE_DEFER_THRESHOLD) {
       struct phase_queueitem *p;
-      
+
       p = memb_alloc(&queued_packets_memb);
       if(p != NULL) {
         p->q = queuebuf_new_from_packetbuf();
@@ -214,7 +214,7 @@ phase_wait(struct phase_list *list,
         }
       }
     }
-    
+
     expected = now + wait - wait_before - additional_wait;
     if(!RTIMER_CLOCK_LT(expected, now)) {
       /* Wait until the receiver is expected to be awake */

@@ -43,7 +43,7 @@
 #include "tosthread.h"
 #include "tosthread_amserial.h"
 #include "tosthread_leds.h"
-#include "tosthread_sinesensor.h" 
+#include "tosthread_sinesensor.h"
 
 void tosthread_main(void* arg) {
   uint16_t* var;

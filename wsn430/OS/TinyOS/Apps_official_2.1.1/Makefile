@@ -1,6 +1,6 @@
 #-*-makefile-*-
 ######################################################################
-# 
+#
 # Makes the entire suite of TinyOS applications for a given platform.
 #
 # Author: 	Martin Turon
@@ -18,7 +18,7 @@ ROOT=.
 SUBDIRS := $(shell find * -type d)
 
 # Okay, match any target, and recurse the subdirectories
-%: 
+%:
 	@for i in $(SUBDIRS); do \
 	  HERE=$$PWD; \
 	  if [ -f $$i/Makefile ]; then \
@@ -36,7 +36,7 @@ DOCDIR = $(BASEDIR)/doc/nesdoc
 
 nesdoc:
 	@echo This target rebuilds documentation for all known platforms.
-	@echo It DOES NOT overwrite any existing documentation, thus, it 
+	@echo It DOES NOT overwrite any existing documentation, thus, it
 	@echo is best run after deleting all old documentation.
 	@echo
 	@echo To delete all old documentation, delete the contents of the

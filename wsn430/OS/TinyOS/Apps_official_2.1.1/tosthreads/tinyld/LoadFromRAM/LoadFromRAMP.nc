@@ -28,7 +28,7 @@
  * @author Chieh-Jan Mike Liang <cliang4@cs.jhu.edu>
  */
 
-module LoadFromRAMP 
+module LoadFromRAMP
 {
   uses {
     interface Boot;
@@ -138,6 +138,6 @@ implementation
   event void Boot.booted() {
     post loadCode1();
   }
-  
+
   event void DynamicLoader.loadFromFlashDone(uint8_t volumeId, tosthread_t id, error_t error) {}
 }

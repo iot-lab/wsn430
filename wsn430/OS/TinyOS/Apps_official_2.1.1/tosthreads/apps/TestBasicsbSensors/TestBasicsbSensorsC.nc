@@ -28,7 +28,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
- 
+
 /**
  * @author Kevin Klues (klueska@cs.stanford.edu)
  */
@@ -61,7 +61,7 @@ implementation {
     message_t msg;
     readings = call Packet.getPayload(&msg, sizeof(sensor_readings_t));
 
-    while( call AMControl.start() != SUCCESS );    
+    while( call AMControl.start() != SUCCESS );
     for(;;){
       while( call Photo.read(&(readings->photo)) != SUCCESS );
       while( call Temp.read(&(readings->temp)) != SUCCESS );

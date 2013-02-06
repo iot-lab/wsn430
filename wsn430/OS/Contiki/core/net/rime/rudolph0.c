@@ -147,7 +147,7 @@ recv(struct stbroadcast_conn *stbroadcast)
 			     RUDOLPH0_FLAG_NONE, p->data, p->datalen);
 	}
 	c->current.h.chunk++;
-	
+
       } else if(p->h.chunk > c->current.h.chunk) {
 	PRINTF("received chunk %d > %d, sending NACK\n", p->h.chunk, c->current.h.chunk);
 	send_nack(c);

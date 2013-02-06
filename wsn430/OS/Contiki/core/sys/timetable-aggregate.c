@@ -70,7 +70,7 @@ find_aggregate_category(struct timetable_aggregate *a,
   if(i == a->size) {
     return NULL;
   }
-  
+
   a->entries[a->ptr].id = NULL;
   return &a->entries[a->ptr++];
 }
@@ -108,7 +108,7 @@ timetable_aggregate_print_detailed(struct timetable_aggregate *a)
 	   a->entries[i].episodes,
 	   a->entries[i].time / a->entries[i].episodes);
   }
-  
+
   printf("Memory for entries: %d * %d = %d\n",
 	 (int)sizeof(struct timetable_aggregate), a->ptr,
 	 (int)sizeof(struct timetable_aggregate) * a->ptr);
@@ -149,9 +149,9 @@ timetable_aggregate_compute_detailed(struct timetable_aggregate *a,
 {
   int i;
   rtimer_clock_t t;
-  
+
   t = timetable->timestamps[0].time;
-  
+
   for(i = 1; i < *timetable->ptr; ++i) {
     struct timetable_aggregate_entry *entry;
     entry = find_aggregate(a, timetable->timestamps[i - 1].id);
@@ -183,9 +183,9 @@ timetable_aggregate_compute_categories(struct timetable_aggregate *a,
   rtimer_clock_t t;
   uint16_t categories[XXX_HACK_MAX_CATEGORIES];
   int categories_ptr = 0;
-  
+
   t = timetable->timestamps[0].time;
-  
+
   for(i = 1; i < *timetable->ptr; ++i) {
     struct timetable_aggregate_entry *entry;
     uint16_t cat;
@@ -208,7 +208,7 @@ timetable_aggregate_compute_categories(struct timetable_aggregate *a,
 	     timetable->timestamps[i - 1].id[0],
 	     timetable->timestamps[i - 1].id[1], entry->time);*/
     } else {
-      
+
       entry->time += (unsigned long)(timetable->timestamps[i].time - t -
 				     timetable_timestamp_time);
       /*      printf("Adding time to %c%c time %lu\n",
@@ -221,7 +221,7 @@ timetable_aggregate_compute_categories(struct timetable_aggregate *a,
 	 array, we do not update it. Otherwise, we insert the category
 	 in the array and update the episodes counter of the
 	 category. */
-      
+
       for(j = 0; j < categories_ptr; ++j) {
 	if(categories[j] == cat) {
 	  break;

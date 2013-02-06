@@ -32,16 +32,16 @@
 /**
  * 500 kBaud
  */
- 
+
 /**
  * All frequency settings assume a 27 MHz crystal.
  * If you have a 27 MHz crystal, you'll need to fix the defined FREQ registers
- * 
+ *
  * @author Jared Hill
  * @author David Moss
  * @author Roland Hendel
  */
- 
+
 #ifndef CC1101_H
 #define CC1101_H
 
@@ -79,7 +79,7 @@ enum CC1101_config_reg_state_enums {
   CC1101_CONFIG_DEVIATN = 0x00, // deviation for MSK
   CC1101_CONFIG_MCSM1 = 0x33, // RX after TX, Idle after RX
   CC1101_CONFIG_MCSM0 = 0x18, // Calibrate when going from idle to RX/TX
-   
+
 };
 
 enum cc1101_config_reg_addr_enums {
@@ -123,7 +123,7 @@ enum cc1101_config_reg_addr_enums {
   CC1101_FSCAL2 = 0x24,
   CC1101_FSCAL1 = 0x25,
   CC1101_FSCAL0 = 0x26,
-  CC1101_RCCTRL1 = 0x27, 
+  CC1101_RCCTRL1 = 0x27,
   CC1101_RCCTRL0 = 0x28,
   CC1101_FSTEST = 0x29,
   CC1101_PTEST = 0x2A,
@@ -161,7 +161,7 @@ enum cc1101_cmd_strobe_enums {
   CC1101_SFTX = 0x3B,
   CC1101_SWORRST = 0x3C,
   CC1101_SNOP = 0x3D,
-  
+
 };
 
 enum cc1101_addr_enums {

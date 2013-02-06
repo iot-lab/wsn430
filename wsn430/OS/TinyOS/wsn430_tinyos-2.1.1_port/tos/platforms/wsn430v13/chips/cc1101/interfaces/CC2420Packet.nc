@@ -38,7 +38,7 @@
 #include "message.h"
 
 interface CC2420Packet {
-  
+
   /**
    * Get transmission power setting for current packet.
    *
@@ -54,7 +54,7 @@ interface CC2420Packet {
    * @param power transmission power.
    */
   async command void setPower( message_t* p_msg, uint8_t power );
-  
+
   /**
    * Get rssi value for a given packet. For received packets, it is
    * the received signal strength when receiving that packet. For sent
@@ -75,5 +75,5 @@ interface CC2420Packet {
   async command uint8_t getNetwork( message_t* p_msg );
 
   async command void setNetwork( message_t* p_msg, uint8_t networkId );
-  
+
 }

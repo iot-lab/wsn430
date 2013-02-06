@@ -51,6 +51,6 @@ configuration RssiBaseAppC {
   components Tda5250ActiveMessageC;
   App -> Tda5250ActiveMessageC.Tda5250Packet;
 #endif
-  
+
   App-> BaseStationC.RadioIntercept[AM_RSSIMSG];
 }

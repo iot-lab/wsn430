@@ -61,7 +61,7 @@ implementation {
   components MainC;
   MainC.SoftwareInit -> CC1101TransmitP;
   MainC.SoftwareInit -> Alarm;
-  
+
   components AlarmMultiplexC as Alarm;
   CC1101TransmitP.BackoffTimer -> Alarm;
 
@@ -71,7 +71,7 @@ implementation {
 
   components HplCC1101InterruptsC as Interrupts;
   CC1101TransmitP.InterruptSFD -> Interrupts.InterruptGDO0;
-  
+
   //components HplCC1101AlarmC as Counter32khz32;
   //CC1101Transmit.CounterSFD -> Counter32khz32.Counter;
 
@@ -89,14 +89,14 @@ implementation {
   CC1101TransmitP.MARCSTATE   -> Spi.MARCSTATE;
   CC1101TransmitP.VERSION     -> Spi.VERSION;
   CC1101TransmitP.TXBYTES     -> Spi.TXBYTES;
-  
+
   CC1101TransmitP.MCSM1      -> Spi.MCSM1;
   CC1101TransmitP.IOCFG0      -> Spi.IOCFG0;
   CC1101TransmitP.IOCFG2      -> Spi.IOCFG2;
-  
+
   components CC2420ReceiveC;
   CC1101TransmitP.CC2420Receive -> CC2420ReceiveC;
-  
+
   components CC2420PacketC;
   CC1101TransmitP.CC2420Packet -> CC2420PacketC;
   CC1101TransmitP.CC2420PacketBody -> CC2420PacketC;

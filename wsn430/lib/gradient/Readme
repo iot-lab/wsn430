@@ -1,6 +1,6 @@
 This wireless network application is divided in three parts :
      * The sink which sends periodical beacon and collect data from the network
-     * The anchors which are relaying data 
+     * The anchors which are relaying data
      * The mobile nodes, which are collecting data (or whatever you want) and sending them for the sink
 
 To run your application you should :

@@ -9,13 +9,13 @@
  * agreement is hereby granted, provided that the above copyright
  * notice, the following two paragraphs and the author appear in all
  * copies of this software.
- * 
+ *
  * IN NO EVENT SHALL THE UNIVERSITY OF CALIFORNIA BE LIABLE TO ANY
  * PARTY FOR DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL
  * DAMAGES ARISING OUT OF THE USE OF THIS SOFTWARE AND ITS
  * DOCUMENTATION, EVEN IF THE UNIVERSITY OF CALIFORNIA HAS BEEN
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * THE UNIVERSITY OF CALIFORNIA SPECIFICALLY DISCLAIMS ANY WARRANTIES,
  * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE
@@ -91,7 +91,7 @@ implementation {
     }
   }
 
-  event void Config.readDone(storage_addr_t addr, void* buf, 
+  event void Config.readDone(storage_addr_t addr, void* buf,
     storage_len_t len, error_t err) __attribute__((noinline)) {
 
     if (err == SUCCESS) {
@@ -115,7 +115,7 @@ implementation {
     }
   }
 
-  event void Config.writeDone(storage_addr_t addr, void *buf, 
+  event void Config.writeDone(storage_addr_t addr, void *buf,
     storage_len_t len, error_t err) {
     // Verify addr and len
 

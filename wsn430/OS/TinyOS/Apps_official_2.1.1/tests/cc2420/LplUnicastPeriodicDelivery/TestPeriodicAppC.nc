@@ -40,7 +40,7 @@
  *
  * @author David Moss
  */
- 
+
 configuration TestPeriodicAppC {
 }
 
@@ -61,7 +61,7 @@ implementation {
       new AMSenderC(AM_TESTPERIODICMSG),
       new AMReceiverC(AM_TESTPERIODICMSG),
       LedsC;
-      
+
   TestPeriodicC.Boot -> MainC;
   TestPeriodicC.SplitControl -> ActiveMessageC;
   TestPeriodicC.LowPowerListening -> Lpl;

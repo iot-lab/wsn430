@@ -93,13 +93,13 @@ recv_from_ipolite(struct ipolite_conn *ipolite, const rimeaddr_t *from)
 
       if(c->u->recv(c, from, &hdr.originator, hdr.originator_seqno,
 		    hops)) {
-	
+
 	if(queuebuf != NULL) {
 	  queuebuf_to_packetbuf(queuebuf);
 	  queuebuf_free(queuebuf);
 	  queuebuf = NULL;
 	  memcpy(&hdr, packetbuf_dataptr(), sizeof(struct netflood_hdr));
-	  
+
 	  /* Rebroadcast received packet. */
 	  if(hops < HOPS_MAX) {
 	    PRINTF("%d.%d: netflood rebroadcasting %d.%d/%d (%d.%d/%d) hops %d\n",

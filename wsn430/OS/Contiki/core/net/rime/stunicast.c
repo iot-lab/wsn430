@@ -148,9 +148,9 @@ stunicast_send_stubborn(struct stunicast_conn *c, const rimeaddr_t *receiver,
   /*  if(c->u->sent != NULL) {
     c->u->sent(c);
     }*/
-  
+
   return 1;
-  
+
 }
 /*---------------------------------------------------------------------------*/
 int

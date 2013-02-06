@@ -19,9 +19,9 @@
  * OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR
  * MODIFICATIONS."
  */
- 
+
 /**
- * This is an example implementation of a dedicated resource.  
+ * This is an example implementation of a dedicated resource.
  * It provides the SplitControl interface for power management
  * of the resource and an EXAMPLE ResourceOperations interface
  * for performing operations on it.
@@ -38,34 +38,34 @@ module ResourceP {
   }
 }
 implementation {
-	
+
   bool lock;
-	
+
   task void startDone() {
   	lock = FALSE;
   	signal SplitControl.startDone(SUCCESS);
   }
-  
+
   task void stopDone() {
   	signal SplitControl.stopDone(SUCCESS);
   }
-  
+
   task void operationDone() {
   	lock = FALSE;
   	signal ResourceOperations.operationDone(SUCCESS);
   }
-	
+
   command error_t SplitControl.start() {
   	post startDone();
   	return  SUCCESS;
   }
-  
+
   command error_t SplitControl.stop() {
   	lock = TRUE;
   	post stopDone();
   	return  SUCCESS;
   }
-  
+
   command error_t ResourceOperations.operation() {
   	if(lock == FALSE) {
       lock = TRUE;

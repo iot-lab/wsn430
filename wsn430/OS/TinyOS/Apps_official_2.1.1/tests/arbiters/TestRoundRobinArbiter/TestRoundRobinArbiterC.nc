@@ -26,9 +26,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
- 
+
 #include "Timer.h"
- 
+
 /**
  * Please refer to TEP 108 for more information about the components
  * this application is used to test
@@ -63,7 +63,7 @@
 
 module TestRoundRobinArbiterC {
   uses {
-    interface Boot;  
+    interface Boot;
     interface Leds;
     interface Resource as Resource0;
     interface Resource as Resource1;
@@ -76,28 +76,28 @@ module TestRoundRobinArbiterC {
 implementation {
 
   #define HOLD_PERIOD 250
-  
+
   //All resources try to gain access
   event void Boot.booted() {
     call Resource0.request();
     call Resource2.request();
     call Resource1.request();
   }
-  
-  //If granted the resource, turn on an LED  
+
+  //If granted the resource, turn on an LED
   event void Resource0.granted() {
     call Timer0.startOneShot(HOLD_PERIOD);
-    call Leds.led0Toggle();      
-  }  
+    call Leds.led0Toggle();
+  }
   event void Resource1.granted() {
     call Timer1.startOneShot(HOLD_PERIOD);
-    call Leds.led1Toggle();     
-  }  
+    call Leds.led1Toggle();
+  }
   event void Resource2.granted() {
     call Timer2.startOneShot(HOLD_PERIOD);
-    call Leds.led2Toggle();  
-  }  
-  
+    call Leds.led2Toggle();
+  }
+
   //After the hold period release the resource
   event void Timer0.fired() {
     call Resource0.release();

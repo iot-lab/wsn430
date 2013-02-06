@@ -25,7 +25,7 @@
  * loadable programs from the serial port. However, SerialLoaderFlash
  * stores them on the external flash. Then, when it receives the command to
  * load the code, it makes the call to the dynamic loader.
- * 
+ *
  * @author Chieh-Jan Mike Liang <cliang4@cs.jhu.edu>
  */
 
@@ -48,11 +48,11 @@ implementation
              new SerialAMReceiverC(AMId),
              new FlashVolumeManagerP(),
              NoLedsC, LedsC;
-  
+
   DynamicLoader = FlashVolumeManagerP;
   BlockRead = FlashVolumeManagerP;
   BlockWrite = FlashVolumeManagerP;
-  
+
   FlashVolumeManagerP.Boot -> MainC;
   FlashVolumeManagerP.SerialSplitControl -> SerialActiveMessageC;
 

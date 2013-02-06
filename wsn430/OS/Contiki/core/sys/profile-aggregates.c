@@ -67,13 +67,13 @@ find_aggregate_category(const uint16_t cat)
 
 /*   printf("find_aggregate_category 0x%04x %c%c\n", */
 /* 	 cat, cat >> 8, cat & 0xff); */
-  
+
   for(i = 0; i < aggregates_list_ptr; ++i) {
     acat = (aggregates[i].ptr[0] << 8) + aggregates[i].ptr[1];
 
 /*     printf("acat 0x%04x %c%c\n", */
 /* 	   acat, acat >> 8, acat & 0xff); */
-      
+
     if(acat == cat) {
       return &aggregates[i];
     }
@@ -141,9 +141,9 @@ detailed_profile_aggregates_compute(void)
   /*  const char *str = "profile_aggregates_compute";
 
   PROFILE_TIMESTAMP(str);*/
-  
+
   t = profile_timestamps[0].time;
-  
+
   for(i = 1; i < PROFILE_TIMESTAMP_PTR; ++i) {
     struct aggregate *a;
     a = find_aggregate(profile_timestamps[i - 1].ptr);
@@ -166,7 +166,7 @@ detailed_profile_aggregates_compute(void)
   /*printf("Aggregating time %u, len %d, list len %d, overhead %d\n",
 	 profile_timediff(str, str), PROFILE_TIMESTAMP_PTR,
 	 aggregates_list_ptr, profile_timestamp_time);*/
-  
+
 
   /* print_aggregates();*/
 }
@@ -182,9 +182,9 @@ category_profile_aggregates_compute(void)
   /*  const char *str = "profile_aggregates_compute";
 
   PROFILE_TIMESTAMP(str);*/
-  
+
   t = profile_timestamps[0].time;
-  
+
   for(i = 1; i < PROFILE_TIMESTAMP_PTR; ++i) {
     struct aggregate *a;
     uint16_t cat;
@@ -202,7 +202,7 @@ category_profile_aggregates_compute(void)
       a->cycles = (unsigned long)(profile_timestamps[i].time - t - profile_timestamp_time);
       a->episodes = 1;
     } else {
-      
+
       a->cycles += (unsigned long)(profile_timestamps[i].time - t - profile_timestamp_time);
 
       /* Make sure that we only update the episodes of each category
@@ -211,7 +211,7 @@ category_profile_aggregates_compute(void)
 	 array, we do not update it. Otherwise, we insert the category
 	 in the array and update the episodes counter of the
 	 category. */
-      
+
       for(j = 0; j < categories_ptr; ++j) {
 	if(categories[j] == cat) {
 	  break;
@@ -231,7 +231,7 @@ category_profile_aggregates_compute(void)
   /*printf("Aggregating time %u, len %d, list len %d, overhead %d\n",
 	 profile_timediff(str, str), PROFILE_TIMESTAMP_PTR,
 	 aggregates_list_ptr, profile_timestamp_time);*/
-  
+
 
   /* print_aggregates();*/
 }

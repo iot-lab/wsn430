@@ -93,24 +93,24 @@ print_local_addresses(void)
 PROCESS_THREAD(udp_server_process, ev, data)
 {
   static struct etimer timer;
-  
+
 
   PROCESS_BEGIN();
   PRINTF("UDP server started\n");
 
   // wait 3 second, in order to have the IP addresses well configured
   etimer_set(&timer, CLOCK_CONF_SECOND*5);
-  
+
   // wait until the timer has expired
   PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_TIMER);
-  
+
   print_local_addresses();
 
   server_conn = udp_new(NULL, UIP_HTONS(0), NULL);
   udp_bind(server_conn, UIP_HTONS(3000));
 
   PRINTF("Server listening on UDP port %u\n", UIP_HTONS(server_conn->lport));
-  
+
   while(1) {
     PROCESS_YIELD();
     if(ev == tcpip_event) {

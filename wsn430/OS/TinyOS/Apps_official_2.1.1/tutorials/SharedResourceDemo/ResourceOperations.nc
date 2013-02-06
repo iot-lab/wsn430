@@ -19,7 +19,7 @@
  * OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR
  * MODIFICATIONS."
  */
- 
+
 /**
  * An EXAMPLE of an interface for performing operations on a resource.
  * In this test application it is provided by the dedicated ResourceP component

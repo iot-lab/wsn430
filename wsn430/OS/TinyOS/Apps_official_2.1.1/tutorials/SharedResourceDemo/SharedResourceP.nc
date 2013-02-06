@@ -19,7 +19,7 @@
  * OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR
  * MODIFICATIONS."
  */
- 
+
 /**
  * The SharedResourceP component is used to create a shared resource
  * out of a dedicated one.
@@ -28,7 +28,7 @@
  * @version $Revision: 1.1 $
  * @date $Date: 2007/07/13 23:43:17 $
  */
- 
+
 #define UQ_SHARED_RESOURCE   "Shared.Resource"
 configuration SharedResourceP {
 	provides interface Resource[uint8_t id];
@@ -48,7 +48,7 @@ implementation {
   ResourceConfigure = Arbiter;
   SharedResourceImplP.ArbiterInfo -> Arbiter;
   PowerManager.ResourceDefaultOwner -> Arbiter;
-  
+
   PowerManager.SplitControl -> ResourceP;
   SharedResourceImplP.ResourceOperations -> ResourceP;
 }

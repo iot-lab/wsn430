@@ -20,7 +20,7 @@
  *
  */
 // For conversion of topology from .nss to motelab
-// See NodeConnectivityM.nc 
+// See NodeConnectivityM.nc
 
 interface NodeConnectivity {
   command int8_t mapping(uint16_t moteid);

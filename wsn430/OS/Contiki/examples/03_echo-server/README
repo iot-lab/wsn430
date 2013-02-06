@@ -32,12 +32,12 @@ If you preloaded the firmware, the output should look like this:
 	route add -net 172.16.0.0 netmask 255.255.0.0 dev tun0
 	ifconfig tun0
 
-	tun0      Link encap:UNSPEC  HWaddr 00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00  
+	tun0      Link encap:UNSPEC  HWaddr 00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00
 		  inet addr:10.2.0.45  P-t-P:10.2.0.45  Mask:255.255.255.255
 		  UP POINTOPOINT RUNNING NOARP MULTICAST  MTU:1500  Metric:1
 		  RX packets:0 errors:0 dropped:0 overruns:0 frame:0
 		  TX packets:0 errors:0 dropped:0 overruns:0 carrier:0
-		  collisions:0 txqueuelen:500 
+		  collisions:0 txqueuelen:500
 		  RX bytes:0 (0.0 B)  TX bytes:0 (0.0 B)
 
 	route add -net 172.16.1.252 netmask 255.255.255.255 dev tun0

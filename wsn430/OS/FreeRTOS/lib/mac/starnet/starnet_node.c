@@ -96,18 +96,18 @@ void vCreateMacTask( xSemaphoreHandle xSPIMutex, uint16_t usPriority )
 {
     /* Stores the mutex handle */
     xSPIM = xSPIMutex;
-    
+
     /* Create an Event Queue */
     xEventQ = xQueueCreate(TX_BUF_LENGTH + 5, sizeof(uint8_t));
-    
+
     /* Create a frame Queue for the frames to send */
     xTXFrameQ = xQueueCreate(TX_BUF_LENGTH, sizeof(frame_t));
-    
+
     /* Create a Semaphore for waiting end of TX */
     vSemaphoreCreateBinary( xSendingS );
     /* Make sure the semaphore is taken */
     xSemaphoreTake( xSendingS, 0 );
-    
+
     /* Create the task */
     xTaskCreate( vMacTask, (const signed char*)"MAC", configMINIMAL_STACK_SIZE, NULL, usPriority, NULL );
 }
@@ -115,35 +115,35 @@ void vCreateMacTask( xSemaphoreHandle xSPIMutex, uint16_t usPriority )
 uint16_t xSendPacket(uint16_t pktLength, uint8_t* pkt)
 {
     uint8_t event = EVENT_FRAME_TO_SEND;
-    
+
     if (macState == STATE_ATTACHING || pktLength > MAX_PACKET_LENGTH)
     {
         return 0;
     }
-    
+
     frame_t tempFrame;
-    
+
     tempFrame.length = (uint8_t)3+pktLength;
     tempFrame.srcAddr = nodeAddr;
     tempFrame.dstAddr = coordAddr;
     tempFrame.type = FRAME_TYPE_DATA;
-    
+
     uint16_t i;
     for (i = 0; i<pktLength; i++)
     {
         tempFrame.payload[i] = pkt[i];
     }
-    
+
     if ( !xQueueSendToBack(xEventQ, &event, 0) )
     {
         return 0;
     }
-    
+
     if ( !xQueueSendToBack(xTXFrameQ, &tempFrame, 0) )
     {
         return 0;
     }
-    
+
     return 1;
 }
 
@@ -151,26 +151,26 @@ uint16_t xSendPacket(uint16_t pktLength, uint8_t* pkt)
 static void vMacTask(void* pvParameters)
 {
     uint8_t event;
-    
+
     macState = STATE_ATTACHING;
-    
+
     vInitMac();
-    
+
     coordAddr = 0x0;
-    
+
     /* Network Attachment Procedure */
     while (coordAddr == 0x0)
     {
         vSendAttachFrame();
-        
+
         vStartRx();
-        
+
         uint16_t RXTimeout = 1000;
         uint16_t time;
         while (1)
         {
             time = xTaskGetTickCount();
-            
+
             if ( xQueueReceive(xEventQ, &event, RXTimeout) )
             {
                 if (event == EVENT_FRAME_RECEIVED)
@@ -181,9 +181,9 @@ static void vMacTask(void* pvParameters)
                     }
                 }
             }
-            
+
             time = xTaskGetTickCount() - time;
-            
+
             if (time < RXTimeout)
             {
                 RXTimeout -= time;
@@ -194,15 +194,15 @@ static void vMacTask(void* pvParameters)
             }
         }
     }
-    
+
     macState = STATE_ATTACHED;
-    
-    
+
+
     /* Packet Sending/Receiving */
     for (;;)
     {
         vStartRx();
-        
+
         while ( xQueueReceive(xEventQ, &event, portMAX_DELAY))
         {
             if (event == EVENT_FRAME_RECEIVED)
@@ -228,12 +228,12 @@ static void vInitMac(void)
     /* Initialize the unique electronic signature and read it */
     ds2411_init();
     nodeAddr = ds2411_id.serial0;
-    
+
     /* Seed the random number generator */
     uint16_t seed;
     seed = ( ((uint16_t)ds2411_id.serial0) << 8) + (uint16_t)ds2411_id.serial1;
     srand(seed);
-    
+
     xSemaphoreTake(xSPIM, portMAX_DELAY);
     /* Initialize the radio driver */
     cc1101_init();
@@ -264,17 +264,17 @@ static void vInitMac(void)
     table[0] = 0x81; // +5dBm
     cc1101_cfg_patable(table, 1);
     cc1101_cfg_pa_power(0);
-    
+
     cc1101_cmd_calibrate();
 
     xSemaphoreGive(xSPIM);
-    
+
 }
 
 static void vStartRx(void)
 {
     xSemaphoreTake(xSPIM, portMAX_DELAY);
-    
+
     cc1101_cmd_idle();
     cc1101_cmd_flush_rx();
     cc1101_cmd_flush_tx();
@@ -289,7 +289,7 @@ static void vStartRx(void)
     cc1101_gdo2_int_disable();
 
     cc1101_cmd_rx();
-    
+
     xSemaphoreGive(xSPIM);
 }
 
@@ -299,21 +299,21 @@ static void vSendAttachFrame(void)
     txFrame.srcAddr = nodeAddr;
     txFrame.dstAddr = UNKNOWN_ADDRESS;
     txFrame.type = FRAME_TYPE_ATTACH_REQUEST;
-    
+
     vSendFrame();
 }
 
 static uint16_t xParseAttachFrame(void)
 {
     xSemaphoreTake(xSPIM, portMAX_DELAY);
-    
+
     /* Check CRC is correct */
     if ( !(cc1101_status_crc_lqi() & 0x80) )
     {
         xSemaphoreGive(xSPIM);
         return 0;
     }
-    
+
     /* Check Length is correct */
     cc1101_fifo_get( (uint8_t*) &(rxFrame.length), 1);
     if (rxFrame.length != FRAME_LENGTH_ATTACH)
@@ -321,7 +321,7 @@ static uint16_t xParseAttachFrame(void)
         xSemaphoreGive(xSPIM);
         return 0;
     }
-    
+
     /* Check Addresses are correct */
     cc1101_fifo_get( (uint8_t*) &(rxFrame.srcAddr), 3);
     if ( rxFrame.dstAddr != nodeAddr )
@@ -329,16 +329,16 @@ static uint16_t xParseAttachFrame(void)
         xSemaphoreGive(xSPIM);
         return 0;
     }
-    
+
     /* Check Frame Type */
     if ( rxFrame.type != FRAME_TYPE_ATTACH_REPLY )
     {
         xSemaphoreGive(xSPIM);
         return 0;
     }
-    
+
     coordAddr = rxFrame.srcAddr;
-    
+
     xSemaphoreGive(xSPIM);
     return 1;
 }
@@ -346,14 +346,14 @@ static uint16_t xParseAttachFrame(void)
 static void vParseFrame(void)
 {
     xSemaphoreTake(xSPIM, portMAX_DELAY);
-    
+
     /* Check CRC is correct */
     if ( !(cc1101_status_crc_lqi() & 0x80) )
     {
         xSemaphoreGive(xSPIM);
         return;
     }
-    
+
     /* Check Length is correct */
     cc1101_fifo_get( (uint8_t*) &(rxFrame.length), 1);
     if (rxFrame.length > sizeof(rxFrame)-1)
@@ -361,28 +361,28 @@ static void vParseFrame(void)
         xSemaphoreGive(xSPIM);
         return;
     }
-    
+
     /* Check Addresses are correct */
     cc1101_fifo_get( (uint8_t*) &(rxFrame.srcAddr), 3);
-    if ( (rxFrame.srcAddr != coordAddr) || 
+    if ( (rxFrame.srcAddr != coordAddr) ||
         ( (rxFrame.dstAddr != nodeAddr) && (rxFrame.dstAddr != 0xFF) ) )
     {
         xSemaphoreGive(xSPIM);
         return;
     }
-    
+
     /* Check Frame Type */
     if ( rxFrame.type != FRAME_TYPE_DATA )
     {
         xSemaphoreGive(xSPIM);
         return;
     }
-    
+
     /* Get Payload */
     cc1101_fifo_get( rxFrame.payload, rxFrame.length - 3 );
-    
+
     xSemaphoreGive(xSPIM);
-    
+
     /* Transfer packet to higher layer */
     vPacketReceived(rxFrame.length-3, rxFrame.payload);
 }
@@ -390,43 +390,43 @@ static void vParseFrame(void)
 static void vSendFrame(void)
 {
     uint16_t delay;
-    
+
     xSemaphoreTake(xSPIM, portMAX_DELAY);
     cc1101_gdo0_int_disable();
     cc1101_gdo2_int_disable();
-    
+
     /* Wait until CCA */
     while ( !(0x10 & cc1101_status_pktstatus() ) )
     {
         cc1101_cmd_idle();
         cc1101_cmd_flush_rx();
         cc1101_cmd_rx();
-        
+
         delay = (rand() & 0x7F) +1;
-        
+
         xSemaphoreGive(xSPIM);
         vTaskDelay( delay );
         xSemaphoreTake(xSPIM, portMAX_DELAY);
     }
-    
+
     cc1101_cmd_idle();
     cc1101_cmd_flush_rx();
     cc1101_cmd_flush_tx();
-    
+
     cc1101_cfg_gdo0(CC1101_GDOx_SYNC_WORD);
     cc1101_gdo0_int_set_falling_edge();
     cc1101_gdo0_int_clear();
     cc1101_gdo0_int_enable();
     cc1101_gdo0_register_callback(vTxOk_cb);
-    
+
     cc1101_gdo2_int_disable();
-    
+
     cc1101_fifo_put((uint8_t*)&txFrame, txFrame.length+1);
-    
+
     cc1101_cmd_tx();
-    
+
     xSemaphoreGive(xSPIM);
-    
+
     //~ LED_GREEN_ON();
     /* Wait until frame is sent */
     if ( !xSemaphoreTake(xSendingS, 1000) )
@@ -438,7 +438,7 @@ static void vSendFrame(void)
         xSemaphoreTake(xSendingS, 0);
     }
     //~ LED_GREEN_OFF();
-    
+
     /* Little Delay */
     vTaskDelay(5);
 }
@@ -447,27 +447,27 @@ static uint16_t vRxOk_cb(void)
 {
 	portBASE_TYPE xHigherPriorityTaskWoken;
     uint8_t event = EVENT_FRAME_RECEIVED;
-    
+
     xQueueSendToBackFromISR(xEventQ, &event, &xHigherPriorityTaskWoken);
-    
+
     if (xHigherPriorityTaskWoken)
     {
         vPortYield();
     }
-    
+
     return 1;
 }
 
 static uint16_t vTxOk_cb(void)
 {
     portBASE_TYPE xHigherPriorityTaskWoken;
-    
+
     xSemaphoreGiveFromISR(xSendingS, &xHigherPriorityTaskWoken);
-    
+
     if (xHigherPriorityTaskWoken)
     {
         vPortYield();
     }
-    
+
     return 1;
 }

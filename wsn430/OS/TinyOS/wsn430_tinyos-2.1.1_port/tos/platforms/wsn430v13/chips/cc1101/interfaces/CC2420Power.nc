@@ -54,7 +54,7 @@ interface CC2420Power {
    * Signals that the voltage regulator has been started.
    */
   async event void startVRegDone();
-  
+
   /**
    * Stop the voltage regulator immediately.
    *

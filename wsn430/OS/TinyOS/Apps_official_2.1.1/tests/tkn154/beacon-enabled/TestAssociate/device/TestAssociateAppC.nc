@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2008, Technische Universitaet Berlin
  * All rights reserved.
  *
@@ -45,7 +45,7 @@ configuration TestAssociateAppC
   App.MLME_RESET -> MAC;
   App.MLME_SET -> MAC;
   App.MLME_GET -> MAC;
-  App.DisassociateTimer -> Timer;  
+  App.DisassociateTimer -> Timer;
   App.MLME_SCAN -> MAC;
   App.MLME_SYNC -> MAC;
   App.MLME_BEACON_NOTIFY -> MAC;

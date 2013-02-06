@@ -128,7 +128,7 @@ run_trickle(struct trickle_conn *c)
       c->interval_scaling++;
     }
   }
-  
+
   PT_END(&c->pt);
 }
 /*---------------------------------------------------------------------------*/

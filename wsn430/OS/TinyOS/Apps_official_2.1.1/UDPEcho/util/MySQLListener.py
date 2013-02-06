@@ -53,10 +53,10 @@ if __name__ == '__main__':
 
 
             print
-            print str(len(data)) + ":", 
+            print str(len(data)) + ":",
             for i in data:
                 print "0x%x" % ord(i),
- 
+
             print
             rpt = UdpReport.UdpReport(data=data, data_length=len(data))
             addr = addr[0]
@@ -68,7 +68,7 @@ if __name__ == '__main__':
             thisInsert = insert
             thisInsert += "0x" + AA[-1] + ", "
 
-            
+
 
             for m in methods:
                 try:

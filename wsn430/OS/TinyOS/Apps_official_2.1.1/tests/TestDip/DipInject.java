@@ -29,7 +29,7 @@ public class DipInject implements MessageListener
         ddm.set_version(version << 16);
         ddm.set_size((short)data.length);
 
-        DipData dd = new DipData(ddm, DipDataMsg.DEFAULT_MESSAGE_SIZE); 
+        DipData dd = new DipData(ddm, DipDataMsg.DEFAULT_MESSAGE_SIZE);
         dd.set_data(data);
 
         try {

@@ -26,7 +26,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
  * USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
- 
+
 /**
  * Please refer to TEP 108 for more information about the components
  * this application is used to test.<br><br>
@@ -58,7 +58,7 @@
  * @version  $Revision: 1.2 $
  * @date $Date: 2009/12/22 08:34:09 $
  */
- 
+
 #define TEST_ARBITER_RESOURCE   "Test.Arbiter.Resource"
 configuration TestFcfsArbiterAppC{
 }
@@ -76,14 +76,14 @@ implementation {
   };
 
   App -> MainC.Boot;
- 
+
   App.Resource0 -> Arbiter.Resource[RESOURCE0_ID];
   App.Resource1 -> Arbiter.Resource[RESOURCE1_ID];
   App.Resource2 -> Arbiter.Resource[RESOURCE2_ID];
   App.Timer0 -> Timer0;
   App.Timer1 -> Timer1;
   App.Timer2 -> Timer2;
-  
+
   App.Leds -> LedsC;
 }
 

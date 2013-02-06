@@ -52,7 +52,7 @@ static PT_THREAD(handle_connection(struct psock *p))
    * string.
    */
   PSOCK_SEND_STR(p, "Welcome, please type something and press return.\n");
-  
+
   /*
    * Next, we use the PSOCK_READTO() function to read incoming data
    * from the TCP connection until we get a newline character. The
@@ -63,7 +63,7 @@ static PT_THREAD(handle_connection(struct psock *p))
    * is discarded.
    */
   PSOCK_READTO(p, '\n');
-  
+
   /*
    * And we send back the contents of the buffer. The PSOCK_DATALEN()
    * function provides us with the length of the data that we've
@@ -124,7 +124,7 @@ PROCESS_THREAD(example_psock_server_process, ev, data)
      * with PSOCK_INIT().
      */
     if(uip_connected()) {
-      
+
       /*
        * The PSOCK_INIT() function initializes the protosocket and
        * binds the input buffer to the protosocket.
@@ -153,7 +153,7 @@ PROCESS_THREAD(example_psock_server_process, ev, data)
       }
     }
   }
-  
+
   /*
    * We must always declare the end of a process.
    */

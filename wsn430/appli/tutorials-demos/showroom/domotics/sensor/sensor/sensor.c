@@ -47,7 +47,7 @@ void vCreateSensorTask(xSemaphoreHandle xSPIMutexHandle, uint16_t usPriority)
 {
     /* Store the command and data queue handle */
     xSPIMutex = xSPIMutexHandle;
-    
+
     /* Create the task */
     xTaskCreate( vSensorTask, "sensor", configMINIMAL_STACK_SIZE, NULL, usPriority, NULL );
 }
@@ -55,22 +55,22 @@ void vCreateSensorTask(xSemaphoreHandle xSPIMutexHandle, uint16_t usPriority)
 static void vSensorTask(void* pvParameters)
 {
     portTickType xLastSampleTime = xTaskGetTickCount();
-    
+
     /* Setup the ds1722 temperature sensor */
     xSemaphoreTake(xSPIMutex, portMAX_DELAY);
     ds1722_init();
     ds1722_set_res(12);
     ds1722_sample_cont();
     xSemaphoreGive(xSPIMutex);
-    
+
     /* Setup the TSL2550 light sensor */
     tsl2550_init();
     tsl2550_powerup();
-    
+
     activeSensors = SENSOR_NONE;
     packet.sequence = 0;
     vSensorRequest(0);
-    
+
     for (;;)
     {
         vTaskDelayUntil(&xLastSampleTime, xSamplePeriod);
@@ -81,7 +81,7 @@ static void vSensorTask(void* pvParameters)
 void vSensorRequest(uint8_t cmd)
 {
     activeSensors = (cmd & SENSOR_MASK);
-    
+
     uint16_t rate;
     rate = ( (cmd & RATE_MASK) >> 4);
     xSamplePeriod = (0x1 << rate);
@@ -94,20 +94,20 @@ static void vSampleSensors(void)
     {
         case SENSOR_NONE:
             return;
-            
+
         case SENSOR_LIGHT:
             tsl2550_init();
             packet.samples[0] = tsl2550_read_adc0();
             packet.samples[1] = tsl2550_read_adc1();
             packet_length = 5;
             break;
-        
+
         case SENSOR_TEMP:
             packet.samples[0] = ds1722_read_MSB();
             packet.samples[1] = ds1722_read_LSB();
             packet_length = 5;
             break;
-        
+
         case SENSOR_BOTH:
             packet.samples[0] = tsl2550_read_adc0();
             packet.samples[1] = tsl2550_read_adc1();
@@ -116,7 +116,7 @@ static void vSampleSensors(void)
             packet_length = 7;
             break;
     }
-    
+
     /* Send Packet */
     packet.description = activeSensors;
     packet.sequence ++;

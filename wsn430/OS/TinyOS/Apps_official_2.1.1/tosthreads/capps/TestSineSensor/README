@@ -9,7 +9,7 @@ the software based SineSensor usable by any platform for demonstration purposes.
 
 You can install TestSineSensor on a mote via the following comand:
   make <platform> cthreads install
-  
+
 Valid platforms are currently: tmote, telosb, iris, mica2, micaz, and epic
 
 This application simply takes sensor readings in an infinite loop from the
@@ -21,7 +21,7 @@ LED0. Additionally, messages containing the sensor readings should be forwarded
 over the serial interface as verified by running the following for the platform
 of interest:
   java net.tinyos.tools.Listen -comm serial@/dev/ttyUSBXXX:<baud_rate>
-  
+
 NOTE:  The baud rate 57600 must be used telos based motes, as its configuration
 has been changed to work with this baud rate when compiled for tosthreads. I.e.
 DO NOT just substitute 'telosb' or 'tmote' for <baud_rate> above.  Explicitly

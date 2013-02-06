@@ -28,7 +28,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
- 
+
 /**
  * Blink is a simple application used to test the basic functionality of
  * TOSThreads.
@@ -61,7 +61,7 @@ implementation {
   event void NullThread.run(void* arg) {
     for(;;){
     }
-  }  
+  }
   event void TinyThread0.run(void* arg) {
     for(;;){
       call Leds.led0Toggle();

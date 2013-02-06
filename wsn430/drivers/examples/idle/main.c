@@ -47,6 +47,6 @@ int main(void)
 	// Stop the watchdog timer.
 	WDTCTL = WDTPW + WDTHOLD;
 
-	while (1) 
+	while (1)
 		LPM4; // fall totally asleep
 }

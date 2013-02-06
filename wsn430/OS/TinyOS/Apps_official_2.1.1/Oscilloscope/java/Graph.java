@@ -2,9 +2,9 @@
  * Copyright (c) 2006 Intel Corporation
  * All rights reserved.
  *
- * This file is distributed under the terms in the attached INTEL-LICENSE     
+ * This file is distributed under the terms in the attached INTEL-LICENSE
  * file. If you do not find these files, copies can be found by writing to
- * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
+ * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA,
  * 94704.  Attention:  Intel License Inquiry.
  */
 
@@ -74,9 +74,9 @@ class Graph extends JPanel
     }
 
     void rightDrawString(
-            Graphics2D g, 
-            String s, 
-            int x, 
+            Graphics2D g,
+            String s,
+            int x,
             int y) {
     TextLayout layout =
         new TextLayout(s, parent.smallFont, g.getFontRenderContext());
@@ -145,7 +145,7 @@ class Graph extends JPanel
                axis_x - TICK_WIDTH / 2 + TICK_WIDTH, stick);
         tick += tickInterval;
     }
-    
+
     }
 
     /* Draw graph for mote nodeId */
@@ -200,7 +200,7 @@ class Graph extends JPanel
     parent.xLabel.setText("X: " + gx0 + " - " + gx1);
     }
 
-    /* Ensure that graph is nicely positioned on screen. max is the largest 
+    /* Ensure that graph is nicely positioned on screen. max is the largest
        sample number received from any mote. */
     private void recenter(int max) {
     // New data will show up at the 3/4 point

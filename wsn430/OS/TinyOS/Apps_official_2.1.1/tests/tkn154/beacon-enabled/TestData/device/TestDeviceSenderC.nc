@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2008, Technische Universitaet Berlin
  * All rights reserved.
  *
@@ -93,7 +93,7 @@ module TestDeviceSenderC
     // scan only the channel where we expect the coordinator
     channelMask = ((uint32_t) 1) << RADIO_CHANNEL;
 
-    // we want all received beacons to be signalled 
+    // we want all received beacons to be signalled
     // through the MLME_BEACON_NOTIFY interface, i.e.
     // we set the macAutoRequest attribute to FALSE
     call MLME_SET.macAutoRequest(FALSE);
@@ -129,12 +129,12 @@ module TestDeviceSenderC
           m_wasScanSuccessful = TRUE;
         }
       }
-    } else { 
+    } else {
       // received a beacon during synchronization, toggle LED2
       if (beaconSequenceNumber & 1)
         call Leds.led2On();
       else
-        call Leds.led2Off();   
+        call Leds.led2Off();
     }
 
     return frame;
@@ -157,14 +157,14 @@ module TestDeviceSenderC
       call MLME_SET.macPANId(m_PANDescriptor.CoordPANId);
       call MLME_SYNC.request(m_PANDescriptor.LogicalChannel, m_PANDescriptor.ChannelPage, TRUE);
       call Frame.setAddressingFields(
-          &m_frame,                
+          &m_frame,
           ADDR_MODE_SHORT_ADDRESS,        // SrcAddrMode,
           ADDR_MODE_SHORT_ADDRESS,        // DstAddrMode,
           m_PANDescriptor.CoordPANId,     // DstPANId,
           &m_PANDescriptor.CoordAddress,  // DstAddr,
           NULL                            // security
           );
-      post packetSendTask(); 
+      post packetSendTask();
     } else
       startApp();
   }
@@ -193,7 +193,7 @@ module TestDeviceSenderC
       m_ledCount = 0;
       call Leds.led1Toggle();
     }
-    post packetSendTask(); 
+    post packetSendTask();
   }
 
   event void MLME_SYNC_LOSS.indication(

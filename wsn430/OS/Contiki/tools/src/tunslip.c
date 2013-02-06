@@ -165,7 +165,7 @@ relay_dhcp_to_server(struct ip *ip, int len)
   struct dhcp_msg m;
   int n;
   u_int8_t *optptr;
-  
+
   inm = (void*)(((u_int8_t*)ip) + 20 + 8); /* Skip over IP&UDP headers. */
 
   if (inm->op != BOOTREQUEST) {
@@ -366,7 +366,7 @@ int
 check_ip(const struct ip *ip, unsigned ip_len)
 {
   u_int16_t sum, ip_hl;
-  
+
   /* Check IP version and length. */
   if((ip->ip_vhl & IP_V) != IP_V4)
     return -1;
@@ -392,7 +392,7 @@ check_ip(const struct ip *ip, unsigned ip_len)
 
     /* Sum TCP/UDP header and data. */
     sum = ip4sum(sum, (u_int8_t*)ip + ip_hl, tcp_len);
-    
+
     /* Failed checksum test? */
     if (sum != 0xffff && sum != 0x0) {
       if (ip->ip_p == 6) {	/* TCP == 6 */
@@ -608,10 +608,10 @@ void
 slip_flushbuf(int fd)
 {
   int n;
-  
+
   if (slip_empty())
     return;
-  
+
   n = write(fd, slip_buf + slip_begin, (slip_end - slip_begin));
 
   if(n == -1 && errno != EAGAIN) {
@@ -676,7 +676,7 @@ write_to_serial(int outfd, void *inbuf, int len)
       slip_send(outfd, p[i]);
       break;
     }
-    
+
   }
   slip_send(outfd, SLIP_END);
   PROGRESS("t");
@@ -1078,7 +1078,7 @@ main(int argc, char **argv)
 
     FD_SET(slipfd, &rset);	/* Read from slip ASAP! */
     if(slipfd > maxfd) maxfd = slipfd;
-    
+
     /* We only have one packet at a time queued for slip output. */
     if(slip_empty()) {
       FD_SET(tunfd, &rset);
@@ -1096,7 +1096,7 @@ main(int argc, char **argv)
       if(FD_ISSET(slipfd, &rset)) {
         serial_to_tun(inslip, tunfd);
       }
-      
+
       if(FD_ISSET(slipfd, &wset)) {
 	slip_flushbuf(slipfd);
 	sigalarm_reset();

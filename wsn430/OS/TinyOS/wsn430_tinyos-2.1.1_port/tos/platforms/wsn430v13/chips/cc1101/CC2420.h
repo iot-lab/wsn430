@@ -44,41 +44,41 @@ typedef uint8_t cc2420_status_t;
 
 /**
  * CC2420 header definition.
- * 
- * An I-frame (interoperability frame) header has an extra network 
+ *
+ * An I-frame (interoperability frame) header has an extra network
  * byte specified by 6LowPAN
- * 
+ *
  * Length = length of the header + payload of the packet, minus the size
- *   of the length byte itself (1).  This is what allows for variable 
+ *   of the length byte itself (1).  This is what allows for variable
  *   length packets.
- * 
+ *
  * FCF = Frame Control Field, defined in the 802.15.4 specs and the
  *   CC2420 datasheet.
  *
  * DSN = Data Sequence Number, a number incremented for each packet sent
- *   by a particular node.  This is used in acknowledging that packet, 
+ *   by a particular node.  This is used in acknowledging that packet,
  *   and also filtering out duplicate packets.
  *
- * DestPan = The destination PAN (personal area network) ID, so your 
+ * DestPan = The destination PAN (personal area network) ID, so your
  *   network can sit side by side with another TinyOS network and not
  *   interfere.
- * 
+ *
  * Dest = The destination address of this packet. 0xFFFF is the broadcast
  *   address.
  *
  * Src = The local node ID that generated the message.
- * 
+ *
  * Network = The TinyOS network ID, for interoperability with other types
- *   of 802.15.4 networks. 
- * 
- * Type = TinyOS AM type.  When you create a new AMSenderC(AM_MYMSG), 
+ *   of 802.15.4 networks.
+ *
+ * Type = TinyOS AM type.  When you create a new AMSenderC(AM_MYMSG),
  *   the AM_MYMSG definition is the type of packet.
- * 
- * TOSH_DATA_LENGTH defaults to 28, it represents the maximum size of 
- * the payload portion of the packet, and is specified in the 
+ *
+ * TOSH_DATA_LENGTH defaults to 28, it represents the maximum size of
+ * the payload portion of the packet, and is specified in the
  * tos/types/message.h file.
  *
- * All of these fields will be filled in automatically by the radio stack 
+ * All of these fields will be filled in automatically by the radio stack
  * when you attempt to send a message.
  */
 typedef nx_struct cc2420_header_t {
@@ -88,7 +88,7 @@ typedef nx_struct cc2420_header_t {
   nxle_uint16_t destpan;
   nxle_uint16_t dest;
   nxle_uint16_t src;
-  
+
 #ifndef TFRAMES_ENABLED
   /** I-Frame 6LowPAN interoperability byte */
   nxle_uint8_t network;
@@ -154,7 +154,7 @@ typedef nx_struct cc2420_packet_t {
 #define RECEIVE_HISTORY_SIZE 4
 #endif
 
-/** 
+/**
  * The 6LowPAN NALP ID for a TinyOS network is 63 (TEP 125).
  */
 #ifndef TINYOS_6LOWPAN_NETWORK_ID

@@ -49,7 +49,7 @@ implementation {
   void blink_thread(void* arg)
   {
     uint16_t *a = (uint16_t *)arg;
-    
+
     for (;;) {
       if (*a == 1) {
         call Leds.led0Toggle();
@@ -63,7 +63,7 @@ implementation {
       }
     }
   }
-    
+
   event void Boot.booted()
   {
     call DynamicThread.create(&blink1, blink_thread, &a1, 500);

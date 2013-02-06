@@ -33,17 +33,17 @@ void vCreateInterfaceTask( xQueueHandle xTXQueue, xQueueHandle xRXQueue, uint16_
     /* Store the queue handled */
     xTXDataQueue = xTXQueue;
     xRXDataQueue = xRXQueue;
-        
+
     /* Create the task */
     xTaskCreate( vInterfaceTask, (const signed char*) "interface", configMINIMAL_STACK_SIZE, NULL, usPriority, NULL );
 }
 
 static void vInterfaceTask(void* pvParameters)
 {
-    
+
     uart0_init(UART0_CONFIG_8MHZ_115200);
     uart0_register_callback(char_received);
-    
+
     for (;;)
     {
         if ( xQueueReceive(xRXDataQueue, &rx_data, portMAX_DELAY) )
@@ -85,11 +85,11 @@ static uint16_t char_received(uint8_t c)
     {
         cmd[1] = c;
         first = 1;
-        
+
         /* Send the command to the MAC TX Queue */
         xQueueSendToBackFromISR( xTXDataQueue, cmd, &xHighPriorityTaskWoken);
     }
-    
+
     return 1;
 }
 

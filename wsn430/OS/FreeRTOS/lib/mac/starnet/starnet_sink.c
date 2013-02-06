@@ -98,15 +98,15 @@ void vCreateMacTask( xSemaphoreHandle xSPIMutex, uint16_t usPriority )
 {
     /* Stores the mutex handle */
     xSPIM = xSPIMutex;
-    
+
     /* Create an Event Queue */
     xEventQ = xQueueCreate(5, sizeof(uint8_t));
-    
+
     /* Create a Semaphore for waiting end of TX */
     vSemaphoreCreateBinary( xSendingS );
     /* Make sure the semaphore is taken */
     xSemaphoreTake( xSendingS, 0 );
-    
+
     /* Create the task */
     xTaskCreate( vMacTask, (const signed char*)"MAC", configMINIMAL_STACK_SIZE, NULL, usPriority, NULL );
 }
@@ -114,23 +114,23 @@ void vCreateMacTask( xSemaphoreHandle xSPIMutex, uint16_t usPriority )
 uint16_t xSendPacketTo(uint8_t dstAddr, uint16_t pktLength, uint8_t* pkt)
 {
     uint8_t event = EVENT_FRAME_TO_SEND;
-    
+
     if (pktLength > MAX_PACKET_LENGTH || macState != STATE_RX)
     {
         return 0;
     }
-    
+
     txFrame.length = 3+pktLength;
     txFrame.srcAddr = coordAddr;
     txFrame.dstAddr = dstAddr;
     txFrame.type = FRAME_TYPE_DATA;
-    
+
     uint16_t i;
     for (i = 0; i<pktLength; i++)
     {
         txFrame.payload[i] = pkt[i];
     }
-    
+
     return xQueueSendToBack(xEventQ, &event, 0);
 }
 
@@ -138,18 +138,18 @@ uint16_t xSendPacketTo(uint8_t dstAddr, uint16_t pktLength, uint8_t* pkt)
 static void vMacTask(void* pvParameters)
 {
     uint8_t event;
-    
+
     macState = STATE_ATTACHING;
-    
+
     vInitMac();
-    
-    
+
+
     /* Packet Sending/Receiving */
     for (;;)
     {
         vStartRx();
         macState = STATE_RX;
-        
+
         if ( xQueueReceive(xEventQ, &event, portMAX_DELAY))
         {
             if (event == EVENT_FRAME_RECEIVED)
@@ -172,18 +172,18 @@ static void vInitMac(void)
 {
     /* Reset attached node list */
     nodeNumber = 0;
-    
+
     /* Initialize the unique electronic signature and read it */
     ds2411_init();
     coordAddr = ds2411_id.serial0;
-    
+
     /* Seed the random number generator */
     uint16_t seed;
     seed = ( ((uint16_t)ds2411_id.serial0) << 8) + (uint16_t)ds2411_id.serial1;
     srand(seed);
-    
+
     xSemaphoreTake(xSPIM, portMAX_DELAY);
-    
+
     /* Initialize the radio driver */
     cc1101_init();
     cc1101_cmd_idle();
@@ -213,7 +213,7 @@ static void vInitMac(void)
     table[0] = 0x81; // +5dBm
     cc1101_cfg_patable(table, 1);
     cc1101_cfg_pa_power(0);
-    
+
     cc1101_cmd_calibrate();
 
     xSemaphoreGive(xSPIM);
@@ -222,7 +222,7 @@ static void vInitMac(void)
 static void vStartRx(void)
 {
     xSemaphoreTake(xSPIM, portMAX_DELAY);
-    
+
     cc1101_cmd_idle();
     cc1101_cmd_flush_rx();
     cc1101_cmd_flush_tx();
@@ -237,21 +237,21 @@ static void vStartRx(void)
     cc1101_gdo2_int_disable();
 
     cc1101_cmd_rx();
-    
+
     xSemaphoreGive(xSPIM);
 }
 
 static void vParseFrame(void)
 {
     xSemaphoreTake(xSPIM, portMAX_DELAY);
-    
+
     /* Check CRC is correct */
     if ( !(cc1101_status_crc_lqi() & 0x80) )
     {
         xSemaphoreGive(xSPIM);
         return;
     }
-    
+
     /* Check Length is correct */
     cc1101_fifo_get( (uint8_t*) &(rxFrame.length), 1);
     if (rxFrame.length > sizeof(rxFrame)-1)
@@ -259,7 +259,7 @@ static void vParseFrame(void)
         xSemaphoreGive(xSPIM);
         return;
     }
-    
+
     /* Check Addresses are correct */
     cc1101_fifo_get( (uint8_t*) &(rxFrame.srcAddr), 3);
     if ( (rxFrame.dstAddr != coordAddr) && (rxFrame.dstAddr != UNKNOWN_ADDRESS))
@@ -267,9 +267,9 @@ static void vParseFrame(void)
         xSemaphoreGive(xSPIM);
         return;
     }
-    
+
     xSemaphoreGive(xSPIM);
-    
+
     /* Check Frame Type */
     switch ( rxFrame.type)
     {
@@ -293,50 +293,50 @@ static void vParseFrame(void)
             txFrame.length = FRAME_LENGTH_ATTACH;
             vSendFrame();
             break;
-            
+
         case FRAME_TYPE_DATA:
             /* Get Payload */
             xSemaphoreTake(xSPIM, portMAX_DELAY);
             cc1101_fifo_get( rxFrame.payload, rxFrame.length - 3 );
             xSemaphoreGive(xSPIM);
-            
+
             /* Transfer packet to higher layer */
             vPacketReceivedFrom(rxFrame.srcAddr, rxFrame.length-3, rxFrame.payload);
             break;
-            
+
         default :
             break;
     }
-    
+
 }
 
 static void vSendFrame(void)
 {
     uint16_t delay;
-    
+
     xSemaphoreTake(xSPIM, portMAX_DELAY);
-    
+
     cc1101_gdo0_int_disable();
     cc1101_gdo2_int_disable();
-    
+
     /* Wait until CCA */
     while ( !(0x10 & cc1101_status_pktstatus() ) )
     {
         cc1101_cmd_idle();
         cc1101_cmd_flush_rx();
         cc1101_cmd_rx();
-        
+
         delay = (rand() & 0x7F) +1;
-        
+
         xSemaphoreGive(xSPIM);
         vTaskDelay( delay );
         xSemaphoreTake(xSPIM, portMAX_DELAY);
     }
-    
+
     cc1101_cmd_idle();
     cc1101_cmd_flush_rx();
     cc1101_cmd_flush_tx();
-    
+
     cc1101_cfg_gdo0(CC1101_GDOx_SYNC_WORD);
     cc1101_gdo0_int_set_falling_edge();
     cc1101_gdo0_int_clear();
@@ -348,9 +348,9 @@ static void vSendFrame(void)
     cc1101_fifo_put((uint8_t*)&txFrame, txFrame.length+1);
 
     cc1101_cmd_tx();
-    
+
     xSemaphoreGive(xSPIM);
-    
+
     xSemaphoreTake(xSendingS, portMAX_DELAY);
 }
 
@@ -359,7 +359,7 @@ static uint16_t vRxOk_cb(void)
     portBASE_TYPE xHigherPriorityTaskWoken;
     uint8_t event = EVENT_FRAME_RECEIVED;
     xQueueSendToBackFromISR(xEventQ, &event, &xHigherPriorityTaskWoken);
-    
+
     if (xHigherPriorityTaskWoken)
     {
         vPortYield();
@@ -370,14 +370,14 @@ static uint16_t vRxOk_cb(void)
 static uint16_t vTxOk_cb(void)
 {
     portBASE_TYPE xHigherPriorityTaskWoken;
-    
+
     xSemaphoreGiveFromISR(xSendingS, &xHigherPriorityTaskWoken);
-    
+
     if (xHigherPriorityTaskWoken)
     {
         vPortYield();
     }
-    
+
     return 1;
 }
 

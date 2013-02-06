@@ -28,12 +28,12 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
- 
+
 /**
  * This application tests the operation of the Printf client in TOSThreads.  It
  * continuously prints the value of a counter starting at 0, increasing as it
  * prints.
- * 
+ *
  * @author Kevin Klues (klueska@cs.stanford.edu)
  */
 

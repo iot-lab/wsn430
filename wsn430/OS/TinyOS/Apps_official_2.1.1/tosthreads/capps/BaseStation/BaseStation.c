@@ -145,7 +145,7 @@ error_t sendSerialMsg(message_t* msg) {
   uint8_t   len    = radioGetPayloadLength(msg);
   serialClear(msg);
   amSerialSetSource(msg, source);
-      
+
   return amSerialSend(dest, msg, len, id);
 }
 
@@ -156,17 +156,17 @@ error_t sendRadioMsg(message_t* msg) {
   uint8_t   len    = serialGetPayloadLength(msg);
   radioClear(msg);
   amRadioSetSource(msg, source);
-      
+
   return amRadioSend(dest, msg, len, id);
 }
 
 
 /***********************************************************/
-/** Generic implementations of send/receive functionality **/ 
+/** Generic implementations of send/receive functionality **/
 /***********************************************************/
 void bs_receive(error_t (*recv_func)(message_t*, uint32_t, am_id_t), bs_params_t* p) {
   message_t m;
-  
+
   for(;;) {
     if( (*(recv_func))(&m, 0, AM_RECEIVE_FROM_ANY) == SUCCESS ) {
       led0Toggle();
@@ -184,21 +184,21 @@ void bs_receive(error_t (*recv_func)(message_t*, uint32_t, am_id_t), bs_params_t
 void bs_send(void* send_func, bs_params_t* p) {
   message_t m;
   message_t* m_ptr;
-  
+
   for(;;) {
     mutex_lock( &(p->mutex) );
       while( (m_ptr = dequeueMsg(p)) == NULL )
         condvar_wait( &(p->condvar), &(p->mutex) );
       m = *m_ptr;
-    mutex_unlock( &(p->mutex) );    
+    mutex_unlock( &(p->mutex) );
     condvar_signalAll( &(p->condvar) );
-    
+
     if(send_func == amSerialSend)
       sendSerialMsg(&m);
     else
       sendRadioMsg(&m);
     led1Toggle();
-  }  
+  }
 }
 
 /******************** Actual thread implementations ******************/

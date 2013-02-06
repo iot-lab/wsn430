@@ -41,7 +41,7 @@ module TestbedConnectivityM {
     { 0, 0, 0, 0, 0, 0, 1, 1 }
   };
   uint16_t mapping[8] = { 100, 101, 102, 37, 35, 33, 32, 106 };
-  
+
   command int8_t NodeConnectivity.mapping(uint16_t moteid) {
     uint8_t i;
     for (i = 0; i < 8; i++) {

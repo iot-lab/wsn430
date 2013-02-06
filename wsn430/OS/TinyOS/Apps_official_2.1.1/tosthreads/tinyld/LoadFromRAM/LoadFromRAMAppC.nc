@@ -35,7 +35,7 @@ implementation {
              LoadFromRAMP,
              DynamicLoaderC,
              LedsC;
-             
+
   LoadFromRAMP.Boot -> MainC;
   LoadFromRAMP.DynamicLoader -> DynamicLoaderC;
   LoadFromRAMP.Leds -> LedsC;

@@ -113,7 +113,7 @@ void
 packetqueue_dequeue(struct packetqueue *q)
 {
   struct packetqueue_item *i;
-  
+
   i = list_head(*q->list);
   if(i != NULL) {
     list_remove(*q->list, i);

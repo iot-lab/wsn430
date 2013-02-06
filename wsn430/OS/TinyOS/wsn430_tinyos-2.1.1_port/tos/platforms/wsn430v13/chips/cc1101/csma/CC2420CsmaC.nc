@@ -54,7 +54,7 @@ implementation {
   RadioBackoff = CsmaP;
   SplitControl = CsmaP;
   Send = CsmaP;
-  
+
   components CC2420ControlC;
   CsmaP.Resource -> CC2420ControlC;
   CsmaP.CC2420Power -> CC2420ControlC;
@@ -71,14 +71,14 @@ implementation {
   components CC2420PacketC;
   CsmaP.CC2420Packet -> CC2420PacketC;
   CsmaP.CC2420PacketBody -> CC2420PacketC;
-  
+
   components RandomC;
   CsmaP.Random -> RandomC;
 
   components new StateC();
   CsmaP.SplitControlState -> StateC;
-  
+
   components LedsC as Leds;
   CsmaP.Leds -> Leds;
-  
+
 }

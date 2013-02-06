@@ -24,7 +24,7 @@
  * SerialLoader receives loadable programs from the serial port and stores
  * it in a byte array. Then, when it receives the command to load the code,
  * it makes the call to the dynamic loader.
- * 
+ *
  * @author Chieh-Jan Mike Liang <cliang4@cs.jhu.edu>
  * @author Jeongyeup Paek <jpaek@enl.usc.edu>
  **/
@@ -47,23 +47,23 @@ implementation
 {
   message_t serialMsg;
   uint32_t dumpAddr = 0;
-  
+
   uint8_t image[MAX_BIN_SIZE];
 
   event void Boot.booted()
   {
     call SerialSplitControl.start();
   }
-  
+
   event void SerialSplitControl.startDone(error_t error)
   {
     if (error != SUCCESS) {
       call SerialSplitControl.start();
     }
   }
-  
+
   event void SerialSplitControl.stopDone(error_t error) {}
-  
+
   void sendReply(error_t error, uint8_t len)
   {
     SerialReplyPacket *srpkt = (SerialReplyPacket *)call SerialAMSender.getPayload(&serialMsg, sizeof(SerialReplyPacket));
@@ -74,10 +74,10 @@ implementation
     }
     call SerialAMSender.send(AM_BROADCAST_ADDR, &serialMsg, len);
   }
-  
-  
+
+
   event void SerialAMSender.sendDone(message_t* msg, error_t error) {}
-  
+
   error_t write_image(uint16_t offset, void *data, uint16_t len) {
     if ((offset + len > MAX_BIN_SIZE) || (data == NULL))
       return FAIL;
@@ -100,7 +100,7 @@ implementation
   event void BigCrc.computeCrcDone(void* buf, uint16_t len, uint16_t crc, error_t error)
   {
     SerialReplyPacket *srpkt = (SerialReplyPacket *)call SerialAMSender.getPayload(&serialMsg, sizeof(SerialReplyPacket));
-        
+
     srpkt->data[1] = crc & 0xFF;
     srpkt->data[0] = (crc >> 8) & 0xFF;
     sendReply(SUCCESS, 2 + sizeof(SerialReplyPacket));
@@ -118,7 +118,7 @@ implementation
     error_t error = FAIL;
     SerialReqPacket *srpkt = (SerialReqPacket *)payload;
     SerialReplyPacket *serialMsg_payload = (SerialReplyPacket *)call SerialAMSender.getPayload(&serialMsg, sizeof(SerialReplyPacket));
-    
+
     switch (srpkt->msg_type) {
       case SERIALMSG_ERASE :
         for (i = 0; i < MAX_BIN_SIZE; i++) { image[i] = 0; }
@@ -154,7 +154,7 @@ implementation
         sendCrcReply(srpkt->offset, srpkt->len);
         break;
     }
-    
+
     return msg;
   }
 }

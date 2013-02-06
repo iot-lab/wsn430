@@ -123,10 +123,10 @@ PROCESS_THREAD(udp_server_process, ev, data)
     PRINTF("failed to create a new RPL DAG\n");
   }
 #endif /* UIP_CONF_ROUTER */
-  
+
   print_local_addresses();
 
-  /* The data sink runs with a 100% duty cycle in order to ensure high 
+  /* The data sink runs with a 100% duty cycle in order to ensure high
      packet reception rates. */
   NETSTACK_MAC.off(1);
 

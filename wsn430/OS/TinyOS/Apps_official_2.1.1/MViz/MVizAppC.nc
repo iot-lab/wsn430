@@ -2,14 +2,14 @@
  * Copyright (c) 2006 Intel Corporation
  * All rights reserved.
  *
- * This file is distributed under the terms in the attached INTEL-LICENSE     
+ * This file is distributed under the terms in the attached INTEL-LICENSE
  * file. If you do not find these files, copies can be found by writing to
- * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
+ * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA,
  * 94704.  Attention:  Intel License Inquiry.
  */
 
 /**
- * MViz demo application using the collection layer. 
+ * MViz demo application using the collection layer.
  * See README.txt file in this directory and TEP 119: Collection.
  *
  * @author David Gay
@@ -21,11 +21,11 @@
 
 configuration MVizAppC { }
 implementation {
-  components MainC, MVizC, LedsC, new TimerMilliC(), 
+  components MainC, MVizC, LedsC, new TimerMilliC(),
     new MVizSensorC() as Sensor, RandomC;
 
   //MainC.SoftwareInit -> Sensor;
-  
+
   MVizC.Boot -> MainC;
   MVizC.Timer -> TimerMilliC;
   MVizC.Read -> Sensor;
@@ -42,7 +42,7 @@ implementation {
     new SerialAMSenderC(AM_MVIZ_MSG);   // Sends to the serial port
 
   components CtpP as Ctp;
-  
+
   MVizC.RadioControl -> ActiveMessageC;
   MVizC.SerialControl -> SerialActiveMessageC;
   MVizC.RoutingControl -> Collector;

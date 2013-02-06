@@ -1,9 +1,9 @@
 #!/bin/bash
 
 TOS_DELUGE=`type -p tos-deluge`
-if [[ ! -x ${TOS_DELUGE} ]] ; then 
+if [[ ! -x ${TOS_DELUGE} ]] ; then
     TOS_DELUGE=../../../../tools/tinyos/misc/tos-deluge
-fi 
+fi
 
 $TOS_DELUGE > /dev/null
 
@@ -39,7 +39,7 @@ fi
 if ! [ -a ${TOSDIR}/lib/tosboot/build/${PLATFORM}/main.ihex ]
 then
   echo ========================== Compile tosboot for ${PLATFORM} ===========================
-  ( cd $TOSDIR/lib/tosboot ; make ${PLATFORM} ) 
+  ( cd $TOSDIR/lib/tosboot ; make ${PLATFORM} )
 fi
 
 make clean
@@ -78,4 +78,4 @@ echo '       +----------------------------------------------------------------+'
 read
 
 echo =========================== Reboot the base station ============================
-${TOS_DELUGE} ${CPORT} -r 1 
+${TOS_DELUGE} ${CPORT} -r 1

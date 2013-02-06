@@ -84,7 +84,7 @@ recv_data(struct unicast_conn *c, const rimeaddr_t *from)
 {
   struct route_entry *e;
   rimeaddr_t source;
-    
+
   uip_len = packetbuf_copyto(&uip_buf[UIP_LLH_LEN]);
 
   source.u8[0] = BUF->srcipaddr.u8[2];
@@ -126,10 +126,10 @@ static void
 new_route(struct route_discovery_conn *c, const rimeaddr_t *to)
 {
   struct route_entry *rt;
-  
+
   if(queued_packet) {
     PRINTF("uip-over-mesh: new route, sending queued packet\n");
-    
+
     queuebuf_to_packetbuf(queued_packet);
     queuebuf_free(queued_packet);
     queued_packet = NULL;
@@ -174,7 +174,7 @@ gateway_announce_recv(struct trickle_conn *c)
   if(!is_gateway) {
     uip_over_mesh_set_gateway(&msg->gateway);
   }
-  
+
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -255,9 +255,9 @@ uip_over_mesh_send(void)
   PRINTF("uIP over mesh send to %d.%d with len %d\n",
 	 receiver.u8[0], receiver.u8[1],
 	 uip_len);
-  
+
   /*  uip_len = hc_compress(&uip_buf[UIP_LLH_LEN], uip_len);*/
-  
+
   packetbuf_copyfrom(&uip_buf[UIP_LLH_LEN], uip_len);
 
   /* Send TCP data with the PACKETBUF_ATTR_ERELIABLE set so that

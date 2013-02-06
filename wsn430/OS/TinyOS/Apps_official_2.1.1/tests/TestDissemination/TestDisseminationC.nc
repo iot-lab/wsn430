@@ -42,7 +42,7 @@
  * LED 1 when it receives the correct value.
  *
  * See TEP118 - Dissemination for details.
- * 
+ *
  * @author Gilman Tolle <gtolle@archedrock.com>
  * @version $Revision: 1.6 $ $Date: 2007/04/18 04:02:06 $
  */
@@ -69,14 +69,14 @@ implementation {
     uint32_t initialVal32 = 123456;
     uint16_t initialVal16 = 1234;
 
-    call Value32.set( &initialVal32 ); 
-    call Value16.set( &initialVal16 ); 
+    call Value32.set( &initialVal32 );
+    call Value16.set( &initialVal16 );
 
     call RadioControl.start();
   }
 
   event void RadioControl.startDone( error_t result ) {
-    
+
     if ( result != SUCCESS ) {
 
       call RadioControl.start();
@@ -84,7 +84,7 @@ implementation {
     } else {
 
       call DisseminationControl.start();
-      
+
       if ( TOS_NODE_ID % 4 == 1 ) {
 	call Timer.startPeriodic( 1024 * 20 );
       } else {

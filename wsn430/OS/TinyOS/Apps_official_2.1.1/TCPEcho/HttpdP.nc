@@ -62,7 +62,7 @@ module HttpdP {
     call Tcp.bind(80);
   }
 
-  event bool Tcp.accept(struct sockaddr_in6 *from, 
+  event bool Tcp.accept(struct sockaddr_in6 *from,
                             void **tx_buf, int *tx_buf_len) {
     if (http_state == S_IDLE) {
       http_state = S_CONNECTED;
@@ -74,7 +74,7 @@ module HttpdP {
     return FALSE;
   }
   event void Tcp.connectDone(error_t e) {
-    
+
   }
   event void Tcp.recv(void *payload, uint16_t len) {
     static int crlf_pos;
@@ -128,7 +128,7 @@ module HttpdP {
           http_state = S_BODY;
           process_request(req_verb, request_buf, request - request_buf - 1);
           break;
-        } 
+        }
       }
     if (crlf_pos < 4) break;
 

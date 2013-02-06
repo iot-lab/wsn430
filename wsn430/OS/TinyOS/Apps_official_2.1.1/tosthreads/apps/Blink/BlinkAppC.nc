@@ -28,7 +28,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
- 
+
 /**
  * Blink is a simple application used to test the basic functionality of
  * TOSThreads.
@@ -51,7 +51,7 @@ implementation {
   MainC.Boot <- BlinkC;
   BlinkC.NullThread -> NullThread;
   BlinkC.TinyThread0 -> TinyThread0;
-  BlinkC.TinyThread1 -> TinyThread1; 
+  BlinkC.TinyThread1 -> TinyThread1;
   BlinkC.TinyThread2 -> TinyThread2;
 
   BlinkC.Leds -> LedsC;

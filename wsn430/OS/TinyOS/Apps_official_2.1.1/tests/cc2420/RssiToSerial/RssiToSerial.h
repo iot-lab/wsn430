@@ -29,11 +29,11 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE
  */
- 
+
  /**
   * @author Jared Hill
   */
-  
+
 #ifndef RSSI_TO_SERIAL_H
 #define RSSI_TO_SERIAL_H
 
@@ -48,11 +48,11 @@ enum {
   WAIT_TIME = 256,
   //* Using log2 samples to avoid a divide. Sending a packet every 1 second will allow
   //* allow about 5000 samples. A packet every half second allows for 2500 samples, and
-  //* a packet every quarter second allows for 1250 samples. 
-    
-  // When to send a packet is based upon how many samples have been taken, not a 
-  // predetermined amount of time. Rough estimates of time can be found using the 
-  // conversion stated above. 
+  //* a packet every quarter second allows for 1250 samples.
+
+  // When to send a packet is based upon how many samples have been taken, not a
+  // predetermined amount of time. Rough estimates of time can be found using the
+  // conversion stated above.
   LOG2SAMPLES = 7,
 };
 

@@ -34,7 +34,7 @@
  * @author David Moss
  * @author Jon Wyant
  */
- 
+
 #include "CC2420.h"
 
 module PacketLinkP {
@@ -42,7 +42,7 @@ module PacketLinkP {
     interface Send;
     interface PacketLink;
   }
-  
+
   uses {
     interface Send as SubSend;
     interface State as SendState;
@@ -53,17 +53,17 @@ module PacketLinkP {
 }
 
 implementation {
-  
+
   /** The message currently being sent */
   message_t *currentSendMsg;
-  
+
   /** Length of the current send message */
   uint8_t currentSendLen;
-  
+
   /** The length of the current send message */
   uint16_t totalRetries;
-  
-  
+
+
   /**
    * Send States
    */
@@ -71,12 +71,12 @@ implementation {
     S_IDLE,
     S_SENDING,
   };
-  
-  
+
+
   /***************** Prototypes ***************/
   task void send();
   void signalDone(error_t error);
-    
+
   /***************** PacketLink Commands ***************/
   /**
    * Set the maximum number of times attempt message delivery
@@ -98,7 +98,7 @@ implementation {
     (call CC2420PacketBody.getMetadata(msg))->retryDelay = retryDelay;
   }
 
-  /** 
+  /**
    * @return the maximum number of retry attempts for this message
    */
   command uint16_t PacketLink.getRetries(message_t *msg) {
@@ -118,7 +118,7 @@ implementation {
   command bool PacketLink.wasDelivered(message_t *msg) {
     return call PacketAcknowledgements.wasAcked(msg);
   }
-  
+
   /***************** Send Commands ***************/
   /**
    * Each call to this send command gives the message a single
@@ -130,7 +130,7 @@ implementation {
   command error_t Send.send(message_t *msg, uint8_t len) {
     error_t error;
     if(call SendState.requestState(S_SENDING) == SUCCESS) {
-    
+
       currentSendMsg = msg;
       currentSendLen = len;
       totalRetries = 0;
@@ -138,11 +138,11 @@ implementation {
       if(call PacketLink.getRetries(msg) > 0) {
         call PacketAcknowledgements.requestAck(msg);
       }
-     
+
       if((error = call SubSend.send(msg, len)) != SUCCESS) {
         call SendState.toIdle();
       }
-      
+
       return error;
     }
     return EBUSY;
@@ -153,11 +153,11 @@ implementation {
       call SendState.toIdle();
       return call SubSend.cancel(msg);
     }
-    
+
     return FAIL;
   }
-  
-  
+
+
   command uint8_t Send.maxPayloadLength() {
     return call SubSend.maxPayloadLength();
   }
@@ -165,8 +165,8 @@ implementation {
   command void *Send.getPayload(message_t* msg, uint8_t len) {
     return call SubSend.getPayload(msg, len);
   }
-  
-  
+
+
   /***************** SubSend Events ***************/
   event void SubSend.sendDone(message_t* msg, error_t error) {
     if(call SendState.getState() == S_SENDING) {
@@ -174,27 +174,27 @@ implementation {
       if(call PacketAcknowledgements.wasAcked(msg)) {
         signalDone(SUCCESS);
         return;
-        
+
       } else if(totalRetries < call PacketLink.getRetries(currentSendMsg)) {
-        
+
         if(call PacketLink.getRetryDelay(currentSendMsg) > 0) {
           // Resend after some delay
           call DelayTimer.startOneShot(call PacketLink.getRetryDelay(currentSendMsg));
-          
+
         } else {
           // Resend immediately
           post send();
         }
-        
+
         return;
       }
     }
-    
+
     signalDone(error);
   }
-  
-  
-  /***************** Timer Events ****************/  
+
+
+  /***************** Timer Events ****************/
   /**
    * When this timer is running, that means we're sending repeating messages
    * to a node that is receive check duty cycling.
@@ -204,19 +204,19 @@ implementation {
       post send();
     }
   }
-  
+
   /***************** Tasks ***************/
   task void send() {
     if(call PacketLink.getRetries(currentSendMsg) > 0) {
       call PacketAcknowledgements.requestAck(currentSendMsg);
     }
-    
+
     if(call SubSend.send(currentSendMsg, currentSendLen) != SUCCESS) {
       post send();
     }
   }
-  
-  /***************** Functions ***************/  
+
+  /***************** Functions ***************/
   void signalDone(error_t error) {
     call DelayTimer.stop();
     call SendState.toIdle();

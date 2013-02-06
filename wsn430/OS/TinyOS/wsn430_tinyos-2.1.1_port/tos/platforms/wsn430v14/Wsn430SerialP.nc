@@ -5,8 +5,8 @@ module Wsn430SerialP {
 }
 
 implementation {
-  
-    msp430_uart_union_config_t msp430_uart_wsn430_config = { 
+
+    msp430_uart_union_config_t msp430_uart_wsn430_config = {
             {ubr: 0x0008,               //Baud rate (115200 @ 1MHz)
             umctl: 0x5B,                //Modulation (115200 @ 1MHz)
             ssel: 0x02,                 //Clock source (00=UCLKI; 01=ACLK; 10=SMCLK; 11=SMCLK)
@@ -23,17 +23,17 @@ implementation {
             utxe : 1,                   //1:enable tx module
             urxe : 1}                   //1:enable rx module
     };
-    
-    
+
+
     command error_t StdControl.start(){
         return call Resource.immediateRequest();
     }
-    
+
     command error_t StdControl.stop(){
         call Resource.release();
         return SUCCESS;
     }
-    
+
     event void Resource.granted(){}
 
     async command msp430_uart_union_config_t* Msp430UartConfigure.getConfig() {

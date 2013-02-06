@@ -28,11 +28,11 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
- 
+
 /**
  * This application is used to test the threaded version of the API for accessing
  * the software based SineSensor usable by any platform for demonstration purposes.
- * 
+ *
  * This application simply takes sensor readings in an infinite loop from the
  * SineSensor and forwards them over the serial interface.  Upon successful
  * transmission, LED0 is toggled.
@@ -62,7 +62,7 @@ implementation {
     message_t msg;
     var = call Packet.getPayload(&msg, sizeof(uint16_t));
 
-    while( call AMControl.start() != SUCCESS );    
+    while( call AMControl.start() != SUCCESS );
     for(;;){
       while( call BlockingRead.read(var) != SUCCESS );
       while( call BlockingAMSend.send(AM_BROADCAST_ADDR, &msg, sizeof(uint16_t)) != SUCCESS );

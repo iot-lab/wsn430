@@ -39,7 +39,7 @@ implementation {
              DynamicThreadC;
 
   BlinkC.Boot -> MainC;
-  
+
   BlinkC.Leds -> LedsC;
   BlinkC.DynamicThread -> DynamicThreadC;
 }

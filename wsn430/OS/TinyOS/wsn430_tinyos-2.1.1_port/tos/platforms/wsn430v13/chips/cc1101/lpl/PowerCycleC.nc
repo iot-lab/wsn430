@@ -28,9 +28,9 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE
  */
- 
+
 /**
- * Use this component to duty cycle the radio. When a message is heard, 
+ * Use this component to duty cycle the radio. When a message is heard,
  * disable DutyCycling.
  *
  * @author David Moss dmm@rincon.com
@@ -66,7 +66,7 @@ implementation {
   SplitControl = PowerCycleP;
   SplitControlState = SplitControlStateC;
   RadioPowerState = RadioPowerStateC;
-  
+
   PowerCycleP.EnergyIndicator -> CC2420TransmitC.EnergyIndicator;
   PowerCycleP.ByteIndicator -> CC2420TransmitC.ByteIndicator;
   PowerCycleP.PacketIndicator -> CC2420ReceiveC.PacketIndicator;

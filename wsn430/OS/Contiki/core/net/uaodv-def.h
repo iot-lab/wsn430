@@ -54,7 +54,7 @@ struct uaodv_rtentry {
   uip_ipaddr_t dest_addr;
   uip_ipaddr_t next_hop;
   uip_ipaddr_t precursors[NUM_PRECURSORS];
-  u32_t dest_seqno;  
+  u32_t dest_seqno;
   u16_t lifetime;
   u8_t dest_seqno_flag;
   u8_t route_flags;

@@ -9,30 +9,30 @@ class Line:
 		self.burstid = None
 		self.pktid = None
 		self.rssi = None
-		
+
 		self.valid = False
-		
+
 		if line is not None:
 			self.parse(line)
-		
+
 	def parse(self, line):
 		sline = [s.strip() for s in line.split(',')]
 		self.valid = False
 		# Check if the line has enough elements
 		if len(sline) != self.ELT_NUM:
 			return
-		
+
 		# Check if the line is not a first line
 		if "time" in sline[0]:
 			return
-		
+
 		self.time = float(sline[0])
 		self.src = int(sline[1])
 		self.dst = int(sline[2])
 		self.burstid = int(sline[3])
 		self.pktid = int(sline[4])
 		self.rssi = float(sline[5])
-		
+
 		self.valid = True
 	def __str__(self):
 		if self.valid:
@@ -45,19 +45,19 @@ class BurstExtract:
 		self.files = files
 		if 'node%i.csv' % nodeid in self.files:
 			self.files.remove('node%i.csv' % nodeid)
-		
+
 		self.nodenum = len(self.files)
 		self.nodes = [s.split('/')[-1] for s in files]
 		self.nodes = [n.replace('node', '').replace('.csv','') for n in self.nodes]
 		self.nodes = [int(n) for n in self.nodes]
-		
+
 		self.first = np.array(self.nodes).min()
-		
+
 		self.nodeid = nodeid
 		self.burstid = burstid
-		
+
 		print "We have ",self.nodenum," nodes"
-		
+
 		self.rssi = np.zeros( (self.nodenum, burstlen)) * np.NaN
 
 	def run(self):
@@ -67,13 +67,13 @@ class BurstExtract:
 			with open(f, 'r') as fdata:
 				for line in fdata:
 					l.parse(line)
-					
+
 					if l.valid and l.src == self.nodeid and l.burstid == self.burstid:
-						
+
 						i = l.dst - self.first
 						j = l.pktid
 						self.rssi[i,j] = l.rssi
-	
+
 	def save(self, filename):
 		np.savetxt(filename, self.rssi, delimiter=', ')
 
@@ -101,9 +101,9 @@ if __name__ == '__main__':
 					burstlen = int(p[1])
 				if len(p) == 2 and p[0] == 'burstnum':
 					burstnum = int(p[1])
-				
-	
-	
+
+
+
 	for nodeid in range(101, 117):
 		for burstid in range(1, 1 + burstnum):
 			print "Starting burst export, ", nodeid, burstid

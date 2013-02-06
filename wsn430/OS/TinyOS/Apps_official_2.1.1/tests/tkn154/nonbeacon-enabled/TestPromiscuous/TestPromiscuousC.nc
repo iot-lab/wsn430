@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2008, Technische Universitaet Berlin
  * All rights reserved.
  *
@@ -118,7 +118,7 @@ module TestPromiscuousC
       } else if  ( DstAddrMode == ADDR_MODE_EXTENDED_ADDRESS) {
         for (i=0; i<8; i++)
           printf("0x%02X ", ((uint8_t*) &(DstAddress.extendedAddress))[i]);
-        printf("\n");    
+        printf("\n");
         printf("DestPANId: 0x%02X\n", DstPANId);
       } else printf("\n");
 
@@ -128,7 +128,7 @@ module TestPromiscuousC
       for (i=0; i<headerLen; i++){
         printf("0x%02X ", header[i]);
       }
-      printf("\n");      
+      printf("\n");
       printf("PayloadLen: %d\n", payloadLen);
       printf("Payload: ");
       for (i=0; i<payloadLen; i++){
@@ -142,17 +142,17 @@ module TestPromiscuousC
         printf("%ld\n", call Frame.getTimestamp(frame));
       else
         printf("INVALID\n");
-      printfflush(); 
+      printfflush();
     }
     call Leds.led1Toggle();
     return frame;
   }
 
   event void MCPS_DATA.confirm( message_t *msg, uint8_t msduHandle, ieee154_status_t status, uint32_t Timestamp){}
-  event void PromiscuousMode.startDone(error_t error) 
+  event void PromiscuousMode.startDone(error_t error)
   {
     printf("\n*** Radio is now in promiscuous mode, listening on channel %d ***\n", RADIO_CHANNEL);
-    printfflush(); 
+    printfflush();
   }
   event void PromiscuousMode.stopDone(error_t error) {}
 }

@@ -28,10 +28,10 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE
  */
- 
+
 #include "Timer.h"
 #include "RssiToSerial.h"
- 
+
  /**
   * This is more of a general demonstration than a test.
   *
@@ -44,7 +44,7 @@
   * @author Jared Hill
  * @date   23 March 2007
   */
- 
+
 module RssiToSerialP {
   uses {
     interface Leds;
@@ -65,11 +65,11 @@ implementation {
   uint32_t total;
   uint16_t largest;
   uint16_t reads;
-  
+
   /******** Declare Tasks *******************/
   task void readRssi();
   task void sendSerialMsg();
-  
+
   /************ Boot Events *****************/
   event void Boot.booted() {
     call AMControl.start();
@@ -92,7 +92,7 @@ implementation {
   event void AMControl.stopDone(error_t err) {
     // do nothing
   }
-  
+
   /***************SerialControl Events*****************/
   event void SerialControl.startDone(error_t error){
     if (error == SUCCESS) {
@@ -102,23 +102,23 @@ implementation {
       call AMControl.start();
     }
   }
-  
+
   event void SerialControl.stopDone(error_t error){
     //do nothing
   }
-  
+
   /***************** AMSend Events ****************************/
   event void AMSend.sendDone(message_t* bufPtr, error_t error) {
-    
+
     if (&packet == bufPtr) {
       locked = FALSE;
     }
     //post readRssi();
   }
-  
+
   /**************** ReadRssi Events *************************/
   event void ReadRssi.readDone(error_t result, uint16_t val ){
-    
+
     if(result != SUCCESS){
       post readRssi();
       return;
@@ -129,35 +129,35 @@ implementation {
       if(largest < val){
         largest = val;
       }
-    } 
+    }
     if(reads == (1<<LOG2SAMPLES)){
       post sendSerialMsg();
     }
-    
+
     post readRssi();
-    
-  }
-  
-  /********************* Config Events *************************/
-  event void Config.syncDone(error_t error){
-  
+
   }
 
-  /***************** TASKS *****************************/  
+  /********************* Config Events *************************/
+  event void Config.syncDone(error_t error){
+
+  }
+
+  /***************** TASKS *****************************/
   task void readRssi(){
-   
+
     if(call ReadRssi.read() != SUCCESS){
       post readRssi();
     }
   }
-  
+
   task void sendSerialMsg(){
     if(locked){
       return;
     }
     else {
       rssi_serial_msg_t* rsm = (rssi_serial_msg_t*)call Packet.getPayload(&packet, sizeof(rssi_serial_msg_t));
-      
+
       if (call Packet.maxPayloadLength() < sizeof(rssi_serial_msg_t)) {
 	    return;
       }

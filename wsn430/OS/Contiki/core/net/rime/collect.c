@@ -438,7 +438,7 @@ update_rtmetric(struct collect_conn *tc)
     PRINTF("%d.%d: new rtmetric %d\n",
            rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
            tc->rtmetric);
-    
+
     /* We got a new, working, route we send any queued packets we may have. */
     if(old_rtmetric == RTMETRIC_MAX && new_rtmetric != RTMETRIC_MAX) {
       PRINTF("Sending queued packet because rtmetric was max\n");
@@ -456,7 +456,7 @@ static int
 enqueue_dummy_packet(struct collect_conn *c, int rexmits)
 {
   struct collect_neighbor *n;
-  
+
   packetbuf_clear();
   packetbuf_set_attr(PACKETBUF_ATTR_EPACKET_ID, c->eseqno - 1);
   packetbuf_set_addr(PACKETBUF_ADDR_ESENDER, &rimeaddr_node_addr);
@@ -688,7 +688,7 @@ retransmit_current_packet(struct collect_conn *c)
   if(q != NULL) {
 
     update_rtmetric(c);
-    
+
     /* Place the queued packet into the packetbuf. */
     queuebuf_to_packetbuf(q);
 
@@ -916,7 +916,7 @@ node_packet_received(struct unicast_conn *c, const rimeaddr_t *from)
     uint8_t packet_seqno;
 
     stats.datarecv++;
-    
+
     /* Remember to whom we should send the ACK, since we reuse the
        packet buffer and its attributes when sending the ACK. */
     rimeaddr_copy(&ack_to, packetbuf_addr(PACKETBUF_ADDR_SENDER));
@@ -1031,7 +1031,7 @@ node_packet_received(struct unicast_conn *c, const rimeaddr_t *from)
          to inform the sender that the packet was dropped due to
          memory problems. We first check the size of our sending
          queue. */
-     
+
       if(packetqueue_enqueue_packetbuf(&tc->send_queue,
                                        FORWARD_PACKET_LIFETIME_BASE *
                                        packetbuf_attr(PACKETBUF_ATTR_MAX_REXMIT),
@@ -1100,7 +1100,7 @@ node_packet_sent(struct unicast_conn *c, int status, int transmissions)
      PACKETBUF_ATTR_PACKET_TYPE_DATA) {
 
     tc->transmissions += transmissions;
-    //    printf("tx %d\n", tc->transmissions);    
+    //    printf("tx %d\n", tc->transmissions);
     PRINTF("%d.%d: MAC sent %d transmissions to %d.%d, status %d, total transmissions %d\n",
            rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
            transmissions,
@@ -1186,7 +1186,7 @@ adv_received(struct neighbor_discovery_conn *c, const rimeaddr_t *from,
     if(rtmetric == RTMETRIC_MAX &&
        collect_neighbor_rtmetric(n) != RTMETRIC_MAX) {
       bump_advertisement(tc);
-    } 
+    }
     collect_neighbor_update_rtmetric(n, rtmetric);
     PRINTF("%d.%d: updating neighbor %d.%d, etx %d\n",
 	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
@@ -1425,7 +1425,7 @@ collect_send(struct collect_conn *tc, int rexmits)
       PRINTF("%d.%d: sending to %d.%d\n",
 	     rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	     n->addr.u8[0], n->addr.u8[1]);
- 
+
       if(packetqueue_enqueue_packetbuf(&tc->send_queue,
                                        FORWARD_PACKET_LIFETIME_BASE *
                                        packetbuf_attr(PACKETBUF_ATTR_MAX_REXMIT),

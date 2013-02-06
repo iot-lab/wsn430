@@ -3,27 +3,27 @@ import struct, time, serial
 class Serial:
   HDLC_FLAG_BYTE = 0x7e
   HDLC_CTLESC_BYTE = 0x7d
-  
+
   TOS_SERIAL_ACTIVE_MESSAGE_ID = 0
   TOS_SERIAL_CC1000_ID = 1
   TOS_SERIAL_802_15_4_ID = 2
   TOS_SERIAL_UNKNOWN_ID = 255
-  
+
   SERIAL_PROTO_ACK = 67
   SERIAL_PROTO_PACKET_ACK = 68
   SERIAL_PROTO_PACKET_NOACK = 69
   SERIAL_PROTO_PACKET_UNKNOWN = 255
-  
+
   __s = None;       # An instance of serial.Serial object
   __debug = True   # Debug mode
-  
+
   def __init__(self, port, baudrate):
      self.__s = serial.Serial(port, baudrate, rtscts=0)
-  
+
   def __format_packet(self, packet):
       return " ".join(["%02x" % p for p in packet]) + " | " + \
              " ".join(["%d" % p for p in packet])
-  
+
   def crc16(self, base_crc, frame_data):
       crc = base_crc
       for b in frame_data:
@@ -35,28 +35,28 @@ class Serial:
                   crc = crc << 1
               crc = crc & 0xffff
       return crc
-  
+
   def __encode(self, val, dim):
       output = []
       for i in range(dim):
           output.append(val & 0xFF)
           val = val >> 8
       return output
-  
+
   def __decode(self, v):
       r = long(0)
       for i in v[::-1]:
           r = (r << 8) + i
       return r
-  
+
   def __get_byte(self):
       r = struct.unpack("B", self.__s.read())[0]
       return r
-  
+
   def __put_bytes(self, data):
       for b in data:
           self.__s.write(struct.pack('B', b))
-  
+
   def __unescape(self, packet):
       r = []
       esc = False
@@ -69,7 +69,7 @@ class Serial:
           else:
               r.append(b)
       return r
-  
+
   def __escape(self, packet):
       r = []
       for b in packet:
@@ -79,7 +79,7 @@ class Serial:
           else:
               r.append(b)
       return r
-  
+
   def read_packet(self):
       d = self.__get_byte()
       ts = time.time()
@@ -104,7 +104,7 @@ class Serial:
       if self.__debug == True:
           print "Recv:", self.__format_packet(un_packet)
       return (ts, un_packet)
-      
+
   def write_packet(self, am_group, am_id, data):
       # The first byte after SERIAL_PROTO_PACKET_ACK is a sequence
       # number that will be send back by the mote to ack the receive of
@@ -120,13 +120,13 @@ class Serial:
       if self.__debug == True:
           print "Send:", self.__format_packet(packet)
       self.__put_bytes(packet)
-      
+
       # Waiting for ACK
       packet = self.read_packet()
       if len(packet) > 1 and len(packet[1]) > 1:
         return ((packet[1])[1] == self.SERIAL_PROTO_ACK)
       return False
-  
+
   def set_debug(self, debug):
       self.__debug = debug
 
@@ -138,7 +138,7 @@ class GenericPacket:
         for i in v:
             r = (r << 8) + i
         return r
-    
+
     def __encode(self, val, dim):
         output = []
         for i in range(dim):

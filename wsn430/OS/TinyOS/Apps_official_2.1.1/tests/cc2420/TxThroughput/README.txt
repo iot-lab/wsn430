@@ -4,7 +4,7 @@ Author/Contact: tinyos-help@millennium.berkeley.edu
 Description:
 
 This application is used more for characterization rather than a test.
-It measures the maximum radio throughput using the largest message payload 
+It measures the maximum radio throughput using the largest message payload
 size, and does not use low power listening.
 
 INSTALL
@@ -13,7 +13,7 @@ to the computer.
 
 EXPECTATIONS
 Led1 will toggle as each message is transmitted.  Once a second, the mote
-will send a packet through the serial port to the computer.  
+will send a packet through the serial port to the computer.
 
 Tools:
 

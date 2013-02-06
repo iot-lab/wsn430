@@ -1,18 +1,18 @@
 /*
  * Copyright (c) 2003, Adam Dunkels.
- * All rights reserved. 
+ * All rights reserved.
  *
- * Redistribution and use in source and binary forms, with or without 
- * modification, are permitted provided that the following conditions 
- * are met: 
- * 1. Redistributions of source code must retain the above copyright 
- *    notice, this list of conditions and the following disclaimer. 
- * 2. Redistributions in binary form must reproduce the above copyright 
- *    notice, this list of conditions and the following disclaimer in the 
- *    documentation and/or other materials provided with the distribution. 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
  * 3. The name of the author may not be used to endorse or promote
  *    products derived from this software without specific prior
- *    written permission.  
+ *    written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS
  * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -24,7 +24,7 @@
  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.  
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * This file is part of the Contiki desktop OS.
  *
@@ -71,7 +71,7 @@ void
 shell_default_output(const char *str1, int len1, const char *str2, int len2)
 {
   static unsigned char i;
-  
+
   for(i = 1; i < SHELL_GUI_YSIZE; ++i) {
     memcpy(&log[(i - 1) * SHELL_GUI_XSIZE],
 	   &log[i * SHELL_GUI_XSIZE], SHELL_GUI_XSIZE);
@@ -105,7 +105,7 @@ shell_prompt(char *str)
 PROCESS_THREAD(shell_gui_process, ev, data)
 {
   PROCESS_BEGIN();
-    
+
   ctk_window_new(&window, SHELL_GUI_XSIZE,
 		 SHELL_GUI_YSIZE + 1, "Command shell");
   CTK_WIDGET_ADD(&window, &loglabel);
@@ -113,7 +113,7 @@ PROCESS_THREAD(shell_gui_process, ev, data)
   CTK_WIDGET_ADD(&window, &commandentry);
   /*    CTK_WIDGET_SET_FLAG(&commandentry, CTK_WIDGET_FLAG_MONOSPACE);*/
   CTK_WIDGET_FOCUS(&window, &commandentry);
-  
+
   shell_init();
   shell_file_init();
   shell_ps_init();
@@ -126,7 +126,7 @@ PROCESS_THREAD(shell_gui_process, ev, data)
 
   while(1) {
     PROCESS_WAIT_EVENT();
-    
+
     if(ev == ctk_signal_widget_activate &&
        data == (process_data_t)&commandentry) {
       int command_len = (int)strlen(command);

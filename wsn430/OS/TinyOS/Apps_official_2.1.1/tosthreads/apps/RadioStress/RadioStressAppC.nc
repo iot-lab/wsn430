@@ -30,12 +30,12 @@
  */
 
 /**
- * This application stresses the blocking send and receive commands for the TinyOS 
- * thread implementation.  Three threads are run, each thread toggling a different 
- * colored LED. If a node has TOS_NODE_ID == 0 it will try and receive in 
- * an infinite loop, toggling one of the three Leds upon reception.  If it has 
+ * This application stresses the blocking send and receive commands for the TinyOS
+ * thread implementation.  Three threads are run, each thread toggling a different
+ * colored LED. If a node has TOS_NODE_ID == 0 it will try and receive in
+ * an infinite loop, toggling one of the three Leds upon reception.  If it has
  * TOS_NODE_ID == 1, it will try to send in an infinite loop, toggling one of the three
- * Leds upon the completion of a send.  Thread 0 toggles the Led0, Thread 1 toggles 
+ * Leds upon the completion of a send.  Thread 0 toggles the Led0, Thread 1 toggles
  * Led1, and Thread 2 toggles Led2.
  *
  * @author Kevin Klues <klueska@cs.stanford.edu>
@@ -49,21 +49,21 @@ implementation {
   MainC.Boot <- RadioStressC;
   RadioStressC.BlockingAMControl -> BlockingActiveMessageC;
   RadioStressC.Leds -> LedsC;
-  
+
   components new ThreadC(300) as RadioStressThread0;
   components new BlockingAMSenderC(220) as BlockingAMSender0;
   components new BlockingAMReceiverC(220) as BlockingAMReceiver0;
   RadioStressC.RadioStressThread0 -> RadioStressThread0;
   RadioStressC.BlockingAMSend0 -> BlockingAMSender0;
   RadioStressC.BlockingReceive0 -> BlockingAMReceiver0;
-  
+
   components new ThreadC(300) as RadioStressThread1;
   components new BlockingAMSenderC(221) as BlockingAMSender1;
   components new BlockingAMReceiverC(221) as BlockingAMReceiver1;
   RadioStressC.RadioStressThread1 -> RadioStressThread1;
   RadioStressC.BlockingAMSend1 -> BlockingAMSender1;
   RadioStressC.BlockingReceive1 -> BlockingAMReceiver1;
-  
+
   components new ThreadC(300) as RadioStressThread2;
   components new BlockingAMSenderC(222) as BlockingAMSender2;
   components new BlockingAMReceiverC(222) as BlockingAMReceiver2;

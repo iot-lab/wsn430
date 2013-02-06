@@ -1,4 +1,4 @@
-TestSimComm, 5/22/07 
+TestSimComm, 5/22/07
 
 This application tests the TOSSIM radio model by setting up a simple
 hidden terminal case. It checks whether packets collide correctly and
@@ -11,7 +11,7 @@ There are three test cases:
 test-equal.py: Tests whether two nodes that are hidden terminals
 cause collisions. The two nodes have equal signal strengths, so a
 collision should corrupt both packets. If one packet is lost due to
-a collision, the other should be too. Note that packets can be 
+a collision, the other should be too. Note that packets can be
 lost in the absence of collisions due to external interference.
 
 test-unequal.py: Tests whether two nodes that are hidden terminals

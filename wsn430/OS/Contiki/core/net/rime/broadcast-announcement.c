@@ -145,7 +145,7 @@ adv_packet_received(struct broadcast_conn *ibc, const rimeaddr_t *from)
     printf("adata.num way out there: %d\n", adata.num);
     return;
   }
-  
+
   for(i = 0; i < adata.num; ++i) {
     struct announcement_data data;
 

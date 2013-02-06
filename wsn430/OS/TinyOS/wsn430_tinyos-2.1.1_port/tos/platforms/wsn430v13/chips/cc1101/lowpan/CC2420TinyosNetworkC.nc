@@ -28,10 +28,10 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE
  */
- 
+
 /**
  * Original TinyOS T-Frames use a packet header that is not compatible with
- * other 6LowPAN networks.  They do not include the network byte 
+ * other 6LowPAN networks.  They do not include the network byte
  * responsible for identifying the packing as being sourced from a TinyOS
  * network.
  *
@@ -39,23 +39,23 @@
  * byte as defined by 6LowPAN specifications.  The I-Frame header type is
  * the default packet header used in TinyOS networks.
  *
- * Since either packet header is acceptable, this layer must do some 
- * preprocessing (sorry) to figure out whether or not it needs to include 
+ * Since either packet header is acceptable, this layer must do some
+ * preprocessing (sorry) to figure out whether or not it needs to include
  * the functionality to process I-frames.  If I-Frames are used, then
  * the network byte is added on the way out and checked on the way in.
  * If the packet came from a network different from a TinyOS network, the
- * user may access it through the DispatchP's NonTinyosReceive[] Receive 
+ * user may access it through the DispatchP's NonTinyosReceive[] Receive
  * interface and process it in a different radio stack.
  *
  * If T-Frames are used instead, this layer is simply pass-through wiring to the
- * layer beneath.  
+ * layer beneath.
  *
- * Define "CC2420_IFRAME_TYPE" to use the interoperability frame and 
+ * Define "CC2420_IFRAME_TYPE" to use the interoperability frame and
  * this layer
- * 
+ *
  * @author David Moss
  */
- 
+
 #include "CC2420.h"
 #include "Ieee154.h"
 
@@ -68,7 +68,7 @@ configuration CC2420TinyosNetworkC {
     interface Send as ActiveSend;
     interface Receive as ActiveReceive;
   }
-  
+
   uses {
     interface Receive as SubReceive;
     interface Send as SubSend;

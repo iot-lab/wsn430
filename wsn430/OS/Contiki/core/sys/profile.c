@@ -78,7 +78,7 @@ profile_episode_start(void)
   timetable_clear(&profile_begin_timetable);
   timetable_clear(&profile_end_timetable);
   episode_start_time = clock_time();
-  
+
   e = timetable_entry(&profile_begin_timetable,
 		      PROFILE_TIMETABLE_SIZE - 1);
   if(e != NULL) {
@@ -144,7 +144,7 @@ profile_aggregate_print_detailed(void)
 {
   int i;
   struct timetable_aggregate *a = &profile_aggregate;
-  
+
   /*  printf("timetable_aggregate_print_detailed: a ptr %d\n", a->ptr);*/
   for(i = 0; i < a->ptr; ++i) {
     printf("-- %s: %lu / %u = %lu\n", a->entries[i].id,
@@ -152,7 +152,7 @@ profile_aggregate_print_detailed(void)
 	   a->entries[i].episodes,
 	   a->entries[i].time / a->entries[i].episodes);
   }
-  
+
   printf("Memory for entries: %d * %d = %d\n",
 	 (int)sizeof(struct timetable_aggregate), a->ptr,
 	 (int)sizeof(struct timetable_aggregate) * a->ptr);

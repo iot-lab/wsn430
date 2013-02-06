@@ -61,7 +61,7 @@
 struct radio_driver {
 
   int (* init)(void);
-  
+
   /** Prepare the radio with a packet to be sent. */
   int (* prepare)(const void *payload, unsigned short payload_len);
 

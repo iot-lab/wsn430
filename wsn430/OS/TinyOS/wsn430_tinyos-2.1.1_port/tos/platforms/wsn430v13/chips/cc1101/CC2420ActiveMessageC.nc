@@ -6,13 +6,13 @@
  * agreement is hereby granted, provided that the above copyright
  * notice, the following two paragraphs and the author appear in all
  * copies of this software.
- * 
+ *
  * IN NO EVENT SHALL STANFORD UNIVERSITY BE LIABLE TO ANY PARTY FOR
  * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES
  * ARISING OUT OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN
  * IF STANFORD UNIVERSITY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
  * DAMAGE.
- * 
+ *
  * STANFORD UNIVERSITY SPECIFICALLY DISCLAIMS ANY WARRANTIES,
  * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE
@@ -70,7 +70,7 @@ implementation {
   components CC2420CsmaC as CsmaC;
   components CC2420ControlC;
   components CC2420PacketC;
-  
+
   SplitControl = Radio;
   RadioBackoff = AM;
   Packet = AM;
@@ -84,7 +84,7 @@ implementation {
   CC2420Packet = Radio;
   PacketAcknowledgements = Radio;
   LinkPacketMetadata = Radio;
-  
+
   // Radio resource for the AM layer
   AM.RadioResource -> Radio.Resource[CC2420_AM_SEND_ID];
   AM.SubSend -> Radio.ActiveSend;
@@ -94,7 +94,7 @@ implementation {
   AM.CC2420Packet -> CC2420PacketC;
   AM.CC2420PacketBody -> CC2420PacketC;
   AM.CC2420Config -> CC2420ControlC;
-  
+
   AM.SubBackoff -> CsmaC;
 
   components LedsC;

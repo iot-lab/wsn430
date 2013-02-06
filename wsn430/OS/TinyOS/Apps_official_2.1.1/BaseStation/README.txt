@@ -26,7 +26,7 @@ The LEDS are programmed to toggle as follows:
 
 RED Toggle         - Message bridged from serial to radio
 GREEN Toggle       - Message bridged from radio to serial
-YELLOW/BLUE Toggle - Dropped message due to queue overflow 
+YELLOW/BLUE Toggle - Dropped message due to queue overflow
                      in either direction
 
 When using a CC2420 radio, several default preprocessor configurations
@@ -48,7 +48,7 @@ Other combinations can be defined to meet your application's needs:
 
 Tools:
 
-support/sdk/java/net/tinyos/sf/SerialForwarder  
+support/sdk/java/net/tinyos/sf/SerialForwarder
 
 See the TinyOS Tutorial on Mote-PC serial communication and
 SerialForwarder on docs.tinyos.net for more details.

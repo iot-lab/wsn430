@@ -2,9 +2,9 @@
  * Copyright (c) 2006 Intel Corporation
  * All rights reserved.
  *
- * This file is distributed under the terms in the attached INTEL-LICENSE     
+ * This file is distributed under the terms in the attached INTEL-LICENSE
  * file. If you do not find these files, copies can be found by writing to
- * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
+ * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA,
  * 94704.  Attention:  Intel License Inquiry.
  */
 
@@ -19,7 +19,7 @@ import java.util.*;
 class Window {
     Oscilloscope parent;
     Graph graph;
-    
+
     Font smallFont = new Font("Dialog", Font.PLAIN, 8);
     Font boldFont = new Font("Dialog", Font.BOLD, 12);
     Font normalFont = new Font("Dialog", Font.PLAIN, 12);
@@ -45,7 +45,7 @@ class Window {
 	    Color.YELLOW, Color.GRAY, Color.YELLOW
 	};
 	int cycleIndex;
-	
+
 	/* TableModel methods for achieving our table appearance */
 	public String getColumnName(int col) {
 	    if (col == 0) {
@@ -58,7 +58,7 @@ class Window {
 	public int getColumnCount() { return 2; }
 
 	public synchronized int getRowCount() { return motes.size(); }
-	
+
 	public synchronized Object getValueAt(int row, int col) {
 	    if (col == 0) {
 		return motes.get(row);
@@ -83,18 +83,18 @@ class Window {
 
 	/* Return mote id of i'th mote */
 	int get(int i) { return (motes.get(i)).intValue(); }
-	
+
 	/* Return color of i'th mote */
 	Color getColor(int i)  { return colors.get(i); }
-	
+
 	/* Return number of motes */
 	int size() { return motes.size(); }
-	
+
 	/* Add a new mote */
 	synchronized void newNode(int nodeId) {
 	    /* Shock, horror. No binary search. */
 	    int i, len = motes.size();
-	    
+
 	    for (i = 0; ; i++) {
 		if (i == len || nodeId < get(i)) {
 		    motes.add(i, new Integer(nodeId));
@@ -105,7 +105,7 @@ class Window {
 	    }
 	    fireTableRowsInserted(i, i);
 	}
-	
+
 	/* Remove all motes */
 	void clear() {
 	    motes = new ArrayList<Integer>();
@@ -119,7 +119,7 @@ class Window {
 	public MoteColor() { setOpaque(true); }
 	public Component getTableCellRendererComponent
 	    (JTable table, Object color,
-	     boolean isSelected, boolean hasFocus, 
+	     boolean isSelected, boolean hasFocus,
 	     int row, int column) {
 	    setBackground((Color)color);
 	    return this;
@@ -142,13 +142,13 @@ class Window {
 	label.setFont(boldFont);
 	return label;
     }
-    
+
     JLabel makeSmallLabel(String txt, int alignment) {
 	JLabel label = new JLabel(txt, alignment);
 	label.setFont(smallFont);
 	return label;
     }
-    
+
     JTextField makeTextField(int columns, ActionListener action) {
 	JTextField tf = new JTextField(columns);
 	tf.setFont(normalFont);
@@ -163,35 +163,35 @@ class Window {
 
 	main.setMinimumSize(new Dimension(500, 250));
 	main.setPreferredSize(new Dimension(800, 400));
-	
+
 	// Three panels: mote list, graph, controls
 	moteListModel = new  MoteTableModel();
 	JTable moteList = new JTable(moteListModel);
 	moteList.setDefaultRenderer(Color.class, new MoteColor());
-	moteList.setDefaultEditor(Color.class, 
+	moteList.setDefaultEditor(Color.class,
 				  new ColorCellEditor("Pick Mote Color"));
 	moteList.setPreferredScrollableViewportSize(new Dimension(100, 400));
 	JScrollPane motePanel = new JScrollPane();
 	motePanel.getViewport().add(moteList, null);
 	main.add(motePanel, BorderLayout.WEST);
-	
+
 	graph = new Graph(this);
 	main.add(graph, BorderLayout.CENTER);
-	
+
 	// Controls. Organised using box layouts.
-	
+
 	// Sample period.
 	JLabel sampleLabel = makeLabel("Sample period (ms):", JLabel.RIGHT);
 	sampleText = makeTextField(6, new ActionListener() {
 		public void actionPerformed(ActionEvent e) { setSamplePeriod(); }
 	    } );
 	updateSamplePeriod();
-	
+
 	// Clear data.
 	JButton clearButton = makeButton("Clear data", new ActionListener() {
 		public void actionPerformed(ActionEvent e) { clearData(); }
 	    } );
-	
+
 	// Adjust X-axis zoom.
 	Box xControl = new Box(BoxLayout.Y_AXIS);
 	xLabel = makeLabel("", JLabel.CENTER);
@@ -214,14 +214,14 @@ class Window {
 	    });
 	xControl.add(xLabel);
 	xControl.add(xSlider);
-	
+
 	// Adjust Y-axis range.
 	JLabel yLabel = makeLabel("Y:", JLabel.RIGHT);
 	yText = makeTextField(12, new ActionListener() {
 		public void actionPerformed(ActionEvent e) { setYAxis(); }
 	    } );
 	yText.setText(graph.gy0 + " - " + graph.gy1);
-	
+
 	Box controls = new Box(BoxLayout.X_AXIS);
 	controls.add(clearButton);
 	controls.add(Box.createHorizontalGlue());
@@ -265,10 +265,10 @@ class Window {
 		String max = val.substring(dash + 1).trim();
 
 		if (!graph.setYAxis(Integer.parseInt(min), Integer.parseInt(max))) {
-		    error("Invalid range " 
-			  + min 
-			  + " - " 
-			  + max 
+		    error("Invalid range "
+			  + min
+			  + " - "
+			  + max
 			  + " (expected values between 0 and 65535)");
 		}
 		return;

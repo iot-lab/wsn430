@@ -62,7 +62,7 @@ will need a SerialForwarder running for this work.
 With a single sender and single receiver on a table using TelosB
 nodes, it takes approximately:
 
-3.5 minutes for a node to receive 128 out of 128 items. 
+3.5 minutes for a node to receive 128 out of 128 items.
 4.0 minutes for a node to receive 240 out of 240 items.
 
 With a single sender and two receivers on Mirage MicaZ nodes, it takes

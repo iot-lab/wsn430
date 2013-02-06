@@ -1,7 +1,7 @@
 /**
  * \file
  * Functions for reading and writing MSP430 flash ROM.
- * \author Adam Dunkels <adam@sics.se> 
+ * \author Adam Dunkels <adam@sics.se>
  */
 
 /* Copyright (c) 2004 Swedish Institute of Computer Science.
@@ -68,7 +68,7 @@ void flash_write(unsigned short *addr, unsigned short word);
  * Clear a 16-bit word in flash ROM.
  *
  * This function clears a 16-bit word in flash ROM. The function
- * flash_setup() must have been called first. 
+ * flash_setup() must have been called first.
  *
  * \param addr A pointer to the address in flash ROM which is to be
  * cleared.

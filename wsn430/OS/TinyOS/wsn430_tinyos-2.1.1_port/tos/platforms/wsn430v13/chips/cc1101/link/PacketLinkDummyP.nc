@@ -39,14 +39,14 @@ module PacketLinkDummyP {
   provides {
     interface PacketLink;
   }
-  
+
   uses {
     interface PacketAcknowledgements;
   }
 }
 
 implementation {
-  
+
   /***************** PacketLink Commands ***************/
   /**
    * Set the maximum number of times attempt message delivery
@@ -66,7 +66,7 @@ implementation {
   command void PacketLink.setRetryDelay(message_t *msg, uint16_t retryDelay) {
   }
 
-  /** 
+  /**
    * @return the maximum number of retry attempts for this message
    */
   command uint16_t PacketLink.getRetries(message_t *msg) {

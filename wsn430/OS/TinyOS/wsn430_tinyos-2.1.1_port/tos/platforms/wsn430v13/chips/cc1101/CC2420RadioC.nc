@@ -6,13 +6,13 @@
  * agreement is hereby granted, provided that the above copyright
  * notice, the following two paragraphs and the author appear in all
  * copies of this software.
- * 
+ *
  * IN NO EVENT SHALL STANFORD UNIVERSITY BE LIABLE TO ANY PARTY FOR
  * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES
  * ARISING OUT OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN
  * IF STANFORD UNIVERSITY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
  * DAMAGE.
- * 
+ *
  * STANFORD UNIVERSITY SPECIFICALLY DISCLAIMS ANY WARRANTIES,
  * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE
@@ -65,7 +65,7 @@ implementation {
   components CC2420TinyosNetworkC;
   components CC2420PacketC;
   components CC2420ControlC;
-  
+
 #if defined(LOW_POWER_LISTENING) || defined(ACK_LOW_POWER_LISTENING)
   components DefaultLplC as LplC;
 #else
@@ -77,13 +77,13 @@ implementation {
 #else
   components PacketLinkDummyC as LinkC;
 #endif
-  
+
   PacketLink = LinkC;
   LowPowerListening = LplC;
   CC2420Packet = CC2420PacketC;
   PacketAcknowledgements = CC2420PacketC;
   LinkPacketMetadata = CC2420PacketC;
-  
+
   Resource = CC2420TinyosNetworkC;
   Send = CC2420TinyosNetworkC.Send;
   Receive = CC2420TinyosNetworkC.Receive;
@@ -93,16 +93,16 @@ implementation {
   // SplitControl Layers
   SplitControl = LplC;
   LplC.SubControl -> CsmaC;
-  
+
   // Send Layers
   CC2420TinyosNetworkC.SubSend -> UniqueSendC;
   UniqueSendC.SubSend -> LinkC;
   LinkC.SubSend -> LplC.Send;
   LplC.SubSend -> CsmaC;
-  
+
   // Receive Layers
   CC2420TinyosNetworkC.SubReceive -> LplC;
   LplC.SubReceive -> UniqueReceiveC.Receive;
   UniqueReceiveC.SubReceive ->  CsmaC;
-  
+
 }

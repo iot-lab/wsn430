@@ -28,21 +28,21 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
- 
+
 /**
  * This application is used to test the threaded version of the API for accessing
  * sensors on the basicsb sensor board.
- * 
+ *
  * This application simply takes sensor readings in an infinite loop from the
  * Photo and Temperature sensors on the basicsb sensor board and forwards them
  * over the serial interface.  Upon successful transmission, LED0 is toggled.
- * 
+ *
  * A successful test will result in the TestBasicsbSensors mote constantly
  * flickering LED0. Additionally, messages containing the sensor readings should
  * be forwarded over the serial interface as verified by running the following
  * for the platform of interest:
  *   java net.tinyos.tools.Listen -comm serial@/dev/ttyUSBXXX:<baud_rate>
- * 
+ *
  * Once this java application is running, you should see output containing the
  * sensor readings being streamed to your terminal.
  *
@@ -54,7 +54,7 @@ configuration TestBasicsbSensorsAppC {
 implementation {
   components MainC, TestBasicsbSensorsC;
   components new ThreadC(125) as MainThread;
-  
+
   components new BlockingPhotoC();
   components new BlockingTempC();
   components BlockingSerialActiveMessageC;
@@ -67,7 +67,7 @@ implementation {
   TestBasicsbSensorsC.AMControl -> BlockingSerialActiveMessageC;
   TestBasicsbSensorsC.BlockingAMSend -> BlockingSerialAMSenderC;
   TestBasicsbSensorsC.Packet -> BlockingSerialAMSenderC;
-  
+
   components LedsC;
   TestBasicsbSensorsC.Leds -> LedsC;
 }

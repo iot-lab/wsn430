@@ -32,7 +32,7 @@
 /**
  * SenseStoreAndForward is a threaded implementation of an application that takes
  * various sensor readings in parallel (by dedicating one thread to each reading),
- * logs them to flash, and then sends them out over the radio at some later time. 
+ * logs them to flash, and then sends them out over the radio at some later time.
  * In the current implementation, sensor readings are taken as quickly as possible,
  * and records containing a set of readings from each iteration are batched out
  * over the radio every 10000ms.  This application is written specifically for use
@@ -43,7 +43,7 @@
  * record in an infinite loop. Records are then read out of flash and and sent out
  * over the radio interface in separate infinite loop. Before the application
  * starts running, the entire contents of the flash drive are erased.
- * 
+ *
  * A successful test will result in LED0 remaining solid for approximately 6s while
  * the flash is being erased.  After that LED0 will toggle with each successful set
  * of sensor readings logged to flash, at a rate of approximately 220ms (the time
@@ -53,9 +53,9 @@
  * flash and sent out over the radio.  Once all of the records currently recorded
  * to flash since the last batch of sends have been sent out, LED2 Toggles to
  * indicate completion.  This process continues in an infinite loop forever.
- * 
+ *
  * Additionally, a base station application should be run to verify the reception
- * of packets sent from a SenseStoreAndForward mote, with reasonable looking sensor 
+ * of packets sent from a SenseStoreAndForward mote, with reasonable looking sensor
  * data.
  *
  * @author Kevin Klues <klueska@cs.stanford.edu>
@@ -72,7 +72,7 @@
 #define NUM_SENSORS              4
 #define SAMPLING_PERIOD       3000
 #define SENDING_PERIOD       10000
-#define AM_SENSOR_DATA_MSG    0x25   
+#define AM_SENSOR_DATA_MSG    0x25
 
 //Data structure for storing sensor data
 typedef struct sensor_data {
@@ -153,16 +153,16 @@ void photo_active_thread(void* arg) {
 void store_thread(void* arg) {
   storage_len_t sensor_data_len;
   bool sensor_records_lost;
-  
+
   for(;;) {
     barrier_block(&send_barrier);
     barrier_reset(&send_barrier, NUM_SENSORS + 1);
-    
+
     mutex_lock(&log_mutex);
       sensor_data_len = sizeof(sensor_data_t);
       while( volumeLogAppend(VOLUME_SENSORLOG, &storing_sensor_data, &sensor_data_len, &sensor_records_lost) != SUCCESS );
     mutex_unlock(&log_mutex);
-    
+
     storing_sensor_data.seq_no++;
     led0Toggle();
 
@@ -173,7 +173,7 @@ void store_thread(void* arg) {
 }
 void send_thread(void* arg) {
   storage_len_t sensor_data_len;
-  
+
   for(;;) {
     tosthread_sleep(SENDING_PERIOD);
 
@@ -182,7 +182,7 @@ void send_thread(void* arg) {
       mutex_lock(&log_mutex);
         while( volumeLogRead(VOLUME_SENSORLOG, sending_sensor_data, &sensor_data_len) != SUCCESS );
       mutex_unlock(&log_mutex);
-      
+
       while( amRadioSend(AM_BROADCAST_ADDR, &send_msg, sizeof(sensor_data_t), AM_SENSOR_DATA_MSG) != SUCCESS );
       led1Toggle();
     }

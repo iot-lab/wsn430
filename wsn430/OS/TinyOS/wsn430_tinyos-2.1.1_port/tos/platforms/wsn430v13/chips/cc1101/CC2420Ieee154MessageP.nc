@@ -27,13 +27,13 @@
  * agreement is hereby granted, provided that the above copyright
  * notice, the following two paragraphs and the author appear in all
  * copies of this software.
- * 
+ *
  * IN NO EVENT SHALL STANFORD UNIVERSITY BE LIABLE TO ANY PARTY FOR
  * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES
  * ARISING OUT OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN
  * IF STANFORD UNIVERSITY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
  * DAMAGE.
- * 
+ *
  * STANFORD UNIVERSITY SPECIFICALLY DISCLAIMS ANY WARRANTIES,
  * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE
@@ -48,7 +48,7 @@
  * @author Stephen Dawson-Haggerty
  * @version $Revision: 1.2 $ $Date: 2009/09/17 23:36:36 $
  */
- 
+
 #include "CC2420.h"
 #include "IEEE802154.h"
 
@@ -59,7 +59,7 @@ module CC2420Ieee154MessageP {
     interface Ieee154Packet;
     interface Packet;
   }
-  
+
   uses {
     interface Send as SubSend;
     interface CC2420Packet;
@@ -97,12 +97,12 @@ implementation {
   command ieee154_saddr_t Ieee154Packet.address() {
     return call CC2420Config.getShortAddr();
   }
- 
+
   command ieee154_saddr_t Ieee154Packet.destination(message_t* msg) {
     cc2420_header_t* header = call CC2420PacketBody.getHeader(msg);
     return header->dest;
   }
- 
+
   command ieee154_saddr_t Ieee154Packet.source(message_t* msg) {
     cc2420_header_t* header = call CC2420PacketBody.getHeader(msg);
     return header->src;
@@ -142,24 +142,24 @@ implementation {
     memset(call CC2420PacketBody.getHeader(msg), sizeof(cc2420_header_t) - AM_OVERHEAD, 0);
     memset(call CC2420PacketBody.getMetadata(msg), sizeof(cc2420_metadata_t), 0);
   }
-  
+
   command uint8_t Packet.payloadLength(message_t* msg) {
     return (call CC2420PacketBody.getHeader(msg))->length - CC2420_SIZE + AM_OVERHEAD;
   }
-  
+
   command void Packet.setPayloadLength(message_t* msg, uint8_t len) {
     (call CC2420PacketBody.getHeader(msg))->length  = len + CC2420_SIZE - AM_OVERHEAD;
   }
-  
+
   command uint8_t Packet.maxPayloadLength() {
     return TOSH_DATA_LENGTH + AM_OVERHEAD;
   }
-  
+
   command void* Packet.getPayload(message_t* msg, uint8_t len) {
         return call SubSend.getPayload( msg, len );
   }
 
-  
+
   /***************** SubSend Events ****************/
   event void SubSend.sendDone(message_t* msg, error_t result) {
     signal Ieee154Send.sendDone(msg, result);

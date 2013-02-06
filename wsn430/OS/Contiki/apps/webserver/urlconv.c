@@ -118,7 +118,7 @@ urlconv_tofilename(char *dest, char *source, unsigned char maxlen)
         continue;  // no repeated slash
       case ISO_period:
         switch(to[-1]) {
-        case ISO_slash:  // handle "./" 
+        case ISO_slash:  // handle "./"
            --to; --len;
            continue;
         case ISO_period:
@@ -135,7 +135,7 @@ urlconv_tofilename(char *dest, char *source, unsigned char maxlen)
       }
     }
     if(c) {
-      ++to; ++len; 
+      ++to; ++len;
       *to = c;
     }
   } while(c);

@@ -69,7 +69,7 @@ module CC1101ControlP @safe() {
   uses interface CC1101Register as DEVIATN;
   uses interface CC1101Register as MCSM1;
   uses interface CC1101Register as MCSM0;
-  
+
   uses interface CC1101Strobe as SRES;
   uses interface CC1101Strobe as SRX;
   uses interface CC1101Strobe as SFRX;
@@ -77,10 +77,10 @@ module CC1101ControlP @safe() {
   uses interface CC1101Strobe as SIDLE;
   uses interface CC1101Strobe as SXOFF;
   uses interface CC1101Strobe as SPWD;
-  
+
   uses interface CC1101Status as RSSI;
   uses interface CC1101Status as MARCSTATE;
-  
+
   uses interface Resource as SpiResource;
   uses interface Resource as RssiResource;
   uses interface Resource as SyncResource;
@@ -100,34 +100,34 @@ implementation {
   } cc2420_control_state_t;
 
   uint8_t m_channel;
-  
+
   uint8_t m_tx_power;
-  
+
   uint16_t m_pan;
-  
+
   uint16_t m_short_addr;
-  
+
   bool m_sync_busy;
-  
+
   /** TRUE if acknowledgments are enabled */
   bool autoAckEnabled;
-  
+
   /** TRUE if acknowledgments are generated in hardware only */
   bool hwAutoAckDefault;
-  
+
   /** TRUE if software or hardware address recognition is enabled */
   bool addressRecognition;
-  
+
   /** TRUE if address recognition should also be performed in hardware */
   bool hwAddressRecognition;
-  
+
   norace cc2420_control_state_t m_state = S_VREG_STOPPED;
-  
+
   /***************** Prototypes ****************/
 
   task void sync();
   task void syncDone();
-  
+
   void inline micro_delay(register unsigned int n)
 	{
 		__asm__ __volatile__ (
@@ -136,45 +136,45 @@ implementation {
 		" jne 1b \n"
 					: [n] "+r"(n));
 	}
-	
-	
+
+
   /***************** Init Commands ****************/
   command error_t Init.init() {
     call CSN.makeOutput();
-    
+
     m_short_addr = call ActiveMessageAddress.amAddress();
     m_pan = call ActiveMessageAddress.amGroup();
     m_tx_power = CC2420_DEF_RFPOWER;
     m_channel = CC2420_DEF_CHANNEL;
-    
-    
+
+
 #if defined(CC2420_NO_ADDRESS_RECOGNITION)
     addressRecognition = FALSE;
 #else
     addressRecognition = TRUE;
 #endif
-    
+
 #if defined(CC2420_HW_ADDRESS_RECOGNITION)
     hwAddressRecognition = TRUE;
 #else
     hwAddressRecognition = FALSE;
 #endif
-    
-    
+
+
 #if defined(CC2420_NO_ACKNOWLEDGEMENTS)
     autoAckEnabled = FALSE;
 #else
     autoAckEnabled = TRUE;
 #endif
-    
+
 #if defined(CC2420_HW_ACKNOWLEDGEMENTS)
     hwAutoAckDefault = TRUE;
     hwAddressRecognition = TRUE;
 #else
     hwAutoAckDefault = FALSE;
 #endif
-    
-    
+
+
     return SUCCESS;
   }
 
@@ -210,26 +210,26 @@ implementation {
       }
       m_state = S_VREG_STARTING;
     }
-  
+
     call CSN.clr();
     call CSN.set();
     call CSN.clr();
     call CSN.set();
     micro_delay(80);
     call CSN.clr();
-    
+
 		//~ while (call SOMI.get());
 		while (P5IN & (1<<2));
 		call SRES.strobe();
 		//~ while (call SOMI.get());
 		while (P5IN & (1<<2));
 		call CSN.set();
-  	    
+
     //~ print_reg();
-      
+
 		m_state = S_VREG_STARTED;
     signal CC2420Power.startVRegDone();
-    
+
     return SUCCESS;
   }
 
@@ -246,9 +246,9 @@ implementation {
       if ( m_state != S_VREG_STARTED ) {
         return FAIL;
       }
-        
+
       m_state = S_XOSC_STARTING;
-      
+
     	call CSN.clr();
       call IOCFG2.write( CC1101_CONFIG_IOCFG2 );
 			call CSN.set();
@@ -301,7 +301,7 @@ implementation {
     	call CSN.clr();
       call MCSM0.write( CC1101_CONFIG_MCSM0 );
 			call CSN.set();
-      
+
       call CSN.clr();
       call SIDLE.strobe();
       call CSN.set();
@@ -311,11 +311,11 @@ implementation {
       call CSN.clr();
       call SFTX.strobe();
       call CSN.set();
-      
+
 			m_state = S_XOSC_STARTED;
-      
+
       //~ print_reg();
-      
+
       signal CC2420Power.startOscillatorDone();
     }
     return SUCCESS;
@@ -346,7 +346,7 @@ implementation {
       call CSN.clr();
       call SRX.strobe();
       call CSN.set();
-      
+
       do {
       	call CSN.clr();
       	call MARCSTATE.read(&state);
@@ -357,7 +357,7 @@ implementation {
   }
 
   async command error_t CC2420Power.rfOff() {
-    atomic {  
+    atomic {
       if ( m_state != S_XOSC_STARTED ) {
         return FAIL;
       }
@@ -369,7 +369,7 @@ implementation {
     return SUCCESS;
   }
 
-  
+
   /***************** CC2420Config Commands ****************/
   command uint8_t CC2420Config.getChannel() {
     atomic return m_channel;
@@ -405,7 +405,7 @@ implementation {
       if ( m_sync_busy ) {
         return FAIL;
       }
-      
+
       m_sync_busy = TRUE;
       if ( m_state == S_XOSC_STARTED ) {
         call SyncResource.request();
@@ -428,22 +428,22 @@ implementation {
       hwAddressRecognition = useHwAddressRecognition;
     }
   }
-  
+
   /**
    * @return TRUE if address recognition is enabled
    */
   async command bool CC2420Config.isAddressRecognitionEnabled() {
     atomic return addressRecognition;
   }
-  
+
   /**
    * @return TRUE if address recognition is performed first in hardware.
    */
   async command bool CC2420Config.isHwAddressRecognitionDefault() {
     atomic return hwAddressRecognition;
   }
-  
-  
+
+
   /**
    * Sync must be called for acknowledgement changes to take effect
    * @param enableAutoAck TRUE to enable auto acknowledgements
@@ -454,41 +454,41 @@ implementation {
     atomic autoAckEnabled = enableAutoAck;
     atomic hwAutoAckDefault = hwAutoAck;
   }
-  
+
   /**
    * @return TRUE if hardware auto acks are the default, FALSE if software
    *     acks are the default
    */
   async command bool CC2420Config.isHwAutoAckDefault() {
-    atomic return hwAutoAckDefault;    
+    atomic return hwAutoAckDefault;
   }
-  
+
   /**
    * @return TRUE if auto acks are enabled
    */
   async command bool CC2420Config.isAutoAckEnabled() {
     atomic return autoAckEnabled;
   }
-  
+
   /***************** ReadRssi Commands ****************/
-  command error_t ReadRssi.read() { 
+  command error_t ReadRssi.read() {
     return call RssiResource.request();
   }
-  
+
   /***************** Spi Resources Events ****************/
   event void SyncResource.granted() {
     call CSN.clr();
     call SIDLE.strobe();
     call CSN.set();
-    
+
     call CSN.clr();
     call CHANNR.write( (m_channel-11)*3 );
     call CSN.set();
-    
+
     call CSN.clr();
     call SRX.strobe();
     call CSN.set();
-    
+
     call SyncResource.release();
     post syncDone();
   }
@@ -498,20 +498,20 @@ implementation {
     signal Resource.granted();
   }
 
-  event void RssiResource.granted() { 
+  event void RssiResource.granted() {
     uint8_t data;
     call CSN.clr();
     call RSSI.read(&data);
     call CSN.set();
-    
+
     call RssiResource.release();
-    signal ReadRssi.readDone(SUCCESS, (uint16_t)data); 
+    signal ReadRssi.readDone(SUCCESS, (uint16_t)data);
   }
-  
-  
+
+
   /***************** StartupTimer Events ****************/
   async event void StartupTimer.fired() {
-    
+
   }
 
   /***************** ActiveMessageAddress Events ****************/
@@ -520,10 +520,10 @@ implementation {
       m_short_addr = call ActiveMessageAddress.amAddress();
       m_pan = call ActiveMessageAddress.amGroup();
     }
-    
+
     post sync();
   }
-  
+
   /***************** Tasks ****************/
   /**
    * Attempt to synchronize our current settings with the CC2420
@@ -531,20 +531,20 @@ implementation {
   task void sync() {
     call CC2420Config.sync();
   }
-  
+
   task void syncDone() {
     atomic m_sync_busy = FALSE;
     signal CC2420Config.syncDone( SUCCESS );
   }
-  
-  
+
+
   /***************** Functions ****************/
-  
+
   /***************** Defaults ****************/
   default event void CC2420Config.syncDone( error_t error ) {
   }
 
   default event void ReadRssi.readDone(error_t error, uint16_t data) {
   }
-  
+
 }

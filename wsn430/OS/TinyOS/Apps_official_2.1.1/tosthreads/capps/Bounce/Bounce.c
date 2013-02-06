@@ -21,13 +21,13 @@
 */
 
 /**
- * This application is derived from a similar application in the TinyThread 
+ * This application is derived from a similar application in the TinyThread
  * implementation by William P. McCartney from Cleveland State University (2006)
- * 
+ *
  * This application stresses the operation of the thread based AM commands for
  * packet transmission and reception.  To run this application you will need to
- * burn it on one mote with NODE_ID 0, and a second mote with NODE_ID 1. 
- * 
+ * burn it on one mote with NODE_ID 0, and a second mote with NODE_ID 1.
+ *
  * Three different threads run that each contain an infinite loop that first sends
  * a message and then waits to receive a message before returning to the top of the
  * loop. After each message reception, one of the onboard LEDs is toggled to
@@ -40,12 +40,12 @@
  * synchronizing the LEDs to come on only once messages have been received from all
  * threads.  In this way, messages are bounced back and forth between the two motes
  * in an asynchronous fashion, and LEDS are toggled immediately upon message
- * reception..  
- * 
+ * reception..
+ *
  * Successful running of this application results in each LED bouncing back and
  * forth between each mote independent of one another.  This will continue in an
  * finite loop forever.
- *  
+ *
  * @author Chieh-Jan Mike Liang <cliang4@cs.jhu.edu>
  */
 
@@ -64,7 +64,7 @@ void bounceThread2_start(void* arg);
 
 void tosthread_main(void* arg) {
   amRadioStart();
-  
+
   tosthread_create(&bounceThread0, bounceThread0_start, NULL, 300);
   tosthread_create(&bounceThread1, bounceThread1_start, NULL, 300);
   tosthread_create(&bounceThread2, bounceThread2_start, NULL, 300);
@@ -72,45 +72,45 @@ void tosthread_main(void* arg) {
 
 void bounceThread0_start(void *arg) {
   message_t msg0;
-  
+
   for(;;) {
     while (amRadioSend(AM_BROADCAST_ADDR, &msg0, 0, 20) == EBUSY) {}
     led0Off();
-    
+
     if(amRadioReceive(&msg0, 5000, 20) == SUCCESS) {
       led0On();
     }
-    
+
     tosthread_sleep(500);
   }
 }
 
 void bounceThread1_start(void *arg) {
   message_t msg1;
-  
+
   for(;;) {
     while (amRadioSend(AM_BROADCAST_ADDR, &msg1, 0, 21) == EBUSY) {}
     led1Off();
-    
+
     if(amRadioReceive(&msg1, 5000, 21) == SUCCESS) {
       led1On();
     }
-    
+
     tosthread_sleep(500);
   }
 }
 
 void bounceThread2_start(void *arg) {
   message_t msg2;
-  
+
   for(;;) {
     while (amRadioSend(AM_BROADCAST_ADDR, &msg2, 0, 22) == EBUSY) {}
     led2Off();
-    
+
     if(amRadioReceive(&msg2, 5000, 22) == SUCCESS) {
       led2On();
     }
-    
+
     tosthread_sleep(500);
   }
 }

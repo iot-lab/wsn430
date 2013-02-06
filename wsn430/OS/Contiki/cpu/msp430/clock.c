@@ -94,7 +94,7 @@ interrupt(TIMERA1_VECTOR) timera1 (void) {
   /*  if(process_nevents() >= 0) {
     LPM4_EXIT;
     }*/
-    
+
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
 /*---------------------------------------------------------------------------*/
@@ -140,7 +140,7 @@ clock_init(void)
 
   /* Select SMCLK (2.4576MHz), clear TAR */
   /* TACTL = TASSEL1 | TACLR | ID_3; */
-  
+
   /* Select ACLK 32768Hz clock, divide by 2 */
   TACTL = TASSEL0 | TACLR | ID_1;
 

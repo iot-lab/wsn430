@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2008, Technische Universitaet Berlin
  * All rights reserved.
  *
@@ -60,7 +60,7 @@ module TestDeviceC
   event void Boot.booted() {
     call MLME_RESET.request(TRUE);
   }
-  
+
   event void MLME_RESET.confirm(ieee154_status_t status)
   {
     if (status == IEEE154_SUCCESS)
@@ -72,9 +72,9 @@ module TestDeviceC
     ieee154_phyChannelsSupported_t scanChannels;
     uint8_t scanDuration = BEACON_ORDER;
 
-    // set the short address to whatever was passed 
+    // set the short address to whatever was passed
     // as a parameter to make system ("make install,X")
-    call MLME_SET.macShortAddress(TOS_NODE_ID); 
+    call MLME_SET.macShortAddress(TOS_NODE_ID);
     scanChannels = call MLME_GET.phyChannelsSupported();
     //scanChannels = (uint32_t) 1 << RADIO_CHANNEL;
 
@@ -142,7 +142,7 @@ module TestDeviceC
     if (beaconSequenceNumber & 1)
       call Leds.led2On();
     else
-      call Leds.led2Off();    
+      call Leds.led2Off();
     call Leds.led1On();
     return frame;
   }

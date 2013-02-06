@@ -42,7 +42,7 @@ configuration PacketLinkC {
     interface Send;
     interface PacketLink;
   }
-  
+
   uses {
     interface Send as SubSend;
   }
@@ -55,11 +55,11 @@ implementation {
       RandomC,
       new StateC() as SendStateC,
       new TimerMilliC() as DelayTimerC;
-  
+
   PacketLink = PacketLinkP;
   Send = PacketLinkP.Send;
   SubSend = PacketLinkP.SubSend;
-  
+
   PacketLinkP.SendState -> SendStateC;
   PacketLinkP.DelayTimer -> DelayTimerC;
   PacketLinkP.PacketAcknowledgements -> CC2420PacketC;

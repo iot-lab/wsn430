@@ -21,7 +21,7 @@
  * copied, and sets a timer.  When the timer expires, the stunicast
  * primitive copies the queue buffer to the Rime buffer and sends the
  * packet using the unicast primitive.  The stunicast primitive sets the
- * number of retransmissions for a packet as a packet attribute on 
+ * number of retransmissions for a packet as a packet attribute on
  * outgoing packets.
  *
  * \section channels Channels

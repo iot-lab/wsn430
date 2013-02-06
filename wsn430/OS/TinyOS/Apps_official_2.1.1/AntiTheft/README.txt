@@ -70,7 +70,7 @@ if using either of those motes)
 
 5. Connect the root mica2 mote to your PC and switch on all motes.
 
-6. Compile and run the java application. The text below assumes your 
+6. Compile and run the java application. The text below assumes your
    serial port is /dev/ttyS0, replace with the actual port you are using
    (e.g., COM3 on Windows or /dev/ttyUSB0 on Linux)
 
@@ -91,7 +91,7 @@ Known bugs/limitations:
 - A newly turned on mote may not send theft reports (when the "Server"
   theft report option is chosen), as:
   o It takes a little while after motes turn on for them to join the multihop
-    collection network. 
+    collection network.
   o It can take a little while for motes to receive the current settings.
 
 None.

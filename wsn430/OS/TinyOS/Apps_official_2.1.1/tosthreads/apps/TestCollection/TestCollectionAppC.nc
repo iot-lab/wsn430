@@ -27,17 +27,17 @@
  * the Java "Oscilloscope" application found in the the TestCollection/java
  * subdirectory. The sampling rate starts at 4Hz, but can be changed from the Java
  * application.
- * 
+ *
  * At least two motes must be used by this application, with one of them installed
  * as a base station.  Base station motes can be created by installing them with
  * NODE_ID % 500 == 0.
  *   i.e. make <platform> threads install.0
  *        make <platform> threads install.500
  *        make <platform> threads install.1000
- * 
+ *
  * All other nodes can be installed with arbitrary NODE_IDs.
  *   make <platform> threads install.123
- * 
+ *
  * Successful running of this application is verified by all NON-base station motes
  * periodically flashing LED1 upon sending a message, and the base station mote,
  * flashing LED2 upon successful reception of a message.  Additionally, correct
@@ -63,22 +63,22 @@ implementation {
              MainC,
              BlockingSerialActiveMessageC,
              new BlockingSerialAMSenderC(AM_OSCILLOSCOPE);
-             
-  
+
+
   TestCollectionC.MainThread -> MainThread;
   TestCollectionC.Boot -> MainC;
   TestCollectionC.BlockingRead -> BlockingSineSensorC;
   TestCollectionC.Leds -> LedsC;
   TestCollectionC.BlockingRead -> BlockingSineSensorC;
-  
+
   TestCollectionC.RadioStdControl -> BlockingActiveMessageC;
-  
+
   TestCollectionC.RoutingControl -> BlockingCollectionControlC;
   TestCollectionC.RootControl -> BlockingCollectionControlC;
   TestCollectionC.Packet -> BlockingCollectionSenderC;
   TestCollectionC.BlockingSend -> BlockingCollectionSenderC;
   TestCollectionC.BlockingReceive -> BlockingCollectionReceiverC;
-  
+
   TestCollectionC.SerialStdControl -> BlockingSerialActiveMessageC;
   TestCollectionC.SerialBlockingSend -> BlockingSerialAMSenderC;
 }

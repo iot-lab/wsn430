@@ -80,9 +80,9 @@ sent_by_stunicast(struct stunicast_conn *stunicast, int status, int num_tx)
 
   /* Only process data packets, not ACKs. */
   if(packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) == PACKETBUF_ATTR_PACKET_TYPE_DATA) {
-    
+
     c->rxmit += 1;
-    
+
     if(c->rxmit != 0) {
       RIMESTATS_ADD(rexmit);
       PRINTF("%d.%d: runicast: sent_by_stunicast packet %u (%u) resent %u\n",
@@ -103,7 +103,7 @@ sent_by_stunicast(struct stunicast_conn *stunicast, int status, int num_tx)
              c->sndnxt);
     } else {
       int shift;
-      
+
       shift = c->rxmit > 4? 4: c->rxmit;
       stunicast_set_timer(&c->c, (REXMIT_TIME) << shift);
     }

@@ -1,19 +1,19 @@
 // $Id: BaseStationP.nc,v 1.10 2008/06/23 20:25:14 regehr Exp $
 
 /*									tab:4
- * "Copyright (c) 2000-2005 The Regents of the University  of California.  
+ * "Copyright (c) 2000-2005 The Regents of the University  of California.
  * All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation for any purpose, without fee, and without written agreement is
  * hereby granted, provided that the above copyright notice, the following
  * two paragraphs and the author appear in all copies of this software.
- * 
+ *
  * IN NO EVENT SHALL THE UNIVERSITY OF CALIFORNIA BE LIABLE TO ANY PARTY FOR
  * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING OUT
  * OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF THE UNIVERSITY OF
  * CALIFORNIA HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * THE UNIVERSITY OF CALIFORNIA SPECIFICALLY DISCLAIMS ANY WARRANTIES,
  * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
  * AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
@@ -23,9 +23,9 @@
  * Copyright (c) 2002-2005 Intel Corporation
  * All rights reserved.
  *
- * This file is distributed under the terms in the attached INTEL-LICENSE     
+ * This file is distributed under the terms in the attached INTEL-LICENSE
  * file. If you do not find these files, copies can be found by writing to
- * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
+ * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA,
  * 94704.  Attention:  Intel License Inquiry.
  */
 
@@ -35,8 +35,8 @@
  * @author David Gay
  * Revision:	$Id: BaseStationP.nc,v 1.10 2008/06/23 20:25:14 regehr Exp $
  */
-  
-/* 
+
+/*
  * BaseStationP bridges packets between a serial channel and the radio.
  * Messages moving from serial to radio will be tagged with the group
  * ID compiled into the TOSBase, and messages moving from radio to
@@ -56,7 +56,7 @@ module BaseStationP @safe() {
     interface Receive as UartReceive[am_id_t id];
     interface Packet as UartPacket;
     interface AMPacket as UartAMPacket;
-    
+
     interface AMSend as RadioSend[am_id_t id];
     interface Receive as RadioReceive[am_id_t id];
     interface Receive as RadioSnoop[am_id_t id];
@@ -132,13 +132,13 @@ implementation
   uint8_t count = 0;
 
   message_t* ONE receive(message_t* ONE msg, void* payload, uint8_t len);
-  
+
   event message_t *RadioSnoop.receive[am_id_t id](message_t *msg,
 						    void *payload,
 						    uint8_t len) {
     return receive(msg, payload, len);
   }
-  
+
   event message_t *RadioReceive.receive[am_id_t id](message_t *msg,
 						    void *payload,
 						    uint8_t len) {
@@ -155,7 +155,7 @@ implementation
 	  uartQueue[uartIn] = msg;
 
 	  uartIn = (uartIn + 1) % UART_QUEUE_LEN;
-	
+
 	  if (uartIn == uartOut)
 	    uartFull = TRUE;
 
@@ -168,12 +168,12 @@ implementation
       else
 	dropBlink();
     }
-    
+
     return ret;
   }
 
   uint8_t tmpLen;
-  
+
   task void uartSendTask() {
     uint8_t len;
     am_id_t id;
@@ -247,7 +247,7 @@ implementation
     if (reflectToken) {
       //call UartTokenReceive.ReflectToken(Token);
     }
-    
+
     return ret;
   }
 
@@ -256,7 +256,7 @@ implementation
     am_id_t id;
     am_addr_t addr,source;
     message_t* msg;
-    
+
     atomic
       if (radioIn == radioOut && !radioFull)
 	{
@@ -272,7 +272,7 @@ implementation
 
     call RadioPacket.clear(msg);
     call RadioAMPacket.setSource(msg, source);
-    
+
     if (call RadioSend.send[id](addr, msg, len) == SUCCESS)
       call Leds.led0Toggle();
     else
@@ -294,7 +294,7 @@ implementation
 	    if (radioFull)
 	      radioFull = FALSE;
 	  }
-    
+
     post radioSendTask();
   }
-}  
+}

@@ -1,4 +1,4 @@
-README for Sense 
+README for Sense
 Author/Contact: tinyos-help@millennium.berkeley.edu
 
 Description:

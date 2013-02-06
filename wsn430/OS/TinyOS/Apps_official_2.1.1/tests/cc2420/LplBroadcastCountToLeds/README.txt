@@ -4,11 +4,11 @@ Author/Contact: tinyos-help@millennium.berkeley.edu
 Description:
 
 This is a low power listening version of RadioCountToLeds,
-using the broadcast address to delivery packets.  That means the 
-delivery will remain on for the full duration of the receiver's 
+using the broadcast address to delivery packets.  That means the
+delivery will remain on for the full duration of the receiver's
 LPL check to ensure all listeners get the message.
 
-Each node is performing 1 second receive checks, but there is a 
+Each node is performing 1 second receive checks, but there is a
 1.5 second delay between each transmission.
 
 Verification:
@@ -23,10 +23,10 @@ Verification:
 If you see LED's waggling on both motes, the test passed.
 
 
-LplBroadcastCountToLeds maintains a 4Hz counter, broadcasting its value in 
-an AM packet every time it gets updated. A RadioCountToLeds node that 
-hears a counter displays the bottom three bits on its LEDs. This 
-application is a useful test to show that basic AM communication and 
+LplBroadcastCountToLeds maintains a 4Hz counter, broadcasting its value in
+an AM packet every time it gets updated. A RadioCountToLeds node that
+hears a counter displays the bottom three bits on its LEDs. This
+application is a useful test to show that basic AM communication and
 timers work.
 
 Tools:

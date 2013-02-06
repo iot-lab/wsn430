@@ -178,7 +178,7 @@ void *
 queuebuf_dataptr(struct queuebuf *b)
 {
   struct queuebuf_ref *r;
-  
+
   if(memb_inmemb(&bufmem, b)) {
     return b->data;
   } else if(memb_inmemb(&refbufmem, b)) {

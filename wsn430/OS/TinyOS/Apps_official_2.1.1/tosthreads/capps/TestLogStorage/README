@@ -1,4 +1,4 @@
-README for TOSThreads TestLogStorage 
+README for TOSThreads TestLogStorage
 Author/Contact: tinyos-help@millennium.berkeley.edu
 Author: Kevin Klues <klueska@cs.stanford.edu>
 
@@ -16,7 +16,7 @@ with the sending facility in a platform independent way.
 
 To run this application install it on a mote via the command:
   make <platform> cthreads install
-  
+
 Valid platforms are currently:  tmote, telosb, iris, mica2, micaz, and epic
 
 Readings are taken from the dummy sensor and logged to flash as one record in an
@@ -42,11 +42,11 @@ Once this java application is running, you should see output containing
 the sensor readings being streamed to your terminal.  Check that the
 output has reasonable values, counting up from 0. E.g.:
 
-  00 ff ff 00 00 06 00 25 00 00 00 9f 00 9f 
-  00 ff ff 00 00 06 00 25 00 00 00 a0 00 a0 
-  00 ff ff 00 00 06 00 25 00 00 00 a1 00 a1 
-  00 ff ff 00 00 06 00 25 00 00 00 a2 00 a2 
-  00 ff ff 00 00 06 00 25 00 00 00 a3 00 a3 
+  00 ff ff 00 00 06 00 25 00 00 00 9f 00 9f
+  00 ff ff 00 00 06 00 25 00 00 00 a0 00 a0
+  00 ff ff 00 00 06 00 25 00 00 00 a1 00 a1
+  00 ff ff 00 00 06 00 25 00 00 00 a2 00 a2
+  00 ff ff 00 00 06 00 25 00 00 00 a3 00 a3
 
 NOTE:  The baud rate 57600 must be used telos based motes, as its configuration
 has been changed to work with this baud rate when compiled for tosthreads. I.e.

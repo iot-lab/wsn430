@@ -147,7 +147,7 @@ PT_THREAD(file_stats(struct httpd_state *s, char *ptr))
   PSOCK_BEGIN(&s->sout);
 
   PSOCK_GENERATOR_SEND(&s->sout, generate_file_stats, (void *) (strchr(ptr, ' ') + 1));
-  
+
   PSOCK_END(&s->sout);
 }
 /*---------------------------------------------------------------------------*/
@@ -191,7 +191,7 @@ make_tcp_stats(void *arg)
 static
 PT_THREAD(tcp_stats(struct httpd_state *s, char *ptr))
 {
-  
+
   PSOCK_BEGIN(&s->sout);
 
   for(s->u.count = 0; s->u.count < UIP_CONNS; ++s->u.count) {

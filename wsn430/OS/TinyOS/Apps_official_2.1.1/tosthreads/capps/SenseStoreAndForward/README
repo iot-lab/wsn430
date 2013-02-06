@@ -1,4 +1,4 @@
-README for TOSThreads SenseStoreAndForward 
+README for TOSThreads SenseStoreAndForward
 Author/Contact: tinyos-help@millennium.berkeley.edu
 Author: Kevin Klues <klueska@cs.stanford.edu>
 
@@ -6,7 +6,7 @@ Description:
 
 SenseStoreAndForward is a threaded implementation of an application that takes
 various sensor readings in parallel (by dedicating one thread to each reading),
-logs them to flash, and then sends them out over the radio at some later time. 
+logs them to flash, and then sends them out over the radio at some later time.
 In the current implementation, sensor readings are taken as quickly as possible,
 and records containing a set of readings from each iteration are batched out
 over the radio every 10000ms.  This application is written specifically for use
@@ -15,7 +15,7 @@ platforms.
 
 To run this application install it on a mote via the command:
   make <platform> cthreads install
-  
+
 Valid platforms are currently: tmote, telosb with onboard sensors
 
 Readings are taken from each of the 4 oboard sensors and logged to flash as one
@@ -34,7 +34,7 @@ to flash since the last batch of sends have been sent out, LED2 Toggles to
 indicate completion.  This process continues in an infinite loop forever.
 
 Additionally, a base station application should be run to verify the reception
-of packets sent from a SenseStoreAndForward mote, with reasonable looking sensor 
+of packets sent from a SenseStoreAndForward mote, with reasonable looking sensor
 data.
 
 Tools:

@@ -362,16 +362,16 @@ powercycle(struct rtimer *t, void *ptr)
         /*        COOJA_DEBUG_STR("yield\n");*/
         PT_YIELD(&pt);
       }
-      
+
       if(packet_seen) {
         static rtimer_clock_t start;
         static uint8_t silence_periods, periods;
         start = RTIMER_NOW();
-        
+
         periods = silence_periods = 0;
         while(we_are_sending == 0 && radio_is_on &&
               RTIMER_CLOCK_LT(RTIMER_NOW(), (start + LISTEN_TIME_AFTER_PACKET_DETECTED))) {
-          
+
           /* Check for a number of consecutive periods of
              non-activity. If we see two such periods, we turn the
              radio off. Also, if a packet has been successfully
@@ -383,9 +383,9 @@ powercycle(struct rtimer *t, void *ptr)
           } else {
             silence_periods = 0;
           }
-          
+
           ++periods;
-        
+
           if(NETSTACK_RADIO.receiving_packet()) {
             silence_periods = 0;
           }
@@ -406,7 +406,7 @@ powercycle(struct rtimer *t, void *ptr)
 #if CONTIKIMAC_CONF_COMPOWER
             compower_accumulate(&compower_idle_activity);
 #endif /* CONTIKIMAC_CONF_COMPOWER */
-            
+
             LEDS_OFF(LEDS_GREEN);
             break;
           }
@@ -414,7 +414,7 @@ powercycle(struct rtimer *t, void *ptr)
           if(NETSTACK_RADIO.pending_packet()) {
             break;
           }
-          
+
           schedule_powercycle(t, CCA_CHECK_TIME + CCA_SLEEP_TIME);
           LEDS_ON(LEDS_BLUE);
           PT_YIELD(&pt);
@@ -571,7 +571,7 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr)
     return MAC_TX_ERR_FATAL;
   }
 
-  
+
   packetbuf_set_addr(PACKETBUF_ADDR_SENDER, &rimeaddr_node_addr);
   if(rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &rimeaddr_null)) {
     is_broadcast = 1;
@@ -599,7 +599,7 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr)
   }
   is_reliable = packetbuf_attr(PACKETBUF_ATTR_RELIABLE) ||
     packetbuf_attr(PACKETBUF_ATTR_ERELIABLE);
-  
+
   if(WITH_STREAMING) {
     if(packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) ==
        PACKETBUF_ATTR_PACKET_TYPE_STREAM) {
@@ -682,7 +682,7 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr)
       /* Wait until the receiver is expected to be awake */
       if(packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) !=
          PACKETBUF_ATTR_PACKET_TYPE_ACK) {
-        
+
         ret = phase_wait(&phase_list, packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
                          CYCLE_TIME, GUARD_TIME,
                          mac_callback, mac_callback_ptr);
@@ -704,9 +704,9 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr)
         is_known_receiver = 1;
       }
     }
-#endif /* WITH_PHASE_OPTIMIZATION */ 
+#endif /* WITH_PHASE_OPTIMIZATION */
   }
-  
+
 
 
   /* By setting we_are_sending to one, we ensure that the rtimer
@@ -724,7 +724,7 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr)
            NETSTACK_RADIO.receiving_packet(), NETSTACK_RADIO.pending_packet());
     return MAC_TX_COLLISION;
   }
-  
+
   /* Switch off the radio to ensure that we didn't start sending while
      the radio was doing a channel check. */
   off();
@@ -773,7 +773,7 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr)
   if(!is_broadcast) {
     on();
   }
-  
+
   watchdog_periodic();
   t0 = RTIMER_NOW();
   t = RTIMER_NOW();
@@ -788,15 +788,15 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr)
 #endif
 
     watchdog_periodic();
-    
+
     if(is_known_receiver && !RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + MAX_PHASE_STROBE_TIME)) {
       break;
     }
-    
+
     len = 0;
 
     t = RTIMER_NOW();
-    
+
     {
       rtimer_clock_t wt;
       rtimer_clock_t now = RTIMER_NOW();
@@ -886,7 +886,7 @@ send_packet(mac_callback_t mac_callback, void *mac_callback_ptr)
   /*  if(!first_transmission)*/ {
 
     /*    COOJA_DEBUG_PRINTF("first phase 0x%02x\n", encounter_time % CYCLE_TIME);*/
-    
+
     if(WITH_ACK_OPTIMIZATION) {
       if(collisions == 0 && packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) !=
          PACKETBUF_ATTR_PACKET_TYPE_ACK && is_streaming == 0) {
@@ -923,8 +923,8 @@ input_packet(void)
   off();
 
   /*  printf("cycle_start 0x%02x 0x%02x\n", cycle_start, cycle_start % CYCLE_TIME);*/
-  
-  
+
+
   if(packetbuf_totlen() > 0 && NETSTACK_FRAMER.parse()) {
 
 #if WITH_CONTIKIMAC_HEADER
@@ -1024,7 +1024,7 @@ send_announcement(void *ptr)
 #if WITH_CONTIKIMAC_HEADER
   struct hdr *chdr;
 #endif /* WITH_CONTIKIMAC_HEADER */
-  
+
   /* Set up the probe header. */
   packetbuf_clear();
   announcement_len = format_announcement(packetbuf_dataptr());
@@ -1092,9 +1092,9 @@ send_announcement(void *ptr)
       }
 
       if(collisions == 0) {
-        
+
         NETSTACK_RADIO.prepare(packetbuf_hdrptr(), transmit_len);
-        
+
         NETSTACK_RADIO.transmit(transmit_len);
         t = RTIMER_NOW();
 #if NURTIMER

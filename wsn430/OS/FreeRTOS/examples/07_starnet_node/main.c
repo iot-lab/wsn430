@@ -32,20 +32,20 @@ int main( void )
 {
     /* Setup the hardware. */
     prvSetupHardware();
-    
+
     /* Create the SPI mutex */
     xSPIMutex = xSemaphoreCreateMutex();
-    
+
     /* Create the task of the application */
     vCreateMacTask(xSPIMutex, configMAX_PRIORITIES-1);
-    
+
     /* Add the local task */
     xTaskCreate( vSendingTask, (const signed char*)"sender", configMINIMAL_STACK_SIZE, NULL, 1, NULL );
 
-    
+
     /* Start the scheduler. */
     vTaskStartScheduler();
-    
+
     /* As the scheduler has been started we should never get here! */
     return 0;
 }
@@ -57,14 +57,14 @@ static void prvSetupHardware( void )
 {
     /* Stop the watchdog timer. */
     WDTCTL = WDTPW + WDTHOLD;
-    
+
     /* Setup MCLK 8MHz and SMCLK 1MHz */
     set_mcu_speed_xt2_mclk_8MHz_smclk_1MHz();
-    
+
     uart0_init(UART0_CONFIG_1MHZ_115200);
-    
+
     printf("FreeRTOS Star Network, network device\r\n");
-    
+
     /* Enable Interrupts */
     eint();
 }

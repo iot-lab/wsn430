@@ -35,15 +35,15 @@
  * assembling them into a packet to be sent out over the radio.  It is written
  * specifically for use with the tmote onboard sensor package, and will not compile
  * for any other platforms.
- * 
+ *
  * Readings are taken from each of the 4 oboard sensors and sent out over the radio
  * interface in an infinite loop.  Upon successful transmission, LED0 is toggled,
  * and the process starts over again.
- * 
+ *
  * A successful test will result in LED0 toggling periodically at a rate of
  * approximately 220ms (the time it takes to take a humidity + temperature sensor
- * reading since they share the same hardware and cannot be taken in parallel). 
- * 
+ * reading since they share the same hardware and cannot be taken in parallel).
+ *
  * Additionally, a base station application should be run to verify the reception
  * of packets sent from a SenseAndSend mote, with reasonable looking sensor data.
  *
@@ -60,7 +60,7 @@
 
 #define NUM_SENSORS             4
 #define SAMPLING_PERIOD      3000
-#define AM_SENSOR_DATA_MSG   0x25   
+#define AM_SENSOR_DATA_MSG   0x25
 
 //Data structure for storing sensor data
 typedef struct sensor_data {
@@ -133,7 +133,7 @@ void send_thread(void* arg) {
   for(;;) {
     barrier_block(&send_barrier);
     barrier_reset(&send_barrier, NUM_SENSORS + 1);
-    
+
     if(amRadioSend(AM_BROADCAST_ADDR, &send_msg, sizeof(sensor_data_t), AM_SENSOR_DATA_MSG) == SUCCESS) {
       sensor_data->seq_no++;
       led0Toggle();

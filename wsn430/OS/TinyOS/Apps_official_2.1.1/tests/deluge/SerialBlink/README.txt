@@ -30,7 +30,7 @@ serial back-channel the following test can be run:
 As the motes get and reprogram with the new image they will start
 sending on the serial a one-byte value of 2.
 
-For a more detailed discussion on Deluge T2, please refer to the Deluge 
+For a more detailed discussion on Deluge T2, please refer to the Deluge
 T2 wiki page.
 
 Prerequisites:

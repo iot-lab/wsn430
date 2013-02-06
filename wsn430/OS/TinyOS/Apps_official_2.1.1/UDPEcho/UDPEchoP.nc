@@ -40,9 +40,9 @@ module UDPEchoP {
     interface UDP as Status;
 
     interface Leds;
-    
+
     interface Timer<TMilli> as StatusTimer;
-   
+
     interface Statistics<ip_statistics_t> as IPStats;
     interface Statistics<udp_statistics_t> as UDPStats;
     interface Statistics<route_statistics_t> as RouteStats;
@@ -85,12 +85,12 @@ module UDPEchoP {
 
   }
 
-  event void Status.recvfrom(struct sockaddr_in6 *from, void *data, 
+  event void Status.recvfrom(struct sockaddr_in6 *from, void *data,
                              uint16_t len, struct ip_metadata *meta) {
 
   }
 
-  event void Echo.recvfrom(struct sockaddr_in6 *from, void *data, 
+  event void Echo.recvfrom(struct sockaddr_in6 *from, void *data,
                            uint16_t len, struct ip_metadata *meta) {
     call Echo.sendto(from, data, len);
   }

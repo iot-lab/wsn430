@@ -50,7 +50,7 @@ implementation {
     call Timer1.startPeriodic(SAMPLING_FREQUENCY);
     call Timer0.startPeriodic(TIMER_PERIOD_MILLI);
   }
-  
+
   event void Timer1.fired()
   {
     readings++;

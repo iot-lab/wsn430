@@ -24,7 +24,7 @@
  * SerialLoader receives loadable programs from the serial port and stores
  * it in a byte array. Then, when it receives the command to load the code,
  * it makes the call to the dynamic loader.
- * 
+ *
  * @author Chieh-Jan Mike Liang <cliang4@cs.jhu.edu>
  * @author Jeongyeup Paek <jpaek@enl.usc.edu>
  */
@@ -42,7 +42,7 @@ implementation
              SerialLoaderP,
              BigCrcC,
              LedsC;
-  
+
   SerialLoaderP.Boot -> MainC;
   SerialLoaderP.SerialSplitControl -> SerialActiveMessageC;
   SerialLoaderP.SerialAMSender -> SerialAMSenderC;

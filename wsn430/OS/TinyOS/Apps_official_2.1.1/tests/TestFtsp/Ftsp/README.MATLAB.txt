@@ -33,7 +33,7 @@ Simulating multi-hop:
 2. recompile and upload TestFTSP app to n motes with special NODE_IDs:
      using 'make micaz reinstall.0xAB', nodes 0xAB and 0xCD can communicate
      iff 2D grid coordinates (A,B) and (C,D) are neighbors in a 2D grid
- 
+
 -------------------------------------------------------------------------------
 EVALUATION:
 --------------------------------------------

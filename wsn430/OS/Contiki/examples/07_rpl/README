@@ -1,11 +1,11 @@
-This example features two applications: "border router" and "udp", that are 
+This example features two applications: "border router" and "udp", that are
 used to demonstrate the use of IPv6 and RPL.
 
-The first found in the rpl-border-router folder will provide the RPL DAG root 
+The first found in the rpl-border-router folder will provide the RPL DAG root
 and should be connected to a PC. It also embeds a webserver showing the list of
 connected devices and routes.
-The second provide a UDP server establishing a DAG (being as well the root) and 
-a UDP client that will join the RPL DAG and be able to communicate with the 
+The second provide a UDP server establishing a DAG (being as well the root) and
+a UDP client that will join the RPL DAG and be able to communicate with the
 border router or UDP server.
 
 This is how to run the demo:

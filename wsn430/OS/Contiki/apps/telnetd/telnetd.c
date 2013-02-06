@@ -66,7 +66,7 @@ struct telnetd_state {
 #define STATE_WONT   3
 #define STATE_DO     4
 #define STATE_DONT   5
-  
+
 #define STATE_CLOSE  6
 };
 static struct telnetd_state s;
@@ -166,7 +166,7 @@ shell_default_output(const char *str1, int len1, const char *str2, int len2)
   }
 
   /*  PRINTF("shell_default_output: %.*s %.*s\n", len1, str1, len2, str2);*/
-  
+
 #if TELNETD_CONF_GUI
   telnetd_gui_output(str1, len1, str2, len2);
 #endif /* TELNETD_CONF_GUI */
@@ -178,7 +178,7 @@ shell_default_output(const char *str1, int len1, const char *str2, int len2)
 PROCESS_THREAD(telnetd_process, ev, data)
 {
   PROCESS_BEGIN();
-  
+
   tcp_listen(HTONS(23));
   buf_init(&buf);
 
@@ -200,7 +200,7 @@ PROCESS_THREAD(telnetd_process, ev, data)
 #endif /* TELNETD_CONF_GUI */
     }
   }
-  
+
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
@@ -268,7 +268,7 @@ newdata(void)
   u16_t len;
   u8_t c;
   uint8_t *ptr;
-    
+
   len = uip_datalen();
   PRINTF("newdata len %d '%.*s'\n", len, len, (char *)uip_appdata);
 
@@ -308,7 +308,7 @@ newdata(void)
       sendopt(TELNET_DONT, c);
       s.state = STATE_NORMAL;
       break;
-      
+
     case STATE_WONT:
       /* Reply with a DONT */
       sendopt(TELNET_DONT, c);

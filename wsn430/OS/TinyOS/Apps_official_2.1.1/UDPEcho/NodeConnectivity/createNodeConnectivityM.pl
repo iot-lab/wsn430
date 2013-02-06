@@ -1,13 +1,13 @@
 #!/usr/bin/perl
 
-# FileName:    createMotelabTopology.pl 
+# FileName:    createMotelabTopology.pl
 # Date:        December 31, 2004
 #
 # Description: Converts a TOSSIM .nss (topology) file into Motelab format
-# Usage:  ./createMotelabTopology.pl  .nssfile     
+# Usage:  ./createMotelabTopology.pl  .nssfile
 
 # Input:  A TOSSIM .nss topology file
-# Output: A nesc file containing a 2D array that represents 
+# Output: A nesc file containing a 2D array that represents
 #         the latency for each node and a func that returns true or false
 #         as to whether that node can communicate with other nodes
 
@@ -59,7 +59,7 @@ while (my @input = split(/:/, <INPUT_NSS>)) {
   #               essentially the inverse of what we want.
 
   $probHash{"$input[0]x$input[1]"} = (1 - $input[2]);
-  
+
   if ($input[0] > $maxI) {
     $maxI = $input[0];
   }
@@ -137,7 +137,7 @@ print <<MAPPING;
 MAPPING
 
 print <<REALEND;
-  
+
   command int8_t NodeConnectivity.mapping(uint16_t moteid) {
     uint8_t i;
     for (i = 0; i < $mappingSize; i++) {

@@ -58,7 +58,7 @@ implementation {
   GDO0M -> GeneralIOC.Port13;
   GDO2M -> GeneralIOC.Port14;
   SOMIM -> GeneralIOC.Port52;
-  
+
   CSN = CSNM;
   GDO0 = GDO0M;
   GDO2 = GDO2M;

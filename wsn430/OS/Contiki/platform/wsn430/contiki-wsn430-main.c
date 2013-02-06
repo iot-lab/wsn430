@@ -193,7 +193,7 @@ main(int argc, char **argv)
      with an Ethernet MAC address - byte 0 (byte 2 in the DS ID)
      cannot be odd. */
   ds2411_id.raw[2] &= 0xfe;
-  
+
   leds_on(LEDS_BLUE);
   xmem_init();
 
@@ -213,7 +213,7 @@ main(int argc, char **argv)
 #endif
 
   random_init(ds2411_id.raw[6]);
-  
+
   leds_off(LEDS_BLUE);
   /*
    * Initialize Contiki and our processes.
@@ -226,7 +226,7 @@ main(int argc, char **argv)
 //  init_platform();
 
   set_rime_addr();
-  
+
 #ifdef WITH_CC1101
   cc1101_radio_init();
 #else
@@ -235,7 +235,7 @@ main(int argc, char **argv)
   {
     uint8_t longaddr[8];
     uint16_t shortaddr;
-    
+
     shortaddr = (rimeaddr_node_addr.u8[0] << 8) +
       rimeaddr_node_addr.u8[1];
     memset(longaddr, 0, sizeof(longaddr));
@@ -243,7 +243,7 @@ main(int argc, char **argv)
     printf("MAC %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x ",
            longaddr[0], longaddr[1], longaddr[2], longaddr[3],
            longaddr[4], longaddr[5], longaddr[6], longaddr[7]);
-    
+
   }
 
   printf(CONTIKI_VERSION_STRING " started. ");

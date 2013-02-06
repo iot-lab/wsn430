@@ -138,7 +138,7 @@ output(struct channel *c)
   int byteptr, len;
   uint8_t *hdrptr;
   struct raw_hdr *hdr;
-  
+
   /* Compute the total size of the final header by summing the size of
      all attributes that are used on this channel. */
   if(packetbuf_hdralloc(c->hdrsize + sizeof(struct raw_hdr)) == 0) {
@@ -170,7 +170,7 @@ output(struct channel *c)
       rimeaddr = packetbuf_addr(a->type);
       hdrptr[byteptr] = rimeaddr->u8[0];
       hdrptr[byteptr + 1] = rimeaddr->u8[1];
-      
+
       PRINTF("%d.%d: address %d.%d\n",
 	    rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	    ((uint8_t *)packetbuf_addr(a->type))[0],
@@ -193,10 +193,10 @@ static int
 hdrsize(const struct packetbuf_attrlist *a)
 {
   int size, len;
-  
+
   /* Compute the total size of the final header by summing the size of
      all attributes that are used on this channel. */
-  
+
   size = 0;
   for(; a->type != PACKETBUF_ATTR_NONE; ++a) {
     /*    PRINTF("chameleon header_size: header type %s (%d) len %d\n",

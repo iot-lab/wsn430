@@ -11,7 +11,7 @@ The mote id is of the form T*100 + k, where k is a random seed and
 T specifies the test to be performed:
 
 T = 0: do a bunch of writes, reads and commits
-T != 0: check if the contents of the volume are consistent with 
+T != 0: check if the contents of the volume are consistent with
         a previous run with T = 0 and the same random seed
 
 A successful test will turn on LED 1. A failed test will turn on the

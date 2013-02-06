@@ -38,7 +38,7 @@
  *         CC2420 driver
  * \author
  *         Clément Burin des Roziers <clement.burin-des-roziers@inrialpes.fr>
- * 
+ *
  * This driver has been mostly copied from the cc2420... files from Adam Dunkels
  */
 #include <io.h>

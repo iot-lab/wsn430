@@ -43,7 +43,7 @@ configuration CC2420TimeSyncMessageC
         interface AMPacket;
         interface PacketAcknowledgements;
         interface LowPowerListening;
-    
+
         interface TimeSyncAMSend<T32khz, uint32_t> as TimeSyncAMSend32khz[am_id_t id];
         interface TimeSyncPacket<T32khz, uint32_t> as TimeSyncPacket32khz;
 
@@ -82,7 +82,7 @@ implementation
         SplitControl = CC2420ActiveMessageC;
         PacketAcknowledgements = CC2420ActiveMessageC;
         LowPowerListening = CC2420ActiveMessageC;
-        
+
         Receive = CC2420TimeSyncMessageP.Receive;
         Snoop = CC2420TimeSyncMessageP.Snoop;
         AMPacket = CC2420TimeSyncMessageP;

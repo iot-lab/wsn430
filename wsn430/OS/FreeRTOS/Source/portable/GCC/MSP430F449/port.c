@@ -33,9 +33,9 @@
     FreeRTOS is distributed in the hope that it will be useful, but WITHOUT
     ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
     FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-    more details. You should have received a copy of the GNU General Public 
-    License and the FreeRTOS license exception along with FreeRTOS; if not it 
-    can be viewed here: http://www.freertos.org/a00114.html and also obtained 
+    more details. You should have received a copy of the GNU General Public
+    License and the FreeRTOS license exception along with FreeRTOS; if not it
+    can be viewed here: http://www.freertos.org/a00114.html and also obtained
     by writing to Richard Barry, contact details for whom are available on the
     FreeRTOS WEB site.
 
@@ -53,7 +53,7 @@
 
 /*
 	Changes from V2.5.2
-		
+
 	+ usCriticalNesting now has a volatile qualifier.
 */
 
@@ -70,7 +70,7 @@
  * Implementation of functions defined in portable.h for the MSP430 port.
  *----------------------------------------------------------*/
 
-/* Constants required for hardware setup.  The tick ISR runs off the ACLK, 
+/* Constants required for hardware setup.  The tick ISR runs off the ACLK,
 not the MCLK. */
 #define portACLK_FREQUENCY_HZ			( ( portTickType ) 32768 )
 #define portINITIAL_CRITICAL_NESTING	( ( unsigned short ) 10 )
@@ -96,11 +96,11 @@ sequence. */
 volatile unsigned short usCriticalNesting = portINITIAL_CRITICAL_NESTING;
 /*-----------------------------------------------------------*/
 
-/* 
- * Macro to save a task context to the task stack.  This simply pushes all the 
- * general purpose msp430 registers onto the stack, followed by the 
- * usCriticalNesting value used by the task.  Finally the resultant stack 
- * pointer value is saved into the task control block so it can be retrieved 
+/*
+ * Macro to save a task context to the task stack.  This simply pushes all the
+ * general purpose msp430 registers onto the stack, followed by the
+ * usCriticalNesting value used by the task.  Finally the resultant stack
+ * pointer value is saved into the task control block so it can be retrieved
  * the next time the task executes.
  */
 #define portSAVE_CONTEXT()									\
@@ -122,7 +122,7 @@ volatile unsigned short usCriticalNesting = portINITIAL_CRITICAL_NESTING;
 					"mov.w	r1, @r12				\n\t"	\
 				);
 
-/* 
+/*
  * Macro to restore a task context from the task stack.  This is effectively
  * the reverse of portSAVE_CONTEXT().  First the stack pointer value is
  * loaded from the task control block.  Next the value for usCriticalNesting
@@ -161,16 +161,16 @@ volatile unsigned short usCriticalNesting = portINITIAL_CRITICAL_NESTING;
 static void prvSetupTimerInterrupt( void );
 /*-----------------------------------------------------------*/
 
-/* 
- * Initialise the stack of a task to look exactly as if a call to 
+/*
+ * Initialise the stack of a task to look exactly as if a call to
  * portSAVE_CONTEXT had been called.
- * 
+ *
  * See the header file portable.h.
  */
 portSTACK_TYPE *pxPortInitialiseStack( portSTACK_TYPE *pxTopOfStack, pdTASK_CODE pxCode, void *pvParameters )
 {
-	/* 
-		Place a few bytes of known values on the bottom of the stack. 
+	/*
+		Place a few bytes of known values on the bottom of the stack.
 		This is just useful for debugging and can be included if required.
 
 		*pxTopOfStack = ( portSTACK_TYPE ) 0x1111;
@@ -178,10 +178,10 @@ portSTACK_TYPE *pxPortInitialiseStack( portSTACK_TYPE *pxTopOfStack, pdTASK_CODE
 		*pxTopOfStack = ( portSTACK_TYPE ) 0x2222;
 		pxTopOfStack--;
 		*pxTopOfStack = ( portSTACK_TYPE ) 0x3333;
-		pxTopOfStack--; 
+		pxTopOfStack--;
 	*/
 
-	/* The msp430 automatically pushes the PC then SR onto the stack before 
+	/* The msp430 automatically pushes the PC then SR onto the stack before
 	executing an ISR.  We want the stack to look just as if this has happened
 	so place a pointer to the start of the task on the stack first - followed
 	by the flags we want the task to use when it starts up. */
@@ -224,7 +224,7 @@ portSTACK_TYPE *pxPortInitialiseStack( portSTACK_TYPE *pxTopOfStack, pdTASK_CODE
 	use the stack as per other ports.  Instead a variable is used to keep
 	track of the critical section nesting.  This variable has to be stored
 	as part of the task context and is initially set to zero. */
-	*pxTopOfStack = ( portSTACK_TYPE ) portNO_CRITICAL_SECTION_NESTING;	
+	*pxTopOfStack = ( portSTACK_TYPE ) portNO_CRITICAL_SECTION_NESTING;
 
 	/* Return a pointer to the top of the stack we have generated so this can
 	be stored in the task control block for the task. */
@@ -254,7 +254,7 @@ void vPortEndScheduler( void )
 /*-----------------------------------------------------------*/
 
 /*
- * Manual context switch called by portYIELD or taskYIELD.  
+ * Manual context switch called by portYIELD or taskYIELD.
  *
  * The first thing we do is save the registers so we can use a naked attribute.
  */
@@ -262,8 +262,8 @@ void vPortYield( void ) __attribute__ ( ( naked ) );
 void vPortYield( void )
 {
 	/* We want the stack of the task being saved to look exactly as if the task
-	was saved during a pre-emptive RTOS tick ISR.  Before calling an ISR the 
-	msp430 places the status register onto the stack.  As this is a function 
+	was saved during a pre-emptive RTOS tick ISR.  Before calling an ISR the
+	msp430 places the status register onto the stack.  As this is a function
 	call and not an ISR we have to do this manually. */
 	asm volatile ( "push	r2" );
 	_DINT();
@@ -281,7 +281,7 @@ void vPortYield( void )
 
 /*
  * Hardware initialisation to generate the RTOS tick.  This uses timer 0
- * but could alternatively use the watchdog timer or timer 1. 
+ * but could alternatively use the watchdog timer or timer 1.
  */
 static void prvSetupTimerInterrupt( void )
 {
@@ -308,7 +308,7 @@ static void prvSetupTimerInterrupt( void )
 }
 /*-----------------------------------------------------------*/
 
-/* 
+/*
  * The interrupt service routine used depends on whether the pre-emptive
  * scheduler is being used or not.
  */
@@ -350,4 +350,4 @@ static void prvSetupTimerInterrupt( void )
 #endif
 
 
-	
+

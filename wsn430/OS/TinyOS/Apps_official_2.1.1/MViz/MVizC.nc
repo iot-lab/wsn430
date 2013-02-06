@@ -2,14 +2,14 @@
  * Copyright (c) 2006 Intel Corporation
  * All rights reserved.
  *
- * This file is distributed under the terms in the attached INTEL-LICENSE     
+ * This file is distributed under the terms in the attached INTEL-LICENSE
  * file. If you do not find these files, copies can be found by writing to
- * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
+ * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA,
  * 94704.  Attention:  Intel License Inquiry.
  */
 
 /**
- * MViz demo application using the collection layer. 
+ * MViz demo application using the collection layer.
  * See README.txt file in this directory and TEP 119: Collection.
  *
  * @author David Gay
@@ -26,7 +26,7 @@ module MVizC @safe(){
     interface SplitControl as RadioControl;
     interface SplitControl as SerialControl;
     interface StdControl as RoutingControl;
-    
+
     // Interfaces for communication, multihop and serial:
     interface Send;
     interface Receive as Snoop;
@@ -70,7 +70,7 @@ implementation {
      notion of time). */
   bool suppress_count_change;
 
-  // 
+  //
   // On bootup, initialize radio and serial communications, and our
   // own state variables.
   //
@@ -148,13 +148,13 @@ implementation {
   //
   // Overhearing other traffic in the network.
   //
-  event message_t* 
+  event message_t*
   Snoop.receive(message_t* msg, void* payload, uint8_t len) {
     mviz_msg_t *omsg = payload;
 
     report_received();
 
-    // If we receive a newer version, update our interval. 
+    // If we receive a newer version, update our interval.
     if (omsg->version > local.version) {
       local.version = omsg->version;
       local.interval = omsg->interval;
@@ -188,7 +188,7 @@ implementation {
       else
 	report_problem();
     }
-    
+
     reading = 0;
     /* Part 2 of cheap "time sync": increment our count if we didn't
        jump ahead. */
@@ -196,7 +196,7 @@ implementation {
       local.count++;
     suppress_count_change = FALSE;
     call Timer.stop();
-    call Timer.startPeriodic(local.interval);    
+    call Timer.startPeriodic(local.interval);
     if (call Read.read() != SUCCESS)
       fatal_problem();
   }
@@ -224,14 +224,14 @@ implementation {
     local.link_route_value = call LinkEstimator.getLinkQuality(local.link_route_addr);
   }
   event void LinkEstimator.evicted(am_addr_t addr){}
-  
+
   event void SerialSend.sendDone(message_t *msg, error_t error) {
     uartbusy = FALSE;
   }
 
   // Use LEDs to report various status issues.
-  static void fatal_problem() { 
-    call Leds.led0On(); 
+  static void fatal_problem() {
+    call Leds.led0On();
     call Leds.led1On();
     call Leds.led2On();
     call Timer.stop();

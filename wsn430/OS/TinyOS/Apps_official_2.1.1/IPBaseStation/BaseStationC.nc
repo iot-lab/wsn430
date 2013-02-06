@@ -22,19 +22,19 @@ z * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING OUT
 // $Id: BaseStationC.nc,v 1.3 2009/09/16 00:18:05 sdhsdh Exp $
 
 /*									tab:4
- * "Copyright (c) 2000-2003 The Regents of the University  of California.  
+ * "Copyright (c) 2000-2003 The Regents of the University  of California.
  * All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation for any purpose, without fee, and without written agreement is
  * hereby granted, provided that the above copyright notice, the following
  * two paragraphs and the author appear in all copies of this software.
- * 
+ *
  * IN NO EVENT SHALL THE UNIVERSITY OF CALIFORNIA BE LIABLE TO ANY PARTY FOR
  * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING OUT
  * OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF THE UNIVERSITY OF
  * CALIFORNIA HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * THE UNIVERSITY OF CALIFORNIA SPECIFICALLY DISCLAIMS ANY WARRANTIES,
  * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
  * AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
@@ -44,9 +44,9 @@ z * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING OUT
  * Copyright (c) 2002-2003 Intel Corporation
  * All rights reserved.
  *
- * This file is distributed under the terms in the attached INTEL-LICENSE     
+ * This file is distributed under the terms in the attached INTEL-LICENSE
  * file. If you do not find these files, copies can be found by writing to
- * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
+ * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA,
  * 94704.  Attention:  Intel License Inquiry.
  */
 
@@ -100,21 +100,21 @@ implementation {
   components MainC, BaseStationP, LedsC;
   components Ieee154MessageC as Radio;
   components SerialDispatcherC as SerialControl, Serial802_15_4C as Serial;
-  
+
   MainC.Boot <- BaseStationP;
 
   BaseStationP.RadioControl -> Radio;
   BaseStationP.SerialControl -> SerialControl;
   BaseStationP.UartSend -> Serial.Send;
   BaseStationP.UartReceive -> Serial.Receive;
-  
+
 
   BaseStationP.RadioSend -> Radio;
   BaseStationP.RadioReceive -> Radio.Ieee154Receive;
 
   BaseStationP.RadioPacket -> Radio.Packet;
   BaseStationP.RadioIeeePacket -> Radio;
-  
+
   BaseStationP.Leds -> LedsC;
 
   BaseStationP.PacketLink -> Radio;

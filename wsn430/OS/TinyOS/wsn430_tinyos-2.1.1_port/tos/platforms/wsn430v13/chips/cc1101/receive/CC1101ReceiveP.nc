@@ -58,11 +58,11 @@ module CC1101ReceiveP @safe() {
   uses interface CC1101Strobe as SRX;
   uses interface CC1101Strobe as SFTX;
   uses interface CC1101Strobe as SFRX;
-  
+
   uses interface CC1101Status as PKTSTATUS;
   uses interface CC1101Status as MARCSTATE;
   uses interface CC1101Status as RXBYTES;
-  
+
   uses interface CC2420Packet;
   uses interface CC2420PacketBody;
   uses interface CC2420Config;
@@ -91,26 +91,26 @@ implementation {
   uint32_t m_timestamp_queue[ TIMESTAMP_QUEUE_SIZE ];
 
   uint8_t m_timestamp_head;
-  
+
   uint8_t m_timestamp_size;
-  
+
   /** Number of packets we missed because we were doing something else */
   uint8_t m_missed_packets;
-  
+
   /** TRUE if we are receiving a valid packet into the stack */
   bool receivingPacket;
-  
+
   /** The length of the frame we're currently receiving */
   norace uint8_t rxFrameLength;
-  
+
   norace uint8_t m_bytes_left;
-  
+
   norace message_t* ONE_NOK m_p_rx_buf;
 
   message_t m_rx_buf;
-  
+
   cc2420_receive_state_t m_state;
-  
+
   /***************** Prototypes ****************/
   void reset_state();
   void beginReceive();
@@ -118,11 +118,11 @@ implementation {
   void waitForNextPacket();
   void flush();
   bool passesAddressCheck(message_t * ONE msg);
-  
+
   void resetRX();
-  
+
   task void receiveDone_task();
-  
+
   /***************** Init Commands ****************/
   command error_t Init.init() {
     m_p_rx_buf = &m_rx_buf;
@@ -140,7 +140,7 @@ implementation {
     }
     return SUCCESS;
   }
-  
+
   command error_t StdControl.stop() {
     atomic {
       m_state = S_STOPPED;
@@ -148,8 +148,8 @@ implementation {
       call CSN.set();
       call InterruptFIFO.disable();
     }
-    
-    
+
+
     return SUCCESS;
   }
 
@@ -160,7 +160,7 @@ implementation {
    */
   async command void CC2420Receive.sfd( uint32_t time ) {
     if ( m_timestamp_size < TIMESTAMP_QUEUE_SIZE ) {
-      uint8_t tail =  ( ( m_timestamp_head + m_timestamp_size ) % 
+      uint8_t tail =  ( ( m_timestamp_head + m_timestamp_size ) %
                         TIMESTAMP_QUEUE_SIZE );
       m_timestamp_queue[ tail ] = time;
       m_timestamp_size++;
@@ -181,24 +181,24 @@ implementation {
     }
     return receiving;
   }
-  
-  
+
+
   /***************** InterruptFIFO Events ****************/
   async event void InterruptFIFO.fired() {
     if ( m_state == S_STARTED ) {
       beginReceive();
-      
+
     } else {
       m_missed_packets++;
     }
   }
-  
-  
+
+
   /***************** SpiResource Events ****************/
   event void SpiResource.granted() {
     receive();
   }
-  
+
   /***************** RXFIFO Events ****************/
   /**
    * We received some bytes from the SPI bus.  Process them in the context
@@ -210,41 +210,41 @@ implementation {
     uint8_t tmpLen __DEPUTY_UNUSED__ = sizeof(message_t) - (offsetof(message_t, data) - sizeof(cc2420_header_t));
     uint8_t* COUNT(tmpLen) buf = TCAST(uint8_t* COUNT(tmpLen), header);
     rxFrameLength = buf[ 0 ];
-    
-    
+
+
     switch( m_state ) {
 
     case S_RX_LENGTH:
       m_state = S_RX_FCF;
-      
+
       buf[0] += 2;
       rxFrameLength += 2; // because of append status.
-      
+
       if ( rxFrameLength + 1 > m_bytes_left ) {
         // Length of this packet is bigger than the RXFIFO, flush it out.
         call CSN.set();
         flush();
-        
+
       } else {
-        
+
         if(rxFrameLength <= MAC_PACKET_SIZE) {
           if(rxFrameLength > 0) {
             if(rxFrameLength > SACK_HEADER_LENGTH) {
               // This packet has an FCF byte plus at least one more byte to read
               call RXFIFO.continueRead(buf + 1, SACK_HEADER_LENGTH);
-              
+
             } else {
               // This is really a bad packet, skip FCF and get it out of here.
               m_state = S_RX_PAYLOAD;
               call RXFIFO.continueRead(buf + 1, rxFrameLength);
             }
-                            
+
           } else {
             // Length == 0; flush
             call CSN.set();
             flush();
           }
-          
+
         } else {
           // Length is too large; we have to flush the entire Rx FIFO
           call CSN.set();
@@ -252,12 +252,12 @@ implementation {
         }
       }
       break;
-      
+
     case S_RX_FCF:
       m_state = S_RX_PAYLOAD;
-      
+
       /*
-       * The destination address check here is not completely optimized. If you 
+       * The destination address check here is not completely optimized. If you
        * are seeing issues with dropped acknowledgements, try removing
        * the address check and decreasing SACK_HEADER_LENGTH to 2.
        * The length byte and the FCF byte are the only two bytes required
@@ -270,32 +270,32 @@ implementation {
             && ((header->dest == call CC2420Config.getShortAddr())
                 || (header->dest == AM_BROADCAST_ADDR))
             && ((( header->fcf >> IEEE154_FCF_FRAME_TYPE ) & 7) == IEEE154_TYPE_DATA)) {
-              
+
           // CSn flippage cuts off our FIFO; SACK and begin reading again
           call CSN.set();
           //~ call CSN.clr();
           //~ call SACK.strobe();
           //~ call CSN.set();
           call CSN.clr();
-          call RXFIFO.beginRead(buf + 1 + SACK_HEADER_LENGTH, 
+          call RXFIFO.beginRead(buf + 1 + SACK_HEADER_LENGTH,
               rxFrameLength - SACK_HEADER_LENGTH);
           return;
         }
       }
-      
+
       // Didn't flip CSn, we're ok to continue reading.
-      call RXFIFO.continueRead(buf + 1 + SACK_HEADER_LENGTH, 
+      call RXFIFO.continueRead(buf + 1 + SACK_HEADER_LENGTH,
           rxFrameLength - SACK_HEADER_LENGTH);
       break;
-    
+
     case S_RX_PAYLOAD:
       call CSN.set();
-      
+
       //~ if(!m_missed_packets) {
         // Release the SPI only if there are no more frames to download
         //~ call SpiResource.release();
       //~ }
-      
+
       //new packet is buffered up, or we don't have timestamp in fifo, or ack
       if (  !m_timestamp_size || rxFrameLength <= 10) {
         call PacketTimeStamp.clear(m_p_rx_buf);
@@ -311,7 +311,7 @@ implementation {
           m_timestamp_size = 0;
         }
       }
-      
+
       {
         // We may have received an ack that should be processed by Transmit
         uint8_t type = ( header->fcf >> IEEE154_FCF_FRAME_TYPE ) & 7;
@@ -328,14 +328,14 @@ implementation {
       call CSN.set();
       flush();
       break;
-      
+
     }
-    
+
   }
 
   async event void RXFIFO.writeDone( uint8_t* tx_buf, uint8_t tx_len, error_t error ) {
-  }  
-  
+  }
+
   /***************** Tasks *****************/
   /**
    * Fill in metadata details, pass the packet up the stack, and
@@ -347,41 +347,41 @@ implementation {
     uint8_t length = header->length;
     uint8_t tmpLen __DEPUTY_UNUSED__ = sizeof(message_t) - (offsetof(message_t, data) - sizeof(cc2420_header_t));
     uint8_t* COUNT(tmpLen) buf = TCAST(uint8_t* COUNT(tmpLen), header);
-    
+
     metadata->crc = buf[ length ] >> 7;
     metadata->lqi = buf[ length ] & 0x7f;
     metadata->rssi = buf[ length - 1 ];
-    
+
     if (passesAddressCheck(m_p_rx_buf) && length >= CC2420_SIZE) {
-      m_p_rx_buf = signal Receive.receive( m_p_rx_buf, m_p_rx_buf->data, 
+      m_p_rx_buf = signal Receive.receive( m_p_rx_buf, m_p_rx_buf->data,
 					   length - CC2420_SIZE);
     }
-    
+
   }
-  
+
   /****************** CC2420Config Events ****************/
   event void CC2420Config.syncDone( error_t error ) {
   }
-  
+
   /****************** Functions ****************/
   /**
    * Attempt to acquire the SPI bus to receive a packet.
    */
-  void beginReceive() { 
+  void beginReceive() {
     m_state = S_RX_LENGTH;
-    
+
     atomic receivingPacket = TRUE;
     if(call SpiResource.isOwner()) {
       receive();
-      
+
     } else if (call SpiResource.immediateRequest() == SUCCESS) {
       receive();
-      
+
     } else {
       call SpiResource.request();
     }
   }
-  
+
   /**
    * Flush out the Rx FIFO
    */
@@ -391,21 +391,21 @@ implementation {
       waitForNextPacket();
     }
   }
-  
+
   /**
    * The first byte of each packet is the length byte.  Read in that single
    * byte, and then read in the rest of the packet.  The CC2420 could contain
-   * multiple packets that have been buffered up, so if something goes wrong, 
+   * multiple packets that have been buffered up, so if something goes wrong,
    * we necessarily want to flush out the FIFO unless we have to.
    */
   void receive() {
     uint8_t pktstatus;
-    
+
     // first of all, check the CRC result
     call CSN.clr();
     call PKTSTATUS.read(&pktstatus);
     call CSN.set();
-    
+
     if (pktstatus & 0x80) { // if CRC ok
       call CSN.clr();
       call RXFIFO.beginRead( (uint8_t*)(call CC2420PacketBody.getHeader( m_p_rx_buf )), 1 );
@@ -424,12 +424,12 @@ implementation {
       call SpiResource.release();
       return;
     }
-    
+
     m_state = S_STARTED;
     resetRX();
     call SpiResource.release();
   }
-  
+
   /**
    * Reset this component
    */
@@ -446,105 +446,105 @@ implementation {
    */
   bool passesAddressCheck(message_t *msg) {
     cc2420_header_t *header = call CC2420PacketBody.getHeader( msg );
-    
+
     if(!(call CC2420Config.isAddressRecognitionEnabled())) {
       return TRUE;
     }
-    
+
     return (header->dest == call CC2420Config.getShortAddr()
         || header->dest == AM_BROADCAST_ADDR);
   }
-  
+
   // SpiResource must be acquired before calling this function
   void resetRX(void) {
   	uint8_t state;
-  	
+
 		call CSN.set();
   	call CSN.clr();
 		call MARCSTATE.read(&state);
 		call CSN.set();
-		
+
 		switch (state) {
 			case 0x11: // RXFIFO_OVERFLOW
 				// flush RX
 				call CSN.clr();
 				call SFRX.strobe();
 				call CSN.set();
-				
+
 				// wait IDLE
 				do {
 					call CSN.clr();
 					call MARCSTATE.read(&state);
 					call CSN.set();
 				} while (state != 0x1); // IDLE
-				
+
 				// flush TX
 				call CSN.clr();
 				call SFTX.strobe();
 				call CSN.set();
-				
+
 				break;
 			case 0x16: // TXFIFO_UNDERFLOW
 			  // flush TX
 				call CSN.clr();
 				call SFTX.strobe();
 				call CSN.set();
-				
+
 				// wait IDLE
 				do {
 					call CSN.clr();
 					call MARCSTATE.read(&state);
 					call CSN.set();
 				} while (state != 0x1); // IDLE
-				
+
 				// flush RX
 				call CSN.clr();
 				call SFRX.strobe();
 				call CSN.set();
-				
+
 				break;
-				
+
 			default: // Any other state
 				// set IDLE
 				call CSN.clr();
 				call SIDLE.strobe();
 				call CSN.set();
-				
+
 				// wait IDLE
 				do {
 					call CSN.clr();
 					call MARCSTATE.read(&state);
 					call CSN.set();
 				} while (state != 0x1); // IDLE
-				
+
 			  // flush TX
 				call CSN.clr();
 				call SFTX.strobe();
 				call CSN.set();
-				
+
 				// wait IDLE
 				do {
 					call CSN.clr();
 					call MARCSTATE.read(&state);
 					call CSN.set();
 				} while (state != 0x1); // IDLE
-				
-				
+
+
 				// flush RX
 				call CSN.clr();
 				call SFRX.strobe();
 				call CSN.set();
-				
+
 				break;
 		}
-		
+
 		// wait IDLE
 		do {
 			call CSN.clr();
 			call MARCSTATE.read(&state);
 			call CSN.set();
 		} while (state != 0x1); // IDLE
-		
+
 		// Set RX
 		call CSN.clr();
 		call SRX.strobe();

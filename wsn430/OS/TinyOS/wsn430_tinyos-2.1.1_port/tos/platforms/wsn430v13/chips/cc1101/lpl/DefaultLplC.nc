@@ -46,8 +46,8 @@ configuration DefaultLplC {
     interface SplitControl;
     interface State as SendState;
   }
-  
-  uses { 
+
+  uses {
     interface Send as SubSend;
     interface Receive as SubReceive;
     interface SplitControl as SubControl;
@@ -68,21 +68,21 @@ implementation {
       new TimerMilliC() as SendDoneTimerC,
       SystemLowPowerListeningC,
       LedsC;
-  
+
   LowPowerListening = DefaultLplP;
   Send = DefaultLplP;
   Receive = DefaultLplP;
   SplitControl = PowerCycleC;
   SendState = SendStateC;
-  
+
   SubControl = DefaultLplP.SubControl;
   SubReceive = DefaultLplP.SubReceive;
   SubSend = DefaultLplP.SubSend;
-  
-  
+
+
   MainC.SoftwareInit -> DefaultLplP;
-  
-  
+
+
   DefaultLplP.SplitControlState -> PowerCycleC.SplitControlState;
   DefaultLplP.RadioPowerState -> PowerCycleC.RadioPowerState;
   DefaultLplP.SendState -> SendStateC;

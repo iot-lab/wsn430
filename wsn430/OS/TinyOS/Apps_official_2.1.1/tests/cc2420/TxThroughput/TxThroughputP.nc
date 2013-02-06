@@ -28,9 +28,9 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE
  */
- 
+
 #include "TxThroughput.h"
- 
+
 /**
  * This application is used more for characterization rather than a
  * test.  It measures the maximum radio throughput using the largest
@@ -38,7 +38,7 @@
  *
  * @author David Moss
  */
- 
+
 module TxThroughputP {
   uses {
     interface Boot;
@@ -55,19 +55,19 @@ module TxThroughputP {
 implementation {
 
   message_t radioMsg;
-  
+
   message_t serialMsg;
-  
+
   uint16_t packetsPerSecond;
-  
+
   enum {
     MSG_DESTINATION = 1,
   };
-  
+
   /***************** Prototypes ****************/
   task void sendRadio();
   task void sendSerial();
-  
+
   /***************** Boot Events ****************/
   event void Boot.booted() {
     if(USE_ACKNOWLEDGEMENTS) {
@@ -75,55 +75,55 @@ implementation {
     } else {
       call PacketAcknowledgements.noAck(&radioMsg);
     }
-    
+
     call RadioSplitControl.start();
     call SerialSplitControl.start();
   }
-  
+
   /***************** RadioSplitControl Events ****************/
   event void RadioSplitControl.startDone(error_t error) {
     packetsPerSecond = 0;
     post sendRadio();
   }
-  
+
   event void RadioSplitControl.stopDone(error_t error) {
   }
-  
+
   /***************** SerialSplitControl Events ****************/
   event void SerialSplitControl.startDone(error_t error) {
     call Timer.startPeriodic(1024);
   }
-  
+
   event void SerialSplitControl.stopDone(error_t error) {
   }
-  
+
   /***************** AMSend Events ****************/
   event void RadioAMSend.sendDone(message_t *msg, error_t error) {
     packetsPerSecond++;
     call Leds.led1Toggle();
     post sendRadio();
   }
-  
+
   event void SerialAMSend.sendDone(message_t *msg, error_t error) {
   }
-  
+
   /***************** Timer Events ***************/
   event void Timer.fired() {
     ((ThroughputMsg *) call SerialAMSend.getPayload(&serialMsg, sizeof(ThroughputMsg)))->packetsPerSecond = packetsPerSecond;
     packetsPerSecond = 0;
     post sendSerial();
   }
-  
+
   /****************** Tasks ****************/
   task void sendRadio() {
-    if(call RadioAMSend.send(MSG_DESTINATION, &radioMsg, sizeof(ThroughputMsg)) 
+    if(call RadioAMSend.send(MSG_DESTINATION, &radioMsg, sizeof(ThroughputMsg))
         != SUCCESS) {
       post sendRadio();
     }
   }
-  
+
   task void sendSerial() {
-    if(call SerialAMSend.send(0, &serialMsg, sizeof(ThroughputMsg)) 
+    if(call SerialAMSend.send(0, &serialMsg, sizeof(ThroughputMsg))
         != SUCCESS) {
       post sendSerial();
     }

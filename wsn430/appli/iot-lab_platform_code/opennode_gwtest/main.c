@@ -63,9 +63,9 @@ int main( void )
 {
     /* Setup the hardware. */
     setupHardware();
-    
+
     printf("program started\n");
-    
+
     while (1)
     {
         // low power until command received
@@ -76,27 +76,27 @@ int main( void )
             int j;
             for (j=0; j<RESP_FRAME_LEN; j++)
                 resp.data[j] = 0;
-            
+
             resp.sync = SYNC_BYTE;
             resp.cmd = cmd.cmd;
             resp.end = END_BYTE;
-            
+
             switch (cmd.cmd) {
                 case CMD_PING:
                     resp.payload[0] = 1;
                     break;
             }
-            
+
             for (j=0; j<RESP_FRAME_LEN; j++)
             {
                 uart0_putchar(resp.data[j]);
             }
-            
+
         }
-        
+
     }
-    
-    
+
+
     return 0;
 }
 
@@ -104,7 +104,7 @@ int main( void )
 uint16_t char_received(uint8_t c)
 {
     static int ix = 0;
-    
+
     if ( (ix == 0) && (c == SYNC_BYTE) && (cmd_ready == 0) )
     {
         cmd.data[ix] = c;
@@ -116,7 +116,7 @@ uint16_t char_received(uint8_t c)
         ix++;
         return 0;
     } else if ( (ix == 2) && (c == END_BYTE) ) {
-        
+
         cmd.data[ix] = c;
         cmd_ready = 1;
         ix = 0;
@@ -125,7 +125,7 @@ uint16_t char_received(uint8_t c)
         ix = 0;
         return 0;
     }
-    
+
     return 0;
 }
 
@@ -136,18 +136,18 @@ static void setupHardware( void )
 {
     /* Stop the watchdog timer. */
     WDTCTL = WDTPW + WDTHOLD;
-    
+
     /* Setup MCLK 8MHz and SMCLK 1MHz */
     set_mcu_speed_xt2_mclk_8MHz_smclk_1MHz();
-    
+
     /* Initialize the LEDs */
     LEDS_INIT();
     LEDS_ON();
-    
+
     // setup uart
     uart0_init(UART0_CONFIG_1MHZ_115200);
     uart0_register_callback(char_received);
-    
+
     /* Enable Interrupts */
     eint();
 }

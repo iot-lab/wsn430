@@ -28,9 +28,9 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
- 
+
 /**
- * Header file for declaring constants and AM types for use by the 
+ * Header file for declaring constants and AM types for use by the
  * BaseStation application
  *
  * @author Kevin Klues <klueska@cs.stanford.edu>

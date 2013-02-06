@@ -7,13 +7,13 @@ class Sernode (node.Node):
     def __init__(self, id, dev="/dev/ttyS0"):
         node.Node.__init__(self, id)
         self.ser = serial.Serial(dev, 115200, timeout=0.1)
-    
+
     def write(self, data):
         self.ser.write(data)
-    
+
     def read(self):
         return self.ser.read(1)
-    
+
     def close(self):
         return self.ser.close()
 

@@ -77,16 +77,16 @@ timetable_timediff(struct timetable *t,
   int i;
 #endif
   int t1, t2;
-  
+
   t1 = t2 = t->size;
-  
+
   for(i = *t->ptr - 1; i >= 0; --i) {
     if(t->timestamps[i].id == id1) {
       t1 = i;
       break;
     }
   }
-  
+
   for(i = i - 1; i >= 0; --i) {
     if(t->timestamps[i].id == id2) {
       t2 = i;
@@ -96,7 +96,7 @@ timetable_timediff(struct timetable *t,
   if(t1 != t->size && t2 != t->size) {
     return t->timestamps[t1].time - t->timestamps[t2].time;
   }
-  
+
   return 0;
 }
 /*---------------------------------------------------------------------------*/
@@ -106,7 +106,7 @@ timetable_init(void)
   char dummy1, dummy2;
 #define temp_size 4
   TIMETABLE_STATIC(temp);
-  
+
   timetable_clear(&temp);
 
   /* Measure the time for taking a timestamp. */
@@ -120,7 +120,7 @@ timetable_print(struct timetable *t)
 {
   int i;
   int time;
-  
+
   time = t->timestamps[0].time;
 
   printf("---\n");

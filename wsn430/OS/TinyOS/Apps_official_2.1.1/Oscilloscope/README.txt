@@ -19,7 +19,7 @@ You can change the sensor used by editing OscilloscopeAppC.nc.
 Tools:
 
 To display the readings from Oscilloscope motes, install the BaseStation
-application on a mote connected to your PC's serial port. Then run the 
+application on a mote connected to your PC's serial port. Then run the
 Oscilloscope display application found in the java subdirectory, as
 follows:
   cd java

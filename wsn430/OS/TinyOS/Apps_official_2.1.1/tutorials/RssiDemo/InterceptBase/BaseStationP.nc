@@ -1,17 +1,17 @@
 /*
- * "Copyright (c) 2000-2005 The Regents of the University  of California.  
+ * "Copyright (c) 2000-2005 The Regents of the University  of California.
  * All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation for any purpose, without fee, and without written agreement is
  * hereby granted, provided that the above copyright notice, the following
  * two paragraphs and the author appear in all copies of this software.
- * 
+ *
  * IN NO EVENT SHALL THE UNIVERSITY OF CALIFORNIA BE LIABLE TO ANY PARTY FOR
  * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING OUT
  * OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF THE UNIVERSITY OF
  * CALIFORNIA HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * THE UNIVERSITY OF CALIFORNIA SPECIFICALLY DISCLAIMS ANY WARRANTIES,
  * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
  * AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
@@ -21,9 +21,9 @@
  * Copyright (c) 2002-2005 Intel Corporation
  * All rights reserved.
  *
- * This file is distributed under the terms in the attached INTEL-LICENSE     
+ * This file is distributed under the terms in the attached INTEL-LICENSE
  * file. If you do not find these files, copies can be found by writing to
- * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
+ * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA,
  * 94704.  Attention:  Intel License Inquiry.
  */
 
@@ -33,8 +33,8 @@
  * @author David Gay
  * @author Dimas Abreu Dutra
  */
-  
-/* 
+
+/*
  * BaseStationP bridges packets between a serial channel and the radio.
  * Messages moving from serial to radio will be tagged with the group
  * ID compiled into the TOSBase, and messages moving from radio to
@@ -54,7 +54,7 @@ module BaseStationP @safe() {
     interface Receive as UartReceive[am_id_t id];
     interface Packet as UartPacket;
     interface AMPacket as UartAMPacket;
-    
+
     interface AMSend as RadioSend[am_id_t id];
     interface Receive as RadioReceive[am_id_t id];
     interface Receive as RadioSnoop[am_id_t id];
@@ -63,7 +63,7 @@ module BaseStationP @safe() {
 
     interface Leds;
   }
-  
+
   provides interface Intercept as RadioIntercept[am_id_t amid];
   provides interface Intercept as SerialIntercept[am_id_t amid];
 }
@@ -134,13 +134,13 @@ implementation
 
   message_t* receive(message_t* msg, void* payload,
 		     uint8_t len, am_id_t id);
-  
+
   event message_t *RadioSnoop.receive[am_id_t id](message_t *msg,
 						    void *payload,
 						    uint8_t len) {
     return receive(msg, payload, len, id);
   }
-  
+
   event message_t *RadioReceive.receive[am_id_t id](message_t *msg,
 						    void *payload,
 						    uint8_t len) {
@@ -149,7 +149,7 @@ implementation
 
   message_t* receive(message_t *msg, void *payload, uint8_t len, am_id_t id) {
     message_t *ret = msg;
-    
+
     if (!signal RadioIntercept.forward[id](msg,payload,len))
       return ret;
 
@@ -160,7 +160,7 @@ implementation
 	  uartQueue[uartIn] = msg;
 
 	  uartIn = (uartIn + 1) % UART_QUEUE_LEN;
-	
+
 	  if (uartIn == uartOut)
 	    uartFull = TRUE;
 
@@ -173,12 +173,12 @@ implementation
       else
 	dropBlink();
     }
-    
+
     return ret;
   }
 
   uint8_t tmpLen;
-  
+
   task void uartSendTask() {
     uint8_t len;
     am_id_t id;
@@ -224,7 +224,7 @@ implementation
 
   event message_t *UartReceive.receive[am_id_t id](message_t *msg,
 						   void *payload,
-						   uint8_t len) {       
+						   uint8_t len) {
     message_t *ret = msg;
     bool reflectToken = FALSE;
 
@@ -254,7 +254,7 @@ implementation
     if (reflectToken) {
       //call UartTokenReceive.ReflectToken(Token);
     }
-    
+
     return ret;
   }
 
@@ -263,7 +263,7 @@ implementation
     am_id_t id;
     am_addr_t addr;
     message_t* msg;
-    
+
     atomic
       if (radioIn == radioOut && !radioFull)
 	{
@@ -296,7 +296,7 @@ implementation
 	    if (radioFull)
 	      radioFull = FALSE;
 	  }
-    
+
     post radioSendTask();
   }
 
@@ -313,4 +313,4 @@ implementation
 					uint8_t len) {
     return TRUE;
   }
-}  
+}

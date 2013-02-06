@@ -63,7 +63,7 @@ struct udpip_hdr {
     proto;
   u16_t ipchksum;
   uip_ipaddr_t srcipaddr, destipaddr;
-  
+
   /* UDP header. */
   u16_t srcport,
     destport;
@@ -110,7 +110,7 @@ hc_compress(u8_t *buf, int len)
 
   /* Check the original TCP/IP header to see if it matches our
      pattern, and compress if it does. */
-  
+
   if(uhdr->vhl == 0x45 &&                      /* Only IPv4 without
 						  options. */
      uhdr->len[0] == 0x00 &&                   /* Only packets < 256
@@ -148,7 +148,7 @@ hc_compress(u8_t *buf, int len)
 
   /* No compression possible, return NULL pointer. */
   return len;
-     
+
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -166,28 +166,28 @@ hc_inflate(u8_t *buf, int len)
 {
   struct udpip_hdr *uhdr;
   struct hc_hdr *hdr;
-  
+
   hdr = (struct hc_hdr *)buf;
-  
+
   /* First, check if the header in buf is compressed or not. */
   if((hdr->flagsport & UIP_HTONS(FLAGS_COMPRESSED)) != 0 &&
      (hdr->flagsport & UIP_HTONS(FLAGS_BROADCASTDATA)) != 0) {
-    
+
     /* Move packet data in memory to make room for the uncompressed header. */
     memmove(&buf[UIP_IPUDPH_LEN - HC_HLEN],
 	    buf, len);
     uhdr = (struct udpip_hdr *)buf;
     hdr = (struct hc_hdr *)&buf[UIP_IPUDPH_LEN - HC_HLEN];
-    
+
     uip_ipaddr_copy(&uhdr->srcipaddr, &hdr->srcipaddr);
     uhdr->srcport = hdr->flagsport & UIP_HTONS(0x3fff);
     uhdr->destport = hdr->flagsport & UIP_HTONS(0x3fff);
-    
+
     uhdr->udplen = len;
-    
+
     len += UIP_IPUDPH_LEN - HC_HLEN;
 
-    
+
     uhdr->vhl = 0x45;
     uhdr->tos = 0;
     uhdr->len[0] = 0;

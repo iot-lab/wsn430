@@ -19,12 +19,12 @@
  * OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR
  * MODIFICATIONS."
  */
- 
+
 #include "Timer.h"
- 
+
 /**
  *
- * This application is used to test the use of Shared Resources.  
+ * This application is used to test the use of Shared Resources.
  * Three Resource users are created and all three request
  * control of the resource before any one of them is granted it.
  * Once the first user is granted control of the resource, it performs
@@ -32,8 +32,8 @@
  * is set to allow this user to have control of it for a specific
  * amount of time.  Once this timer expires, the resource is released
  * and then immediately requested again.  Upon releasing the resource
- * control will be granted to the next user that has requested it in 
- * round robin order.  Initial requests are made by the three resource 
+ * control will be granted to the next user that has requested it in
+ * round robin order.  Initial requests are made by the three resource
  * users in the following order.<br>
  * <li> Resource 0
  * <li> Resource 2
@@ -46,7 +46,7 @@
  * <li> Led 1 -> Resource 1
  * <li> Led 2 -> Resource 2
  * <br>
- * 
+ *
  * @author Kevin Klues (klueska@cs.wustl.edu)
  * @version $Revision: 1.1 $
  * @date $Date: 2007/07/13 23:43:17 $
@@ -54,18 +54,18 @@
 
 module SharedResourceDemoC {
   uses {
-    interface Boot;  
+    interface Boot;
     interface Leds;
     interface Timer<TMilli> as Timer0;
     interface Timer<TMilli> as Timer1;
     interface Timer<TMilli> as Timer2;
-    
+
     interface Resource as Resource0;
     interface ResourceOperations as ResourceOperations0;
-    
+
     interface Resource as Resource1;
     interface ResourceOperations as ResourceOperations1;
-    
+
     interface Resource as Resource2;
     interface ResourceOperations as ResourceOperations2;
   }
@@ -73,39 +73,39 @@ module SharedResourceDemoC {
 implementation {
 
   #define HOLD_PERIOD 250
-  
+
   //All resources try to gain access
   event void Boot.booted() {
     call Resource0.request();
     call Resource2.request();
     call Resource1.request();
   }
-  
-  //If granted the resource, run some operation  
+
+  //If granted the resource, run some operation
   event void Resource0.granted() {
-  	call ResourceOperations0.operation();   
-  }  
+  	call ResourceOperations0.operation();
+  }
   event void Resource1.granted() {
   	call ResourceOperations1.operation();
-  }  
+  }
   event void Resource2.granted() {
   	call ResourceOperations2.operation();
-  }  
-  
+  }
+
   //When the operation completes, flash the LED and hold the resource for a while
   event void ResourceOperations0.operationDone(error_t error) {
-  	call Timer0.startOneShot(HOLD_PERIOD);  
+  	call Timer0.startOneShot(HOLD_PERIOD);
     call Leds.led0Toggle();
   }
   event void ResourceOperations1.operationDone(error_t error) {
-    call Timer1.startOneShot(HOLD_PERIOD);  
+    call Timer1.startOneShot(HOLD_PERIOD);
     call Leds.led1Toggle();
   }
   event void ResourceOperations2.operationDone(error_t error) {
-    call Timer2.startOneShot(HOLD_PERIOD);  
+    call Timer2.startOneShot(HOLD_PERIOD);
     call Leds.led2Toggle();
   }
-  
+
   //After the hold period release the resource and request it again
   event void Timer0.fired() {
     call Resource0.release();

@@ -15,15 +15,15 @@ class Sensor():
         self.Data=[0]
         for i in range(1, nbchannel):
             self.Data.append(0)
-       
+
     def display(self):
         msgdata=''
         for i in range(0, nbchannel-1):
             msgdata=msgdata+' '+str(self.Data[i])
         print self.Node,":",self.Count,msgdata
 
-class acqSensor(): 
-    def __init__(self, nbchannels, period, timerecord, filename, parent=None):               
+class acqSensor():
+    def __init__(self, nbchannels, period, timerecord, filename, parent=None):
         self.Run=False                     # Thread acqui control
         self.Running=False                 # Indicate if the thread is active
         self.Display=True                  # Print or not data value on GUI
@@ -33,7 +33,7 @@ class acqSensor():
         self.SignalData=[]
         self.SignalIndex=0
         self.Sens=Sensor(nbchannels)
-   
+
     def gridVerifPress(self):
         if (self.SignalIndex >0):
             print 'NBSCAN=',self.Svdatas.Nbscan
@@ -59,7 +59,7 @@ class acqSensor():
             print "Verif","No Signal to plot"
 
         return
-    
+
     def saveFile(self,name):
         self.Svdatas.save("./datas/"+name)
         return
@@ -71,20 +71,20 @@ class acqSensor():
         self.SignalIndex=0
 
         ser = serial.Serial('/dev/ttyS0', 115200, timeout=0)
-       
+
         index=0
 
         data = ''
-        
+
         vardata=['d_0']
         analyze='(?P<node_id>[0-9a-f]+):(?P<seq>[\-0-9]+) (?P<d_0>[\-0-9]+)'
         for i in range(1,  self.Sens.NbChannel):
             vardata.append('d_'+str(i))
             analyze=analyze+' (?P<'+vardata[i]+'>[\-0-9]+)'
         analyze=analyze+'\r\n'
-            
+
 #        ptn = re.compile('''(?P<node_id>[0-9a-f]+):(?P<seq>[\-0-9]+) (?P<d_0>[\-0-9]+)\r\n''')
-                
+
         ptn = re.compile(analyze)
 
         while self.Run==True:
@@ -94,7 +94,7 @@ class acqSensor():
                 line = data[:end_ix]
                 data = data[end_ix:]
 
-                m = ptn.match(line) 
+                m = ptn.match(line)
 #               print "RAW LINE=",line
                 if m:
                     self.Sens.Node = m.group('node_id')
@@ -105,27 +105,27 @@ class acqSensor():
                     for i in range(1,  self.Sens.NbChannel):
                         self.Sens.Data[i]=int(m.group(vardata[i]))
                         tabdat.append(self.Sens.Data[i])
-                        
+
                     if self.SignalIndex==0:
                         self.SignalData=np.array(tabdat)
-                    else : 
+                    else :
                         self.SignalData=np.vstack((self.SignalData,tabdat))
-                        
+
                     self.SignalIndex+=1
-      
+
                     if self.Display==True:
                         self.Sens.display()
-                    
+
                 if (index>=timecount-1):
                     self.Run=False
                 else:
                     index+=1
-            
+
 
         self.Running=False
 
     def stopAcqui(self):
-        self.Run=False 
+        self.Run=False
         self.Status=0
         if self.SignalIndex > 0 :
             self.Svdatas=svDatas()
@@ -157,10 +157,10 @@ def test1():
         acq.FileRecordName=raw_input()
 
     acq.saveFile(acq.FileRecordName)
-    
+
     return
 
 if __name__ == '__main__':
     test1()
-    
+
 

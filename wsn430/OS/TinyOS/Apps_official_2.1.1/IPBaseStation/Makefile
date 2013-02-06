@@ -5,7 +5,7 @@ COMPONENT=BaseStationC
 
 # this is necessary, otherwise we will allocate a heap by including
 # the lowpan target
-CFLAGS += -DNO_IP_MALLOC 
+CFLAGS += -DNO_IP_MALLOC
 
 # this aligns the 802.15.4 payload on the data field of a message_t.
 # very convenient for forwarding, and means we don't have to do a

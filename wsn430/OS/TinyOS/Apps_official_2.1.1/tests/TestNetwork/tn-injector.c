@@ -16,7 +16,7 @@ int main(int argc, char **argv)
     fprintf(stderr, "Usage: %s <host> <port> <seqno> <rate> - change sample rate (ms/sample)\n", argv[0]);
     exit(2);
   }
-  
+
   fd = open_sf_source(argv[1], atoi(argv[2]));
 
   if (fd < 0) {
@@ -30,7 +30,7 @@ int main(int argc, char **argv)
   void* payload = storage + (spacket_data_offsetbits(0) / 8);
   tmsg_t* dataMsg = new_tmsg(payload, DISSEMINATION_MESSAGE_SIZE + sizeof(uint16_t));
   void* data = payload + (dissemination_message_data_offsetbits(0) / 8);
-  
+
   spacket_header_type_set(serialMsg, DISSEMINATION_MESSAGE_AM_TYPE);
   spacket_header_length_set(serialMsg, DISSEMINATION_MESSAGE_SIZE + sizeof(uint16_t));
   dissemination_message_key_set(dataMsg, SAMPLE_RATE_KEY);

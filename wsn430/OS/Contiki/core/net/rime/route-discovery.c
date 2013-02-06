@@ -107,7 +107,7 @@ send_rrep(struct route_discovery_conn *c, const rimeaddr_t *dest)
   struct rrep_hdr *rrepmsg;
   struct route_entry *rt;
   rimeaddr_t saved_dest;
-  
+
   rimeaddr_copy(&saved_dest, dest);
 
   packetbuf_clear();
@@ -140,11 +140,11 @@ insert_route(const rimeaddr_t *originator, const rimeaddr_t *last_hop,
 	 originator->u8[0], originator->u8[1],
 	 last_hop->u8[0], last_hop->u8[1],
 	 hops);
-  
+
   route_add(originator, last_hop, hops, 0);
   /*
     struct route_entry *rt;
-  
+
   rt = route_lookup(originator);
   if(rt == NULL || hops < rt->hop_count) {
     PRINTF("%d.%d: Inserting %d.%d into routing table, next hop %d.%d, hop count %d\n",
@@ -249,7 +249,7 @@ rreq_packet_received(struct netflood_conn *nf, const rimeaddr_t *from,
 	     packetbuf_attr(PACKETBUF_ATTR_LINK_QUALITY));
 
       insert_route(originator, from, hops);
-      
+
       /* Send route reply back to source. */
       send_rrep(c, originator);
       return 0; /* Don't continue to flood the rreq packet. */
@@ -262,7 +262,7 @@ rreq_packet_received(struct netflood_conn *nf, const rimeaddr_t *from,
 	     packetbuf_attr(PACKETBUF_ATTR_LINK_QUALITY));
       insert_route(originator, from, hops);
     }
-    
+
     return 1;
   }
   return 0; /* Don't forward packet. */

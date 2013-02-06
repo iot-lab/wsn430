@@ -45,7 +45,7 @@ typedef struct generic_sensor_sample {
 typedef union generic_sensor_sample_type_union {
   uint8_t u8;
   uint16_t u16;
-  uint32_t u32; 
+  uint32_t u32;
   sensor_type_t st;
 } generic_sensor_sample_type_union_t;
 

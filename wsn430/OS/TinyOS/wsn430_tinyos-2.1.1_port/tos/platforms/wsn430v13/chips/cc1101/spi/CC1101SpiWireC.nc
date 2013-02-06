@@ -35,7 +35,7 @@
  */
 
 configuration CC1101SpiWireC {
-  
+
   provides interface Resource[ uint8_t id ];
   provides interface ChipSpiResource;
   provides interface CC1101Fifo as Fifo[ uint8_t id ];
@@ -57,7 +57,7 @@ implementation {
 
   components new StateC() as WorkingStateC;
   SpiP.WorkingState -> WorkingStateC;
-  
+
   components new HplCC1101SpiC();
   SpiP.SpiResource -> HplCC1101SpiC;
   SpiP.SpiByte -> HplCC1101SpiC;

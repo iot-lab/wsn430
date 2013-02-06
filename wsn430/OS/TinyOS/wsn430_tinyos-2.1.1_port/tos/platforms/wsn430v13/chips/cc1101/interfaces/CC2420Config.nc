@@ -70,7 +70,7 @@ interface CC2420Config {
   async command uint16_t getPanAddr();
   command void setPanAddr( uint16_t address );
 
-  
+
   /**
    * @param enableAddressRecognition TRUE to turn address recognition on
    * @param useHwAddressRecognition TRUE to perform address recognition first
@@ -78,18 +78,18 @@ interface CC2420Config {
    *     driver must sync with the chip after changing this value.
    */
   command void setAddressRecognition(bool enableAddressRecognition, bool useHwAddressRecognition);
-  
-  
+
+
   /**
    * @return TRUE if address recognition is enabled
    */
   async command bool isAddressRecognitionEnabled();
-  
+
   /**
    * @return TRUE if address recognition is performed first in hardware.
    */
   async command bool isHwAddressRecognitionDefault();
-  
+
   /**
    * Sync must be called for acknowledgement changes to take effect
    * @param enableAutoAck TRUE to enable auto acknowledgements
@@ -97,18 +97,18 @@ interface CC2420Config {
    *     default to software auto acknowledgements
    */
   command void setAutoAck(bool enableAutoAck, bool hwAutoAck);
-  
+
   /**
    * @return TRUE if hardware auto acks are the default, FALSE if software
    *     acks are the default
    */
   async command bool isHwAutoAckDefault();
-  
+
   /**
    * @return TRUE if auto acks are enabled
    */
   async command bool isAutoAckEnabled();
-  
 
-  
+
+
 }

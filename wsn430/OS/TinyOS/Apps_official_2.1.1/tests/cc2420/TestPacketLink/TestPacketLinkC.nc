@@ -43,21 +43,21 @@
  *     led1 toggling on every successfully delivered message
  *     led0 toggling on every unsuccessfully delivered message (and stay on
  *       until the next dropped packet)
- *   
+ *
  *   Receiver (ID 0) -
  *     Leds represent the binary count of sets of messages that were dropped
  *     or duplicated.
- * 
- *     Ideally, if the transmitter and receiver are in range of each other, 
+ *
+ *     Ideally, if the transmitter and receiver are in range of each other,
  *     the receiver's LEDs should never turn on.  You can pull the receiver
  *     out of range for up to two seconds before the transmission will fail.
- *     If you aren't convinced the receiver is doing anything because its 
+ *     If you aren't convinced the receiver is doing anything because its
  *     leds aren't flashing, just turn it off and watch the transmitter's
  *     reaction.
  *
  * @author David Moss
  */
- 
+
 configuration TestPacketLinkC {
 }
 
@@ -73,7 +73,7 @@ implementation {
       new SerialAMSenderC(AM_PACKETLINKMSG),
       new TimerMilliC(),
       LedsC;
-      
+
   TestPacketLinkP.Boot -> MainC;
   TestPacketLinkP.RadioSplitControl -> ActiveMessageC;
   TestPacketLinkP.SerialSplitControl -> SerialActiveMessageC;
@@ -84,6 +84,6 @@ implementation {
   TestPacketLinkP.Receive -> AMReceiverC;
   TestPacketLinkP.Timer -> TimerMilliC;
   TestPacketLinkP.Leds -> LedsC;
-  
+
 }
 

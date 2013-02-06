@@ -27,17 +27,17 @@
  * the Java "Oscilloscope" application found in the the TestCollection/java
  * subdirectory. The sampling rate starts at 4Hz, but can be changed from the Java
  * application.
- * 
+ *
  * At least two motes must be used by this application, with one of them installed
  * as a base station.  Base station motes can be created by installing them with
  * NODE_ID % 500 == 0.
  *   i.e. make <platform> threads install.0
  *        make <platform> threads install.500
  *        make <platform> threads install.1000
- * 
+ *
  * All other nodes can be installed with arbitrary NODE_IDs.
  *   make <platform> threads install.123
- * 
+ *
  * Successful running of this application is verified by all NON-base station motes
  * periodically flashing LED1 upon sending a message, and the base station mote,
  * flashing LED2 upon successful reception of a message.  Additionally, correct
@@ -68,29 +68,29 @@ module TestCollectionC {
 
 implementation {
   static void fatal_problem();
-  
+
   oscilloscope_t local;
   uint8_t reading = 0;   /* 0 to NREADINGS */
   message_t sendbuf;
   message_t recvbuf;
-  
+
   void fatal_problem();
   void report_problem();
   void report_sent();
   void report_received();
-  
+
   event void Boot.booted() {
     local.interval = DEFAULT_INTERVAL;
     local.id = TOS_NODE_ID;
     local.version = 0;
-    
+
     call MainThread.start(NULL);
   }
-  
+
   event void MainThread.run(void* arg) {
     while (call RadioStdControl.start() != SUCCESS);
     while (call RoutingControl.start() != SUCCESS);
-    
+
     if (local.id % 500 == 0) {
       while (call SerialStdControl.start() != SUCCESS);
       call RootControl.setRoot();
@@ -105,7 +105,7 @@ implementation {
       }
     } else {
       uint16_t var;
-      
+
       for (;;) {
         if (reading == NREADINGS) {
           oscilloscope_t *o = (oscilloscope_t *) call BlockingSend.getPayload(&sendbuf, sizeof(oscilloscope_t));
@@ -120,22 +120,22 @@ implementation {
           } else {
             report_problem();
           }
-        
+
           reading = 0;
         }
-          
+
         if (call BlockingRead.read(&var) == SUCCESS) {
           local.readings[reading++] = var;
         }
-        
+
         call MainThread.sleep(local.interval);
       }
     }
   }
-  
+
   // Use LEDs to report various status issues.
-  void fatal_problem() { 
-    call Leds.led0On(); 
+  void fatal_problem() {
+    call Leds.led0On();
     call Leds.led1On();
     call Leds.led2On();
   }

@@ -4,7 +4,7 @@ Author/Contact: tinyos-help@millennium.berkeley.edu
 Description:
 
 A simple low-power-listening test app, which cycles through different
-low-power-listening settings every ~32s, repeating every ~192s. 
+low-power-listening settings every ~32s, repeating every ~192s.
 
 This application currently runs on motes using the CC1000, CC2420 and
 RF230 radios. To compile for motes with CC2420 or RF230 radios, you
@@ -13,7 +13,7 @@ must do:
 
 This application blinks LED 0 every time it sends a message, and toggles
 LED 1 every time it receives a message. If this application is
-working correctly (see caveat about timing below), you should see 
+working correctly (see caveat about timing below), you should see
 both nodes toggling LED 1.
 
 Its low-power-listening settings are as follows (repeating every 256s):

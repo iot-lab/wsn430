@@ -1,23 +1,23 @@
 /*
  * Copyright  2008-2009 INRIA/SensTools
- * 
+ *
  * <dev-team@sentools.info>
- * 
+ *
  * This software is a set of libraries designed to develop applications
  * for the WSN430 embedded hardware platform.
- * 
+ *
  * This software is governed by the CeCILL license under French law and
- * abiding by the rules of distribution of free software.  You can  use, 
+ * abiding by the rules of distribution of free software.  You can  use,
  * modify and/ or redistribute the software under the terms of the CeCILL
  * license as circulated by CEA, CNRS and INRIA at the following URL
- * "http://www.cecill.info". 
- * 
+ * "http://www.cecill.info".
+ *
  * As a counterpart to the access to the source code and  rights to copy,
  * modify and redistribute granted by the license, users are provided only
  * with a limited warranty  and the software's author,  the holder of the
  * economic rights,  and the successive licensors  have only  limited
- * liability. 
- * 
+ * liability.
+ *
  * In this respect, the user's attention is drawn to the risks associated
  * with loading,  using,  modifying and/or developing or reproducing the
  * software by the user in light of its specific status of free software,
@@ -25,10 +25,10 @@
  * therefore means  that it is reserved for developers  and  experienced
  * professionals having in-depth computer knowledge. Users are therefore
  * encouraged to load and test the software's suitability as regards their
- * requirements in conditions enabling the security of their systems and/or 
- * data to be ensured and,  more generally, to use and operate it in the 
- * same conditions as regards security. 
- * 
+ * requirements in conditions enabling the security of their systems and/or
+ * data to be ensured and,  more generally, to use and operate it in the
+ * same conditions as regards security.
+ *
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
@@ -38,7 +38,7 @@
  * \ingroup wsn430
  * @{
  * This module allows the user to control the CC2420 radio chip.
- * 
+ *
  * The CC2420 is a 2.4GHz radio chip designed to implement the 802.15.4
  * MAC layer specifications, with ZigBee as upper layer.
  * Nevertheless, it may be used for implementing many other
@@ -61,7 +61,7 @@
 
 /**
  * \brief The callback function type, used for all interrupts.
- * 
+ *
  * The registered function should return 0 if the CPU must remain
  * in its low power state, or anything else in order to wake the CPU up.
  * \return 1 for wake up, 0 for stay the same
@@ -70,7 +70,7 @@ typedef uint16_t (*cc2420_cb_t)(void);
 
 /**
  * \brief Initialize procedure.
- * 
+ *
  * This function initializes the CC2420, by setting the default register values.
  * It should be called first, before any other function.
  * \return 1
@@ -147,7 +147,7 @@ void cc2420_write_ram(uint16_t addr, uint8_t* buffer, uint16_t len);
 
 /**
  * \brief Set the TX power.
- * 
+ *
  * Here is the corresponding table
  * param value     : 31 | 27 | 23 | 19 | 15 |  11 |  7  |  3
  * output power (dBm): 0  | -1 | -3 | -5 | -7 | -10 | -15 | -25
@@ -163,7 +163,7 @@ void cc2420_write_ram(uint16_t addr, uint8_t* buffer, uint16_t len);
 
 /**
  * \brief Set the FIFO threshold for setting the FIFOP pin.
- * 
+ *
  * \param thr the number of bytes in RXFIFO needed by the FIFOP pin
  */
 #define cc2420_set_fifopthr(thr) do { \
@@ -176,7 +176,7 @@ void cc2420_write_ram(uint16_t addr, uint8_t* buffer, uint16_t len);
 
 /**
  * \brief Set the CCA threshold.
- * 
+ *
  * If the RSSI measure is below this value,
  * CCA is asserted. Offset is the same as the RSSI measures.
  * \param thr the threshold value (0x00-0xFF)
@@ -230,7 +230,7 @@ void cc2420_write_ram(uint16_t addr, uint8_t* buffer, uint16_t len);
 
 /**
  * \brief Get the CC2420 chip status.
- * 
+ *
  * The bits of interest are described above.
  * \return the chip status value
  */
@@ -239,7 +239,7 @@ void cc2420_write_ram(uint16_t addr, uint8_t* buffer, uint16_t len);
 
 /**
  * \brief Get the CC2420 version word.
- * 
+ *
  * \return the chip's version
  */
 

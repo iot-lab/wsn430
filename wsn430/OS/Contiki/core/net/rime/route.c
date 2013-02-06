@@ -155,7 +155,7 @@ route_add(const rimeaddr_t *dest, const rimeaddr_t *nexthop,
 	 e->dest.u8[0], e->dest.u8[1],
 	 e->nexthop.u8[0], e->nexthop.u8[1],
 	 e->cost);
-  
+
   return 0;
 }
 /*---------------------------------------------------------------------------*/
@@ -168,7 +168,7 @@ route_lookup(const rimeaddr_t *dest)
 
   lowest_cost = -1;
   best_entry = NULL;
-  
+
   /* Find the route with the lowest cost. */
   for(e = list_head(route_table); e != NULL; e = list_item_next(e)) {
     /*    printf("route_lookup: comparing %d.%d.%d.%d with %d.%d.%d.%d\n",
@@ -192,7 +192,7 @@ route_refresh(struct route_entry *e)
        out. */
     e->time = 0;
     e->decay = 0;
-    
+
     PRINTF("route_refresh: time %d last %d decay %d for entry to %d.%d with nexthop %d.%d and cost %d\n",
            e->time, e->time_last_decay, e->decay,
            e->dest.u8[0], e->dest.u8[1],
@@ -213,7 +213,7 @@ route_decay(struct route_entry *e)
 	 e->dest.u8[0], e->dest.u8[1],
 	 e->nexthop.u8[0], e->nexthop.u8[1],
 	 e->cost);
-  
+
   if(e->time != e->time_last_decay) {
     /* Do not decay a route too often - not more than once per second. */
     e->time_last_decay = e->time;

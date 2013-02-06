@@ -67,7 +67,7 @@ recv_from_abc(struct abc_conn *bc)
   struct broadcast_conn *c = (struct broadcast_conn *)bc;
 
   rimeaddr_copy(&sender, packetbuf_addr(PACKETBUF_ADDR_SENDER));
-  
+
   PRINTF("%d.%d: broadcast: from %d.%d\n",
 	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
 	 sender.u8[0], sender.u8[1]);

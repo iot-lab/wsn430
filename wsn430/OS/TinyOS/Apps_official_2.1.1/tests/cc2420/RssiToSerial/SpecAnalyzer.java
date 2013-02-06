@@ -58,13 +58,13 @@ public class SpecAnalyzer implements MessageListener {
 
   /** The total number of characters written last time */
   private int lastCharsWritten = 0;
-  
+
   /** The maximum size of the bar on the command line, in characters */
   private static final int MAX_CHARACTERS = 50;
-  
+
   /**
    * Constructor
-   * 
+   *
    * @param argv
    */
   public SpecAnalyzer(MoteIF mif) {
@@ -91,7 +91,7 @@ public class SpecAnalyzer implements MessageListener {
 
   /**
    * Overwrites the current command line prompt with blank space
-   * 
+   *
    */
   void clearSpectrum() {
     for(int i = 0; i < lastCharsWritten; i++) {
@@ -102,7 +102,7 @@ public class SpecAnalyzer implements MessageListener {
   /**
    * Prints the magnitude of the spectrum to stdout. Specifically, it prints
    * (largest - average) "+" signs to stdout.
-   * 
+   *
    * @param largest
    *          the largest rssi value taken during the sample period
    * @param avg
@@ -112,28 +112,28 @@ public class SpecAnalyzer implements MessageListener {
     clearSpectrum();
     String bar = "[";
     int size = (int) ((float) largest * (float) ((float) MAX_CHARACTERS / (float) (255)));
-    
+
     for(int i = 0; i < size && i < MAX_CHARACTERS; i++) {
       bar += "+";
     }
-    
+
     for(int i = 0; i < (MAX_CHARACTERS - size); i++) {
       bar += " ";
     }
-    
+
     bar += "]";
-    
+
     lastCharsWritten = bar.length();
     System.out.print(bar);
   }
-  
+
   private static void usage() {
     System.err.println("usage: SpecAnalyzer [-comm <source>]");
   }
 
   /**
    * Main Method
-   * 
+   *
    * @param argv
    */
   public static void main(String[] args) {

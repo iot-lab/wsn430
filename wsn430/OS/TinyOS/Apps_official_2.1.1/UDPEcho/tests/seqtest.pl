@@ -26,7 +26,7 @@ while (1) {
     for ($len = 1; $len < 1000; $len++) {
         print $len . "\n";
         print WRITER substr($testbuf, 0, $len) . "\n";
-        
+
         my $rin = '';
         vec($rin,fileno(READER),1) = 1;
         my $found = select($rin, undef, undef, "6");
@@ -39,7 +39,7 @@ while (1) {
         } else {
             print "FAILURE: len: $len\n";
         }
-        
+
         $trials++;
         print "TRIAL: $trials\n";
         sleep(.05);

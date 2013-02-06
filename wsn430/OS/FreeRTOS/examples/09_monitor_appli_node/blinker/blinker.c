@@ -38,7 +38,7 @@ void vCreateBlinkerTask(xQueueHandle xQueue, uint16_t usPriority)
 {
     /* Store the command queue handle */
     xCmdQueue = xQueue;
-    
+
     /* Create the task */
     xTaskCreate( vBlinkerTask, (const signed char*) "blinker", configMINIMAL_STACK_SIZE, NULL, usPriority, NULL );
 }
@@ -51,11 +51,11 @@ void vCreateBlinkerTask(xQueueHandle xQueue, uint16_t usPriority)
 static void vBlinkerTask(void* pvParameters)
 {
     rxdata_t rx_data;
-    
+
     /* Configure and Initialize the LEDs */
     LEDS_INIT();
     LEDS_ON();
-    
+
     for (;;)
     {
         /* Wait until a command is received */

@@ -3,9 +3,9 @@
  * Copyright (c) 2007 Intel Corporation
  * All rights reserved.
  *
- * This file is distributed under the terms in the attached INTEL-LICENSE     
+ * This file is distributed under the terms in the attached INTEL-LICENSE
  * file. If you do not find these files, copies can be found by writing to
- * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
+ * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA,
  * 94704.  Attention:  Intel License Inquiry.
  */
 /**
@@ -38,7 +38,7 @@ implementation
 {
   enum {
     /* Threshold for considering mote in a dark place */
-    DARK_THRESHOLD = 600, 
+    DARK_THRESHOLD = 600,
 
     /* Amount of time warning leds should stay on (in checkInterval counts) */
     WARNING_TIME = 3,
@@ -126,7 +126,7 @@ implementation
        received buffer */
     return msg;
   }
-  
+
   /* At boot time, start the periodic timer and the radio */
   event void Boot.booted() {
     errorLed();

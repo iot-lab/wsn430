@@ -51,7 +51,7 @@ module CC2420TinyosNetworkP @safe() {
     interface Send as ActiveSend;
     interface Receive as ActiveReceive;
   }
-  
+
   uses {
     interface Send as SubSend;
     interface Receive as SubReceive;
@@ -105,7 +105,7 @@ implementation {
   }
 
   command void* BareSend.getPayload(message_t* msg, uint8_t len) {
-#ifndef TFRAMES_ENABLED                      
+#ifndef TFRAMES_ENABLED
     cc2420_header_t *hdr = call CC2420PacketBody.getHeader(msg);
     return &hdr->network;
 #else
@@ -113,7 +113,7 @@ implementation {
 #error "BareSend is not supported with TFRAMES: only the ActiveMessage layer is supported"
 #endif
   }
-  
+
   /***************** SubSend Events *****************/
   event void SubSend.sendDone(message_t* msg, error_t error) {
     if (call CC2420Packet.getNetwork(msg) == TINYOS_6LOWPAN_NETWORK_ID) {

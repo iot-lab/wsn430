@@ -86,7 +86,7 @@ implementation {
   async command uint8_t CC2420Packet.getPower( message_t* p_msg ) {
     return (call CC2420PacketBody.getMetadata( p_msg ))->tx_power;
   }
-   
+
   async command int8_t CC2420Packet.getRssi( message_t* p_msg ) {
     return (call CC2420PacketBody.getMetadata( p_msg ))->rssi;
   }
@@ -107,7 +107,7 @@ implementation {
 #if ! defined(TFRAMES_ENABLED)
     (call CC2420PacketBody.getHeader( p_msg ))->network = networkId;
 #endif
-  }    
+  }
 
 
   /***************** CC2420PacketBody Commands ****************/
@@ -189,7 +189,7 @@ implementation {
             - MAC_FOOTER_SIZE
             - sizeof(timesync_radio_t);
   }
-  
+
   async command void PacketTimeSyncOffset.set(message_t* msg)
   {
     (call CC2420PacketBody.getMetadata( msg ))->timesync = TRUE;

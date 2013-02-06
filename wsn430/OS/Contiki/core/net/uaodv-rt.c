@@ -69,7 +69,7 @@ uaodv_rt_add(uip_ipaddr_t *dest, uip_ipaddr_t *nexthop,
   /* Avoid inserting duplicate entries. */
   e = uaodv_rt_lookup_any(dest);
   if(e != NULL) {
-    list_remove(route_table, e);    
+    list_remove(route_table, e);
   } else {
     /* Allocate a new entry or reuse the oldest. */
     e = memb_alloc(&route_mem);

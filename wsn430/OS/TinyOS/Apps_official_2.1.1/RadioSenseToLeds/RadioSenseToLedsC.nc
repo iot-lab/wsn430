@@ -1,19 +1,19 @@
 // $Id: RadioSenseToLedsC.nc,v 1.6 2008/09/25 04:08:47 regehr Exp $
 
 /*									tab:4
- * "Copyright (c) 2000-2005 The Regents of the University  of California.  
+ * "Copyright (c) 2000-2005 The Regents of the University  of California.
  * All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation for any purpose, without fee, and without written agreement is
  * hereby granted, provided that the above copyright notice, the following
  * two paragraphs and the author appear in all copies of this software.
- * 
+ *
  * IN NO EVENT SHALL THE UNIVERSITY OF CALIFORNIA BE LIABLE TO ANY PARTY FOR
  * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING OUT
  * OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF THE UNIVERSITY OF
  * CALIFORNIA HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * THE UNIVERSITY OF CALIFORNIA SPECIFICALLY DISCLAIMS ANY WARRANTIES,
  * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
  * AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
@@ -23,22 +23,22 @@
  * Copyright (c) 2002-2003 Intel Corporation
  * All rights reserved.
  *
- * This file is distributed under the terms in the attached INTEL-LICENSE     
+ * This file is distributed under the terms in the attached INTEL-LICENSE
  * file. If you do not find these files, copies can be found by writing to
- * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA, 
+ * Intel Research Berkeley, 2150 Shattuck Avenue, Suite 1300, Berkeley, CA,
  * 94704.  Attention:  Intel License Inquiry.
  */
- 
+
 #include "Timer.h"
 #include "RadioSenseToLeds.h"
 
 /**
- * Implementation of the RadioSenseToLeds application.  RadioSenseToLeds samples 
- * a platform's default sensor at 4Hz and broadcasts this value in an AM packet. 
- * A RadioSenseToLeds node that hears a broadcast displays the bottom three bits 
- * of the value it has received. This application is a useful test to show that 
+ * Implementation of the RadioSenseToLeds application.  RadioSenseToLeds samples
+ * a platform's default sensor at 4Hz and broadcasts this value in an AM packet.
+ * A RadioSenseToLeds node that hears a broadcast displays the bottom three bits
+ * of the value it has received. This application is a useful test to show that
  * basic AM communication, timers, and the default sensor work.
- * 
+ *
  * @author Philip Levis
  * @date   June 6 2005
  */
@@ -59,7 +59,7 @@ implementation {
 
   message_t packet;
   bool locked = FALSE;
-   
+
   event void Boot.booted() {
     call RadioControl.start();
   }
@@ -70,7 +70,7 @@ implementation {
     }
   }
   event void RadioControl.stopDone(error_t err) {}
-  
+
   event void MilliTimer.fired() {
     call Read.read();
   }
@@ -94,7 +94,7 @@ implementation {
     }
   }
 
-  event message_t* Receive.receive(message_t* bufPtr, 
+  event message_t* Receive.receive(message_t* bufPtr,
 				   void* payload, uint8_t len) {
     call Leds.led1Toggle();
     if (len != sizeof(radio_sense_msg_t)) {return bufPtr;}

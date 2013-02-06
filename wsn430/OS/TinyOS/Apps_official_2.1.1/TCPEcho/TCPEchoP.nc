@@ -41,9 +41,9 @@ module TCPEchoP {
     interface Tcp as TcpEcho;
 
     interface Leds;
-    
+
     interface Timer<TMilli> as StatusTimer;
-   
+
     interface Statistics<ip_statistics_t> as IPStats;
     interface Statistics<route_statistics_t> as RouteStats;
     interface Statistics<icmp_statistics_t> as ICMPStats;
@@ -96,19 +96,19 @@ module TCPEchoP {
 
   }
 
-  event void Status.recvfrom(struct sockaddr_in6 *from, void *data, 
+  event void Status.recvfrom(struct sockaddr_in6 *from, void *data,
                              uint16_t len, struct ip_metadata *meta) {
 
   }
 
-  event void Echo.recvfrom(struct sockaddr_in6 *from, void *data, 
+  event void Echo.recvfrom(struct sockaddr_in6 *from, void *data,
                            uint16_t len, struct ip_metadata *meta) {
     CHECK_NODE_ID;
     call Echo.sendto(from, data, len);
   }
 
   enum {
-    STATUS_SIZE = sizeof(ip_statistics_t) + 
+    STATUS_SIZE = sizeof(ip_statistics_t) +
     sizeof(route_statistics_t) +
     sizeof(icmp_statistics_t) + sizeof(udp_statistics_t),
   };
@@ -132,7 +132,7 @@ module TCPEchoP {
     call Status.sendto(&route_dest, &stats, sizeof(stats));
   }
 
-  /* 
+  /*
    * Example code for setting up a TCP echo socket.
    */
 
@@ -146,7 +146,7 @@ module TCPEchoP {
     return TRUE;
   }
   event void TcpEcho.connectDone(error_t e) {
-    
+
   }
   event void TcpEcho.recv(void *payload, uint16_t len) {
     if (call TcpEcho.send(payload,len) != SUCCESS)

@@ -11,7 +11,7 @@ push( @includes, qw(
   %T/platforms/wsn430v14
   %T/platforms/wsn430v14/chips/cc2420
   %T/platforms/wsn430v14/chips/msp430
-  
+
   ## MSP430 Chip
   %T/chips/msp430
   %T/chips/msp430/adc12
@@ -20,13 +20,13 @@ push( @includes, qw(
   %T/chips/msp430/timer
   %T/chips/msp430/usart
   %T/chips/msp430/sensors
-  
+
   ## Generic import
   %T/lib/timer
   %T/lib/serial
   %T/lib/adc
   %T/lib/power
-  
+
   ## Radio chip
   #%T/platforms/epic/chips/ds2411
   %T/chips/ds2401
@@ -44,7 +44,7 @@ push( @includes, qw(
   %T/chips/cc2420/security
   %T/chips/cc2420/transmit
   %T/chips/cc2420/unique
-  
+
   ) );
 
 @opts = qw(

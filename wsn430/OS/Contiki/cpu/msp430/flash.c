@@ -59,19 +59,19 @@ flash_setup(void)
 
   /* Stop watchdog. */
   watchdog_stop();
-  
+
   /* DCO(SMCLK) is 2,4576MHz, /6 = 409600 Hz
      select SMCLK for flash timing, divider 5+1 */
-  FCTL2 = 0xA5C5;              
+  FCTL2 = 0xA5C5;
 
   /* disable all interrupts to protect CPU
      during programming from system crash */
-  _DINT();                   
+  _DINT();
 
   /* disable all NMI-Interrupt sources */
   ie1 = IE1;
   ie2 = IE2;
-  IE1 = 0x00;                  
+  IE1 = 0x00;
   IE2 = 0x00;
 }
 /*---------------------------------------------------------------------------*/

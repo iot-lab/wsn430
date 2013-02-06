@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (c) 2004, Technische Universitaet Berlin
  * All rights reserved.
  *
@@ -40,7 +40,7 @@
  *   LED1 denotes a successful ReadNow operation,
  *   LED2 denotes a successful ReadStream operation.
  *
- * @author Jan Hauer 
+ * @author Jan Hauer
  */
 module TestAdcC
 {
@@ -56,7 +56,7 @@ implementation
 #define BUF_SIZE 100
   uint16_t buf[BUF_SIZE];
   bool streamSuccess;
-  
+
   event void Boot.booted()
   {
     streamSuccess = FALSE;
@@ -65,7 +65,7 @@ implementation
     call ReadStream.read(10000);
     call ReadNowResource.request();
   }
-  
+
   event void Read.readDone(error_t result, uint16_t data)
   {
     if (result == SUCCESS)
@@ -76,7 +76,7 @@ implementation
   {
     call ReadNow.read();
   }
-  
+
   async event void ReadNow.readDone(error_t result, uint16_t data)
   {
     if (result == SUCCESS)
@@ -84,7 +84,7 @@ implementation
     call ReadNowResource.release();
   }
 
-  event void ReadStream.bufferDone( error_t result, 
+  event void ReadStream.bufferDone( error_t result,
 			 uint16_t* buffer, uint16_t count )
   {
     streamSuccess = TRUE;

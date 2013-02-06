@@ -21,7 +21,7 @@ INCLUDES = -I. -I$(SOURCE_PATH)/include -I$(FREERTOS_PATH)/lib/phy -I$(FREERTOS_
 #WARNINGS=-Wall -Wshadow -Wpointer-arith -Wbad-function-cast -Wcast-align -Wsign-compare \
 #		-Waggregate-return -Wmissing-prototypes -Wmissing-declarations -Wunused
 
-WARNINGS=-Wall -Wshadow 
+WARNINGS=-Wall -Wshadow
 
 ifneq ($(BUILD),"MDS")
 DRIVERS_PATH=$(WSN430_DRIVERS_PATH)
@@ -98,8 +98,8 @@ ${NAME}_2500 : ${OBJ} ${OBJ_2500}
 	$(CC) ${OBJ} ${OBJ_2420} ${NAME_TX}.o $(CFLAGS) -o $(NAME)_2420.elf
 
 $(OBJ_ALL): %.o : %.c
-	$(CC) -c $(CFLAGS) $< -o $@	
+	$(CC) -c $(CFLAGS) $< -o $@
 
 clean :
 	rm -f ${OBJ_ALL} *.elf *.hex
-	
+

@@ -22,13 +22,13 @@ printf java client should output some text on the frame content.
 
 Tools: The printf java client in $TOSDIR/../apps/tests/TestPrintf
 
-Usage: 
+Usage:
 
 Install the application on a node
 
     $ make <platform> install
 
-Start the printf client, e.g. 
+Start the printf client, e.g.
 
     $ java net.tinyos.tools.PrintfClient -comm serial@/dev/ttyUSBXXX:<platform>
 

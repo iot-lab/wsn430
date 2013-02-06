@@ -1,23 +1,23 @@
 /*
  * Copyright  2008-2009 INRIA/SensTools
- * 
+ *
  * <dev-team@sentools.info>
- * 
+ *
  * This software is a set of libraries designed to develop applications
  * for the WSN430 embedded hardware platform.
- * 
+ *
  * This software is governed by the CeCILL license under French law and
- * abiding by the rules of distribution of free software.  You can  use, 
+ * abiding by the rules of distribution of free software.  You can  use,
  * modify and/ or redistribute the software under the terms of the CeCILL
  * license as circulated by CEA, CNRS and INRIA at the following URL
- * "http://www.cecill.info". 
- * 
+ * "http://www.cecill.info".
+ *
  * As a counterpart to the access to the source code and  rights to copy,
  * modify and redistribute granted by the license, users are provided only
  * with a limited warranty  and the software's author,  the holder of the
  * economic rights,  and the successive licensors  have only  limited
- * liability. 
- * 
+ * liability.
+ *
  * In this respect, the user's attention is drawn to the risks associated
  * with loading,  using,  modifying and/or developing or reproducing the
  * software by the user in light of its specific status of free software,
@@ -25,10 +25,10 @@
  * therefore means  that it is reserved for developers  and  experienced
  * professionals having in-depth computer knowledge. Users are therefore
  * encouraged to load and test the software's suitability as regards their
- * requirements in conditions enabling the security of their systems and/or 
- * data to be ensured and,  more generally, to use and operate it in the 
- * same conditions as regards security. 
- * 
+ * requirements in conditions enabling the security of their systems and/or
+ * data to be ensured and,  more generally, to use and operate it in the
+ * same conditions as regards security.
+ *
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL license and that you accept its terms.
  */
@@ -93,7 +93,7 @@ void spi1_init(void) {
     P5DIR  |=   (1<<1) | (1<<3); /* output for CLK and SIMO */
     P5DIR  &=  ~(1<<2);   /* input for SOMI */
     P5SEL  |=   (1<<1) | (1<<2) | (1<<3); /* SPI for all three */
-    
+
     /* Configure USART1 */
     U1CTL = SWRST; /* SPI 1 software reset */
     U1CTL = CHAR | SYNC | MM | SWRST;  /* 8bit SPI master */
@@ -122,7 +122,7 @@ uint8_t spi1_write_single(uint8_t byte) {
     U1TXBUF = byte;
     WAIT_EORX();
     dummy = U1RXBUF;
-    
+
     return dummy;
 }
 
@@ -133,7 +133,7 @@ uint8_t spi1_read_single(void) {
 uint8_t spi1_write(uint8_t* data, int16_t len) {
     uint8_t dummy=0;
     int16_t i;
-    
+
     for (i=0; i<len; i++) {
         U1TXBUF = data[i];
         WAIT_EORX();
@@ -143,7 +143,7 @@ uint8_t spi1_write(uint8_t* data, int16_t len) {
 }
 void spi1_read(uint8_t* data, int16_t len) {
     int16_t i;
-    
+
     for (i=0; i<len; i++) {
         U1TXBUF = 0x0;
         WAIT_EORX();
@@ -167,7 +167,7 @@ void spi1_select(int16_t chip) {
         U1CTL &= ~(SWRST);
         DS1722_ENABLE();
         break;
-    case SPI1_M25P80:    
+    case SPI1_M25P80:
         CC1101_DISABLE();
         DS1722_DISABLE();
         M25P80_ENABLE();

@@ -49,16 +49,16 @@ composed of a number of Makefiles. These are:
       that is currently being built): rules for the specific platform,
       located in the platform's subdirectory in the platform/
       directory.
-    
+
     * Makefile.$(CPU) (where $(CPU) is the name of the CPU or
       microcontroller architecture used on the platform for which
       Contiki is built): rules for the CPU architecture, located in
       the CPU architecture's subdirectory in the cpu/ directory.
-    
+
     * Makefile.$(APP) (where $(APP) is the name of an application in
       the apps/ directory): rules for applications in the apps/
       directories. Each application has its own makefile.
-    
+
 The Makefile in the project's directory is intentionally simple. It
 specifies where the Contiki source code resides in the system and
 includes the system-wide Makefile, Makefile.include. The project's

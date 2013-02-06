@@ -4,7 +4,7 @@ Author/Contact: tinyos-help@millennium.berkeley.edu
 
 Description:
 
-This application is used to test the use of Shared Resources.  
+This application is used to test the use of Shared Resources.
 Three Resource users are created and all three request
 control of the resource before any one of them is granted it.
 Once the first user is granted control of the resource, it performs
@@ -12,8 +12,8 @@ some operation on it.  Once this operation has completed, a timer
 is set to allow this user to have control of it for a specific
 amount of time.  Once this timer expires, the resource is released
 and then immediately requested again.  Upon releasing the resource
-control will be granted to the next user that has requested it in 
-round robin order.  Initial requests are made by the three resource 
+control will be granted to the next user that has requested it in
+round robin order.  Initial requests are made by the three resource
 users in the following order.
   -- Resource 0
   -- Resource 2

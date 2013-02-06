@@ -1,18 +1,18 @@
 //$Id: Msp430Timer32khzMapC.nc,v 1.1 2007/11/30 20:34:47 mossmoss Exp $
 
-/* "Copyright (c) 2000-2003 The Regents of the University of California.  
+/* "Copyright (c) 2000-2003 The Regents of the University of California.
  * All rights reserved.
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation for any purpose, without fee, and without written agreement
  * is hereby granted, provided that the above copyright notice, the following
  * two paragraphs and the author appear in all copies of this software.
- * 
+ *
  * IN NO EVENT SHALL THE UNIVERSITY OF CALIFORNIA BE LIABLE TO ANY PARTY FOR
  * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING OUT
  * OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF THE UNIVERSITY
  * OF CALIFORNIA HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * THE UNIVERSITY OF CALIFORNIA SPECIFICALLY DISCLAIMS ANY WARRANTIES,
  * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
  * AND FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
@@ -24,7 +24,7 @@
  * MSP430Timer32khzMapC presents as paramaterized interfaces all of
  * the 32khz hardware timers on the MSP430 that are available for
  * compile time allocation by "new Alarm32khz16C()", "new
- * AlarmMilli32C()", and so on.  
+ * AlarmMilli32C()", and so on.
  *
  * Platforms based on the MSP430 are * encouraged to copy in and
  * override this file, presenting only the * hardware timers that are

@@ -541,7 +541,7 @@ send_packet(void)
   /* By setting we_are_sending to one, we ensure that the rtimer
      powercycle interrupt do not interfere with us sending the packet. */
   we_are_sending = 1;
-  
+
   t0 = RTIMER_NOW();
   strobes = 0;
 
@@ -692,7 +692,7 @@ static void
 qsend_packet(mac_callback_t sent, void *ptr)
 {
   int ret;
-  
+
   if(someone_is_sending) {
     PRINTF("xmac: should queue packet, now just dropping %d %d %d %d.\n",
 	   waiting_for_packet, someone_is_sending, we_are_sending, radio_is_on);

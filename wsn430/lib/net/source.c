@@ -60,69 +60,69 @@ static inline void reset_all(void) {
 void net_init() {
     //  initialize MAC layer, and timerB
     mac_init(5);
-    
+
     // init variables
     rx_cb = 0x0;
     packet_id = 0;
-    
+
     reset_all();
 }
 
 uint16_t net_send(uint8_t packet[], uint16_t length, uint16_t route[], uint16_t route_len) {
     uint16_t i;
-    
+
     if (state != STATE_RX) {
         printf("net_send state not RX\n");
         return 0;
     }
-    
+
     if (length > MAX_DATA_LEN) {
         printf("net_send length error\n");
         return 0;
     }
-    
+
     if ((route_len==0) || (route_len > MAX_ROUTE_LEN)) {
         printf("net_send route length error\n");
         return 0;
     }
-    
+
     /// prepare packet
     // set state
     state = STATE_TX;
-    
+
     // set type
     data.type = TYPE_SOURCE_DATA;
-    
+
     // set destination address
     data.dst_addr[0] = route[route_len-1]>>8;
     data.dst_addr[1] = route[route_len-1]&0xFF;
     data.src_addr[0] = node_addr>>8;
     data.src_addr[1] = node_addr&0xFF;
     data.id = packet_id++;
-    
+
     // copy data
     data.payload_len = length;
     memcpy(data.payload, packet, length);
-    
+
     // copy route (remove destination from route)
     data.route_len = route_len-1;
     data_route = data.payload + length;
-    
+
     for (i=0; i<data.route_len; i++) {
         data_route[2*i]    = route[i] >> 8;
         data_route[2*i +1] = route[i] & 0xFF;
     }
-    
+
     // global length
     data_length = HEADER_LENGTH + length + 2*data.route_len;
-    
+
     // next hop
     data_addr = route[0];
-    
+
     // send packet (a little later)
     data_try_count = 0;
     delay_data();
-    
+
     printf("txpkt");
     for (i=0;i<data_length;i++) {
         printf(":%x", ((uint8_t*)&data)[i]);
@@ -147,7 +147,7 @@ static uint16_t delay_data(void) {
         reset_all();
         return 0;
     }
-    
+
     if (data_try_count == 0) {
         timerB_set_alarm_from_now(ALARM_DATADELAY, 2, 0);
     } else {
@@ -156,10 +156,10 @@ static uint16_t delay_data(void) {
         //~ delay &= 0x3FFF; // 16383 ticks max (0.5s)
         delay &= 0x1FFF; // 8k ticks max (0.25s)
         delay += ALARM_1MS*10; // 10ms min
-        
+
         timerB_set_alarm_from_now(ALARM_DATADELAY, delay, 0);
     }
-    
+
     timerB_register_cb(ALARM_DATADELAY, send_data);
     data_try_count ++;
     return 0;
@@ -171,7 +171,7 @@ static uint16_t send_data(void) {
     } else {
         state = STATE_RX;
     }
-    
+
     return 0;
 }
 
@@ -180,52 +180,52 @@ static uint16_t data_received(uint8_t packet[], uint16_t length, uint16_t src_ad
     data_t *rx_data;
     uint16_t dst;
     uint8_t *route;
-    
+
     // check min length
     if (length < HEADER_LENGTH) {
         printf("data_frame_received packet to small\n");
         return 0;
     }
-    
+
     // cast the received packet
     rx_data = (data_t*) packet;
-    
+
     // check the type
     if (rx_data->type != TYPE_SOURCE_DATA) {
         printf("data_frame_received not DATA type\n");
         return 0;
     }
-    
+
     // ckeck the length
     if ( (HEADER_LENGTH + (rx_data->payload_len) + (rx_data->route_len*2)) != length ) {
         printf("data_frame_received length doesn't match\n");
         return 0;
     }
-    
+
     // set the route pointer
     route = rx_data->payload + rx_data->payload_len;
-    
+
     // copy packet
     memcpy(&data, rx_data, length);
     data_route = data.payload + data.payload_len;
-    
+
     // check the destination, if for me call the callback
     dst = (rx_data->dst_addr[0]<<8) + (rx_data->dst_addr[1]);
-    
+
     // if for me, if for me call the callback
     if ( (dst == node_addr) && rx_cb) {
         uint16_t src;
         src = (data_route[0]<<8) + (data_route[1]);
-        
+
         // clear the data indicator
         data_length = 0;
-        
+
         return rx_cb(data.payload, data.payload_len, src);
     } else {
         // otherwise, forward
         int16_t pos;
         pos = find_pos_in_route(route, rx_data->route_len);
-        
+
         if (pos<0) {
             // next hop not found
             printf("data_frame_received fw next hop not found\n");
@@ -238,7 +238,7 @@ static uint16_t data_received(uint8_t packet[], uint16_t length, uint16_t src_ad
             data_addr = (((uint16_t)route[2*pos])<<8) + route[2*pos+1];
             data_length = length;
         }
-        
+
         // forward
         data_length = length;
         data_try_count = 1;

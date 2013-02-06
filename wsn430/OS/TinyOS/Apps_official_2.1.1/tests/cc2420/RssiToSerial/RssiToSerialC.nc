@@ -29,7 +29,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE
  */
- 
+
 #include "RssiToSerial.h"
 
  /**
@@ -44,8 +44,8 @@
   * @author Jared Hill
   * @date   23 March 2007
   */
- 
- 
+
+
 configuration RssiToSerialC {}
 implementation {
   components MainC, RssiToSerialP as App, LedsC;
@@ -53,7 +53,7 @@ implementation {
   components SerialActiveMessageC as AM;
   components ActiveMessageC;
   components CC2420ControlC;
-  
+
   App.Boot -> MainC.Boot;
   App.SerialControl -> AM;
   App.AMSend -> AM.AMSend[AM_RSSI_SERIAL_MSG];
