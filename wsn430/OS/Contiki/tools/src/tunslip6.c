@@ -55,7 +55,7 @@
 
 #include <err.h>
 
-int verbose = 4;
+int verbose = 1;
 const char *ipaddr;
 const char *netmask;
 int slipfd = 0;
@@ -671,7 +671,8 @@ main(int argc, char **argv)
 				fprintf(stderr," -L             Log output format (adds time stamps)\n");
 				fprintf(stderr," -s siodev      Serial device (default /dev/ttyUSB0)\n");
 				fprintf(stderr," -T             Make tap interface (default is tun interface)\n");
-				fprintf(stderr," -t tundev      Name of interface (default tap0 or tun0)\n");
+				//fprintf(stderr," -t tundev      Name of interface (default tap0 or tun0)\n");
+				fprintf(stderr," -t tundev      Name of interface\n");
 				fprintf(stderr," -v[level]      Verbosity level\n");
 				fprintf(stderr,"    -v0         No messages\n");
 				fprintf(stderr,"    -v1         Encapsulated SLIP debug messages (default)\n");
@@ -720,6 +721,7 @@ main(int argc, char **argv)
 			break;
 	}
 
+#if 0
 	if(*tundev == '\0') {
 		/* Use default. */
 		if(tap) {
@@ -728,6 +730,7 @@ main(int argc, char **argv)
 			strcpy(tundev, "tun0");
 		}
 	}
+#endif
 	if(host != NULL) {
 		struct addrinfo hints, *servinfo, *p;
 		int rv;
