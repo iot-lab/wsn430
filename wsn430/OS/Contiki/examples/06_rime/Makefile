@@ -6,5 +6,6 @@ all: example-abc example-unicast example-broadcast example-unicast \
      example-collect example-netflood
 
 
+PROJECT_SOURCEFILES += common-config.c
 
 include $(CONTIKI)/Makefile.include

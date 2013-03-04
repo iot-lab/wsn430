@@ -1,5 +1,4 @@
-#ifndef __COMMON_CONFIG_H__
-#define __COMMON_CONFIG_H__
+#include "common-config.h"
 
 /*
  * Some Rime examples require the receiver node address to be set.
@@ -14,6 +13,6 @@
  *
  */
 
-extern char receiver_node_rime_addr[]; // set in the 'common-config.c'
+char receiver_node_rime_addr[] =  { 0x01, 0xcb }; // trailing 0x00 are useless
 
-#endif /* __COMMON_CONFIG_H__ */
+
