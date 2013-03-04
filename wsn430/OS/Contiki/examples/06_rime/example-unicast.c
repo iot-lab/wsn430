@@ -88,6 +88,8 @@ PROCESS_THREAD(example_unicast_process, ev, data)
         } else {
                 /* Sending messages */
                 printf("Write a character on serial link to send message\n");
+
+                PROCESS_WAIT_EVENT_UNTIL(ev == serial_line_event_message);
                 etimer_set(&et, 1 * CLOCK_SECOND);
                 while (1) {
                         char msg[64];
