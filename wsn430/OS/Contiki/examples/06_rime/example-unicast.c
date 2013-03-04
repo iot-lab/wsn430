@@ -49,6 +49,9 @@
 /* receiver_node_rime_addr configuration */
 #include "common-config.h"
 
+
+extern process_event_t serial_line_event_message;
+
 /*---------------------------------------------------------------------------*/
 PROCESS(example_unicast_process, "Example unicast");
 AUTOSTART_PROCESSES(&example_unicast_process);
