@@ -13,6 +13,6 @@
  *
  */
 
-char receiver_node_rime_addr[] =  { 0x01, 0xcb }; // trailing 0x00 are useless
+unsigned char receiver_node_rime_addr[] =  { 0x01, 0xcb }; // trailing 0x00 are useless
 
 

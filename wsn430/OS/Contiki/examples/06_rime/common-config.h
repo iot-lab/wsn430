@@ -14,6 +14,6 @@
  *
  */
 
-extern char receiver_node_rime_addr[]; // set in the 'common-config.c'
+extern unsigned char receiver_node_rime_addr[]; // set in the 'common-config.c'
 
 #endif /* __COMMON_CONFIG_H__ */
