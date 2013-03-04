@@ -20,7 +20,7 @@ ifneq ($(MAKECMDGOALS),clean)
 ifndef RADIO
 $(info )
 $(info RADIO not defined. It should be defined using 'RADIO=WITH_CC1100' or 'RADIO=WITH_CC2420' in: )
-$(info ~	*    overall configuration in the platform Makefile: 'Contiki/platform/wsn430/Makefile.wsn430')
+$(info ~	*    RECOMMANDED: global configuration in the platform Makefile: 'Contiki/platform/wsn430/Makefile.wsn430')
 $(info ~	*    in the program Makefile )
 $(info ~	*    or as a 'make' argument 'make RADIO=WITH_CCxxxx')
 $(info )
@@ -36,12 +36,14 @@ endif # cc1100
 ifeq ($(RADIO),WITH_CC2420)
 RADIO_VAL=1
 endif # cc2420
+$(info Using RADIO=$(RADIO))
 ifndef RADIO_VAL
 $(error RADIO variable should be 'WITH_CC1100' or 'WITH_CC2420')
 endif # radio_val
 #
 # end of value check
 #
+
 
 
 endif # radio
