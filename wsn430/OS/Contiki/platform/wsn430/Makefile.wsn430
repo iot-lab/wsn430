@@ -1,6 +1,11 @@
 # $Id: Makefile.sky,v 1.18 2008/09/29 12:38:18 joxe Exp $
 
 
+ifndef WSN430_DRIVERS_PATH
+$(error Please set environment variable WSN430_DRIVERS_PATH to the drivers folder)
+endif
+
+
 ARCH = msp430.c uart0.c spi1.c ds2411.c ds1722.c m25p80.c xmem.c leds_arch.c leds.c \
        cc1100-radio.c cc1100.c cc2420-radio.c cc2420.c slip_arch.c uip-ipchksum.c \
        uart-putchar.c
