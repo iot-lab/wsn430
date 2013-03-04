@@ -1,24 +1,61 @@
-# $Id: Makefile.sky,v 1.18 2008/09/29 12:38:18 joxe Exp $
-
+# $Id: Makefile.wsn430,v 1.42 2013/03/04 12:38:18 Exp $
 
 ifndef WSN430_DRIVERS_PATH
 $(error Please set environment variable WSN430_DRIVERS_PATH to the drivers folder)
 endif
 
 
+
+#
+# Configure the RADIO
+#
+# To set the default radio, uncomment one line
+#
+#RADIO=WITH_CC1100
+#RADIO=WITH_CC2420
+#
+#
+ifneq ($(MAKECMDGOALS),clean)
+
+ifndef RADIO
+$(info )
+$(info RADIO not defined. It should be defined using 'RADIO=WITH_CC1100' or 'RADIO=WITH_CC2420' in: )
+$(info ~	*    overall configuration in the platform Makefile: 'Contiki/platform/wsn430/Makefile.wsn430')
+$(info ~	*    in the program Makefile )
+$(info ~	*    or as a 'make' argument 'make RADIO=WITH_CCxxxx')
+$(info )
+$(error 'Undefined RADIO')
+else
+
+#
+# check value
+#
+ifeq ($(RADIO),WITH_CC1100)
+RADIO_VAL=1
+endif # cc1100
+ifeq ($(RADIO),WITH_CC2420)
+RADIO_VAL=1
+endif # cc2420
+ifndef RADIO_VAL
+$(error RADIO variable should be 'WITH_CC1100' or 'WITH_CC2420')
+endif # radio_val
+#
+# end of value check
+#
+
+
+endif # radio
+endif # clean
+
+
+
+
+
+
 ARCH = msp430.c uart0.c spi1.c ds2411.c ds1722.c m25p80.c xmem.c leds_arch.c leds.c \
        cc1100-radio.c cc1100.c cc2420-radio.c cc2420.c slip_arch.c uip-ipchksum.c \
        uart-putchar.c
 
-#ext-sensor.c irq.c \
-
-#RADIO=WITH_CC1100
-#RADIO=WITH_CC2420
-
-ifndef RADIO
-$(info Radio not defined in firmware Makefile or platform/wsn430/Makefile.wsn430, using radio 'cc1100')
-RADIO=WITH_CC1100
-endif
 
 CFLAGS+= -D$(RADIO)
 
@@ -37,4 +74,17 @@ CONTIKI_TARGET_SOURCEFILES += $(ARCH) $(UIPDRIVERS) $(CONTIKI_TARGET_MAIN)
 
 MCU=msp430x1611
 include $(CONTIKI)/cpu/msp430/Makefile.msp430
+
+
+CLEAN += *.wsn430
+
+
+# Automatically generate the .ihex files for SensLAB
+
+.PRECIOUS: %.ihex
+.INTERMEDIATE: %.wsn430
+
+# automatically build the .ihex file
+%: %.$(TARGET) %.ihex
+	@
 
