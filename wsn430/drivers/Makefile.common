@@ -48,6 +48,7 @@ CC_UNIARCH = $(shell ((echo "\#ifdef __MSPGCC__";echo "\#error";echo "\#endif")|
 
 ifeq ($(CC_UNIARCH), TRUE)
 GCC_4_INCLUDE = -I$(WSN430_DRIVERS_PATH)/gcc_uniarch
+CPU      = -mmcu=msp430f1611
 
 # unsupported with gcc-3.2.3 but usefull
 WARNINGS += -Wfatal-errors
