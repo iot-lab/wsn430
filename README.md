@@ -3,6 +3,9 @@ IoT-LAB Git repository
 
 This repository contains the IoT-LAB source code to run experiments on the IoT-LAB sensor network platform.
 
+Documentation is available at https://github.com/iot-lab/iot-lab/wiki
+
+
 Description
 -----------
 
