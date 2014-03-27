@@ -1,4 +1,5 @@
 CONTIKI = ../..
+TARGET = wsn430
 
 all: example-abc example-unicast example-broadcast example-unicast \
      example-polite example-trickle example-rucb example-runicast \

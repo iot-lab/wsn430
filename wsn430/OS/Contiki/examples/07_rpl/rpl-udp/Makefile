@@ -1,3 +1,5 @@
+TARGET = wsn430
+
 all: rpl-udp-client rpl-udp-server
 APPS=servreg-hack
 CONTIKI=../../..

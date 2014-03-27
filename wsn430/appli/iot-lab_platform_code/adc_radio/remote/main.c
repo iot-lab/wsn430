@@ -13,7 +13,7 @@
 #include "uart0.h"
 
 /* tasks include */
-#include "mac.h"
+#include "starnet_node.h"
 #include "adc.h"
 
 /* Hardware initialization */

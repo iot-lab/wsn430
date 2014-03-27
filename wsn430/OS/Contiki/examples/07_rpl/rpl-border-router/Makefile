@@ -1,6 +1,9 @@
+CONTIKI = ../../..
+
+TARGET = wsn430
+
 all: border-router
 
-CONTIKI=../../..
 
 WITH_UIP6=1
 UIP_CONF_IPV6=1

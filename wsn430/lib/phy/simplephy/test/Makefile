@@ -1,24 +1,20 @@
-ifndef WSN430_DRIVERS_PATH
-$(error Please set environment variable WSN430_DRIVERS_PATH to the drivers folder)
-endif
-
-
+WSN430 = ../../../..
 NAMES     = phy_test_node  phy_test_sink
 
 
-INCLUDES  = -I$(WSN430_DRIVERS_PATH)
+INCLUDES  = -I$(WSN430)/drivers
 INCLUDES += -I..
 
 SRC_phy_test_node = main_node.c
 SRC_phy_test_sink = main_sink.c
 
 SRC  = ../simplephy.c
-SRC += $(WSN430_DRIVERS_PATH)/cc1101.c
+SRC += $(WSN430)/drivers/cc1101.c
 
-SRC += $(WSN430_DRIVERS_PATH)/clock.c
-SRC += $(WSN430_DRIVERS_PATH)/uart0.c
-SRC += $(WSN430_DRIVERS_PATH)/spi1.c
+SRC += $(WSN430)/drivers/clock.c
+SRC += $(WSN430)/drivers/uart0.c
+SRC += $(WSN430)/drivers/spi1.c
 
 
--include $(WSN430_DRIVERS_PATH)/Makefile.common
+-include $(WSN430)/drivers/Makefile.common
 

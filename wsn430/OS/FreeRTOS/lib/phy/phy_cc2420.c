@@ -105,7 +105,7 @@ void phy_init(xSemaphoreHandle spi_m, phy_rx_callback_t callback,
 		radio_power = CC2420_2_45GHz_TX_m10dBm;
 		break;
 	case PHY_TX_m20dBm:
-		radio_power = CC2420_2_45GHz_TX_m20dBm;
+		radio_power = CC2420_2_45GHz_TX_m25dBm;
 		break;
 	default:
 		radio_power = CC2420_2_45GHz_TX_0dBm;

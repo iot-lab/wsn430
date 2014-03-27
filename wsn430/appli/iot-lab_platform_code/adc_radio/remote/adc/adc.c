@@ -10,7 +10,7 @@
 #include "semphr.h"
 
 /* Project Includes */
-#include "mac.h"
+#include "starnet_node.h"
 #include "adc.h"
 #include "leds.h"
 
@@ -34,7 +34,7 @@ static adc_data_t adc_data, send_data;
 static uint32_t adc_sum[6];
 static uint16_t adc_count;
 
-static uint16_t* ADC12MEMx = 0x140;
+static uint16_t* ADC12MEMx = (uint16_t *)0x140;
 
 static void inline vADCClear()
 {

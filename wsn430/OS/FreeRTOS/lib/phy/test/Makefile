@@ -1,9 +1,7 @@
-ifndef FREERTOS_PATH
-$(error Please set environment variable FREERTOS_PATH to the FreeRTOS folder)
-endif # FREERTOS_PATH
-ifndef WSN430_DRIVERS_PATH
-$(error Please set environment variable WSN430_DRIVERS_PATH to the drivers folder)
-endif # WSN430_DRIVERS_PATH
+WSN430 = ../../../../../..
+FREERTOS = $(WSN430)/OS/FreeRTOS
+
+
 ifeq ($(BUILD),MDS)
 # for clean use 'make BUILD=MDS clean'
 ifndef MDS_DRIVERS_PATH
@@ -11,8 +9,8 @@ $(error Please set environment variable MDS_DRIVERS_PATH to the mds drivers fold
 endif # MDS_DRIVERS_PATH
 endif # BUILD
 
-SOURCE_PATH = $(FREERTOS_PATH)/Source
-PORT_PATH = $(FREERTOS_PATH)/Source/portable/GCC/MSP430F449
+SOURCE_PATH = $(FREERTOS)/Source
+PORT_PATH = $(FREERTOS)/Source/portable/GCC/MSP430F449
 
 NAMES_wsn  = phy_test_cc1101
 NAMES_wsn += phy_test_cc2420
@@ -21,12 +19,12 @@ NAMES_mds  = phy_test_cc2500
 
 
 INCLUDES  = -I. -I$(SOURCE_PATH)/include
-INCLUDES += -I$(FREERTOS_PATH)/lib/phy
-INCLUDES += -I$(FREERTOS_PATH)/lib/mac/csma
+INCLUDES += -I$(FREERTOS)/lib/phy
+INCLUDES += -I$(FREERTOS)/lib/mac/csma
 
 
 ifneq ($(BUILD),MDS)
-DRIVERS_PATH  = $(WSN430_DRIVERS_PATH)
+DRIVERS_PATH  = $(WSN430)/drivers
 INCLUDES     += -I$(DRIVERS_PATH)
 CPU           = -mmcu=msp430x1611
 NAMES         = $(NAMES_wsn)
@@ -46,14 +44,14 @@ SRC_wsn  = $(DRIVERS_PATH)/spi1.c
 SRC_wsn += $(DRIVERS_PATH)/ds2411.c
 
 SRC_cc1101  = $(DRIVERS_PATH)/cc1101.c
-SRC_cc1101 += $(FREERTOS_PATH)/lib/phy/phy_cc1101.c
+SRC_cc1101 += $(FREERTOS)/lib/phy/phy_cc1101.c
 
 SRC_cc2420  = $(DRIVERS_PATH)/cc2420.c
-SRC_cc2420 += $(FREERTOS_PATH)/lib/phy/phy_cc2420.c
+SRC_cc2420 += $(FREERTOS)/lib/phy/phy_cc2420.c
 
 SRC_mds     = $(DRIVERS_PATH)/spi0.c
 SRC_cc2500  = $(DRIVERS_PATH)/cc2500.c
-SRC_cc2500 += $(FREERTOS_PATH)/lib/phy/phy_cc2500.c
+SRC_cc2500 += $(FREERTOS)/lib/phy/phy_cc2500.c
 
 
 # target specific SRC variables
@@ -76,5 +74,5 @@ SRC += $(DRIVERS_PATH)/timerB.c
 
 
 
--include $(WSN430_DRIVERS_PATH)/Makefile.common
+-include $(WSN430)/drivers/Makefile.common
 

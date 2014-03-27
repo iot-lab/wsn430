@@ -1,8 +1,6 @@
 # $Id: Makefile.wsn430,v 1.42 2013/03/04 12:38:18 Exp $
 
-ifndef WSN430_DRIVERS_PATH
-$(error Please set environment variable WSN430_DRIVERS_PATH to the drivers folder)
-endif
+WSN430 = $(CONTIKI)/../..
 
 #
 # Configure the RADIO
@@ -56,7 +54,7 @@ ARCH = msp430.c uart0.c spi1.c ds2411.c ds1722.c m25p80.c xmem.c leds_arch.c led
 CFLAGS+= -D$(RADIO)
 
 CONTIKI_TARGET_DIRS = . dev apps net
-APPDIRS += $(WSN430_DRIVERS_PATH)
+APPDIRS += $(WSN430)/drivers
 
 ifndef CONTIKI_TARGET_MAIN
 CONTIKI_TARGET_MAIN = contiki-wsn430-main.c

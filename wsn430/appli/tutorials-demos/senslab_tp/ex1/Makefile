@@ -1,20 +1,17 @@
 # Setup paths to source code
 # Support both development and tutorials configuration
 
-ifndef WSN430_DRIVERS_PATH
-# $(error Please set environment variable WSN430_DRIVERS_PATH to the drivers folder)
-WSN430_DRIVERS_PATH=../drivers
-endif
+WSN430 = ../../../..
 
 # define one name for each executable to be built
 NAMES = ex1
 
 
 SRC  = main.c
-SRC += $(WSN430_DRIVERS_PATH)/clock.c
-SRC += $(WSN430_DRIVERS_PATH)/timerA.c
+SRC += $(WSN430)/drivers/clock.c
+SRC += $(WSN430)/drivers/timerA.c
 
 
-INCLUDES  = -I. -I$(WSN430_DRIVERS_PATH)
+INCLUDES  = -I. -I$(WSN430)/drivers
 
--include $(WSN430_DRIVERS_PATH)/Makefile.common
+-include $(WSN430)/drivers/Makefile.common

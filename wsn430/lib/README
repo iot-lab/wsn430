@@ -9,13 +9,8 @@ Version: v2012-03-13
 Description
 -----------
 
-The pack of libraries gives a good starting point for writing networking applications. As a part of them or simply as an examples to develop completely new things.
-
-It requires the WSN430 drivers (Requires the Makefile.common file from driver version ≥ 1.8, it can just be copied from the last version if needed)
-
-The WSN430_LIB_PATH environment variable must be set to point at the downloaded library folder.
-
-
+The pack of libraries gives a good starting point for writing networking applications.
+As a part of them or simply as an examples to develop completely new things.
 
 
 Changelog

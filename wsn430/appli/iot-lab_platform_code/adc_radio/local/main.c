@@ -13,7 +13,7 @@
 #include "uart0.h"
 
 /* MAC task include */
-#include "mac.h"
+#include "starnet_sink.h"
 #include "adc.h"
 #include "leds.h"
 

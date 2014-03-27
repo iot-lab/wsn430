@@ -46,9 +46,12 @@ WARNINGS += -Wmissing-declarations -Wunused
 # http://sourceforge.net/apps/mediawiki/mspgcc/index.php?title=Devel:Uniarch#User_Visible_Changes
 CC_UNIARCH = $(shell ((echo "\#ifdef __MSPGCC__";echo "\#error";echo "\#endif")|$(CC) -o /dev/null -c -xc - 2> /dev/null)||echo "TRUE")
 
+
 ifeq ($(CC_UNIARCH), TRUE)
-GCC_4_INCLUDE = -I$(WSN430_DRIVERS_PATH)/gcc_uniarch
+CURRENT_DIRECTORY = $(dir $(lastword $(MAKEFILE_LIST)))
+GCC_4_INCLUDE = -I$(CURRENT_DIRECTORY)/gcc_uniarch
 CPU      = -mmcu=msp430f1611
+
 
 # unsupported with gcc-3.2.3 but usefull
 WARNINGS += -Wfatal-errors

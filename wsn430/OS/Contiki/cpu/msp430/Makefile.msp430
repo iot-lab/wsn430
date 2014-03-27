@@ -55,7 +55,7 @@ CFLAGS  += -Os -fno-strict-aliasing
 CC_UNIARCH = $(shell ((echo "\#ifdef __MSPGCC__";echo "\#error";echo "\#endif")|$(CC) -o /dev/null -c -xc - 2> /dev/null)||echo "TRUE")
 
 ifeq ($(CC_UNIARCH), TRUE)
-CFLAGS += -I$(WSN430_DRIVERS_PATH)/gcc_uniarch
+CFLAGS += -I$(WSN430)/drivers/gcc_uniarch
 # unsupported with gcc-3.2.3 but usefull
 CFLAGS += -Wfatal-errors
 endif # CC_UNIARCH

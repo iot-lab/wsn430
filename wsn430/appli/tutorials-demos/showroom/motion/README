@@ -12,10 +12,6 @@ Optionally compile the "sensor_fsr" application, and flash the WSN430 with the c
 
 Compile and flash the sink node with the "sink" application.
 
-In order to compile these application, you need to have the following environment variables correctly set :
-	- WSN430_DRIVERS_PATH points to the folder containing the WSN430 drivers,
-	- WSN430_LIB_PATH points to the folder containing the different SensTools libraries (the MAC library is required)
-
 Plug the Sink Node to a Serial port of your computer and power it up.
 run the articulated_leg.py python program (it requires the visual python module).
 Power up an accelerometer node, an place it on the thigh.

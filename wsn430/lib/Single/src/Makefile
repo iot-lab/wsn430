@@ -32,13 +32,7 @@
 # knowledge of the CeCILL license and that you accept its terms.
 #
 
-ifndef WSN430_DRIVERS_PATH
-$(error Please set environment variable WSN430_DRIVERS_PATH to the drivers folder)
-endif
-ifndef WSN430_LIB_PATH
-$(error Please set environment variable WSN430_LIB_PATH to the OS free library folder containing phy and mac folders)
-endif
-
+WSN430 = ../../..
 
 NAMES     = mobile anchor sink idle
 
@@ -48,25 +42,25 @@ SRC_sink    = sink.c
 SRC_idle    = idle.c
 
 SRC  = main.c
-SRC += $(WSN430_DRIVERS_PATH)/cc1101.c
-SRC += $(WSN430_DRIVERS_PATH)/ds2411.c
-SRC += $(WSN430_DRIVERS_PATH)/ds1722.c
-SRC += $(WSN430_DRIVERS_PATH)/tsl2550.c
-SRC += $(WSN430_DRIVERS_PATH)/m25p80.c
-SRC += $(WSN430_DRIVERS_PATH)/i2c0.c
-SRC += $(WSN430_DRIVERS_PATH)/clock.c
-SRC += $(WSN430_DRIVERS_PATH)/uart0.c
-SRC += $(WSN430_DRIVERS_PATH)/spi1.c
-SRC += $(WSN430_DRIVERS_PATH)/timerB.c
-SRC += $(WSN430_DRIVERS_PATH)/timerA.c
-SRC += $(WSN430_LIB_PATH)/mac/csma_cc1101.c
+SRC += $(WSN430)/drivers/cc1101.c
+SRC += $(WSN430)/drivers/ds2411.c
+SRC += $(WSN430)/drivers/ds1722.c
+SRC += $(WSN430)/drivers/tsl2550.c
+SRC += $(WSN430)/drivers/m25p80.c
+SRC += $(WSN430)/drivers/i2c0.c
+SRC += $(WSN430)/drivers/clock.c
+SRC += $(WSN430)/drivers/uart0.c
+SRC += $(WSN430)/drivers/spi1.c
+SRC += $(WSN430)/drivers/timerB.c
+SRC += $(WSN430)/drivers/timerA.c
+SRC += $(WSN430)/lib/mac/csma_cc1101.c
 
 
-INCLUDES  = -I$(WSN430_DRIVERS_PATH)
-INCLUDES += -I$(WSN430_LIB_PATH)/mac
+INCLUDES  = -I$(WSN430)/drivers
+INCLUDES += -I$(WSN430)/lib/mac
 
 
--include $(WSN430_DRIVERS_PATH)/Makefile.common
+-include $(WSN430)/drivers/Makefile.common
 
 
 

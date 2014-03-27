@@ -3,5 +3,3 @@ The first is called "temp" and will periodically measure the temperature. When a
 The second is called "print" and will wait for the first process to tell it some data is ready, such that it can print the measured value on the serial port.
 
 The print output can be observed on a PC with a serial terminal.
-
-The environment variable WSN430_DRIVERS_PATH must point to the wsn430 drivers folder location.

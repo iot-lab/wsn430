@@ -1,21 +1,19 @@
-ifndef WSN430_DRIVERS_PATH
-$(error Please set environment variable WSN430_DRIVERS_PATH to the drivers folder)
-endif
+WSN430 = ../../../..
 
 # define one name for each executable to be built
 NAMES = tp
 
 SRC  = main.c
-SRC += $(WSN430_DRIVERS_PATH)/clock.c
-SRC += $(WSN430_DRIVERS_PATH)/uart0.c
-SRC += $(WSN430_DRIVERS_PATH)/spi1.c
-SRC += $(WSN430_DRIVERS_PATH)/ds1722.c
-SRC += $(WSN430_DRIVERS_PATH)/i2c0.c
-SRC += $(WSN430_DRIVERS_PATH)/timerA.c
-SRC += $(WSN430_DRIVERS_PATH)/tsl2550.c
+SRC += $(WSN430)/drivers/clock.c
+SRC += $(WSN430)/drivers/uart0.c
+SRC += $(WSN430)/drivers/spi1.c
+SRC += $(WSN430)/drivers/ds1722.c
+SRC += $(WSN430)/drivers/i2c0.c
+SRC += $(WSN430)/drivers/timerA.c
+SRC += $(WSN430)/drivers/tsl2550.c
 
-INCLUDES  = -I. -I$(WSN430_DRIVERS_PATH)
+INCLUDES  = -I. -I$(WSN430)/drivers
 
-# the makefile common will generate NAMES.hex and NAMES.elf files, and define 'all' and 'clean' directives
--include $(WSN430_DRIVERS_PATH)/Makefile.common
+# the Makefile common will generate NAMES.hex and NAMES.elf files, and define 'all' and 'clean' directives
+-include $(WSN430)/drivers/Makefile.common
 
