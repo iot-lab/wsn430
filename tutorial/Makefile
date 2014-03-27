@@ -1,4 +1,4 @@
-WSN430 = ../wsn430
+WSN430 = ..
 
 NAMES  = tutorial_cc1101
 NAMES += tutorial_cc2420
