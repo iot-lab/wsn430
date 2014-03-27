@@ -1,4 +1,4 @@
-WSN430 = ../../../../../..
+WSN430 = ../../../../..
 FREERTOS = $(WSN430)/OS/FreeRTOS
 
 
@@ -74,5 +74,5 @@ SRC += $(DRIVERS_PATH)/timerB.c
 
 
 
--include $(WSN430)/drivers/Makefile.common
+include $(WSN430)/drivers/Makefile.common
 

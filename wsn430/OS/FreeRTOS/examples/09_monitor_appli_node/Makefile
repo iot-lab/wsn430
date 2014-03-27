@@ -38,5 +38,5 @@ SRC += $(WSN430)/drivers/tsl2550.c
 SRC += $(WSN430)/drivers/i2c0.c
 
 
--include $(WSN430)/drivers/Makefile.common
+include $(WSN430)/drivers/Makefile.common
 

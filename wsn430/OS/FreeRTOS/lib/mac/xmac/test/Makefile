@@ -33,5 +33,5 @@ SRC += $(WSN430)/drivers/ds2411.c
 SRC += $(WSN430)/drivers/timerB.c
 
 
--include $(WSN430)/drivers/Makefile.common
+include $(WSN430)/drivers/Makefile.common
 

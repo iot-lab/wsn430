@@ -14,4 +14,4 @@ SRC += $(WSN430)/drivers/timerA.c
 
 INCLUDES  = -I. -I$(WSN430)/drivers
 
--include $(WSN430)/drivers/Makefile.common
+include $(WSN430)/drivers/Makefile.common

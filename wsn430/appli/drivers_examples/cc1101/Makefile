@@ -14,5 +14,5 @@ SRC += $(WSN430)/drivers/cc1101.c
 INCLUDES  = -I. -I$(WSN430)/drivers
 
 
--include $(WSN430)/drivers/Makefile.common
+include $(WSN430)/drivers/Makefile.common
 

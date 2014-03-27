@@ -16,5 +16,5 @@ SRC += $(WSN430)/drivers/uart0.c
 SRC += $(WSN430)/drivers/spi1.c
 
 
--include $(WSN430)/drivers/Makefile.common
+include $(WSN430)/drivers/Makefile.common
 

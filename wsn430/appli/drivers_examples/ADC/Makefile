@@ -13,6 +13,6 @@ SRC += $(WSN430)/drivers/clock.c
 INCLUDES  = -I. -I$(WSN430)/drivers
 
 
--include $(WSN430)/drivers/Makefile.common
+include $(WSN430)/drivers/Makefile.common
 
 

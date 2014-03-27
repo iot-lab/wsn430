@@ -34,5 +34,5 @@ INCLUDES += -I$(FREERTOS)/lib/mac/csma
 INCLUDES += -I$(FREERTOS)/lib/phy
 
 
--include $(WSN430)/drivers/Makefile.common
+include $(WSN430)/drivers/Makefile.common
 

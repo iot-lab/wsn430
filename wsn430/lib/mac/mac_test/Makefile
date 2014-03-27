@@ -27,5 +27,5 @@ INCLUDES  = -I$(WSN430)/drivers
 INCLUDES += -I$(WSN430)/lib/mac
 
 
--include $(WSN430)/drivers/Makefile.common
+include $(WSN430)/drivers/Makefile.common
 

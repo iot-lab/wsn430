@@ -79,5 +79,5 @@ SRC += $(DRIVERS_PATH)/clock.c
 SRC += $(DRIVERS_PATH)/timerB.c
 
 
--include $(WSN430)/drivers/Makefile.common
+include $(WSN430)/drivers/Makefile.common
 

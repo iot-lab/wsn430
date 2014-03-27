@@ -15,5 +15,5 @@ SRC += $(WSN430)/drivers/tsl2550.c
 INCLUDES  = -I. -I$(WSN430)/drivers
 
 # the Makefile common will generate NAMES.hex and NAMES.elf files, and define 'all' and 'clean' directives
--include $(WSN430)/drivers/Makefile.common
+include $(WSN430)/drivers/Makefile.common
 

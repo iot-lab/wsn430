@@ -27,5 +27,5 @@ SRC += $(WSN430)/drivers/m25p80.c
 
 
 
--include $(WSN430)/drivers/Makefile.common
+include $(WSN430)/drivers/Makefile.common
 
