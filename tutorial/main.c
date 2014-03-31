@@ -210,7 +210,6 @@ static void handle_cmd(uint8_t cmd)
             print_usage();
             break;
     }
-    printf("cmd > ");
 }
 
 static void handle_radio()
@@ -256,8 +255,8 @@ int main( void )
             handle_radio();
             radio.got_event = 0;
 
-            cmd = '\n';
         }
+        printf("cmd > ");
     }
     return 0;
 }
@@ -285,7 +284,7 @@ static uint16_t alarm(void) {
 
     /* Print help before getting first real \n */
     if (print_help) {
-        cmd='h';
+        cmd = 'h';
         return 1;
     }
     return 0;
