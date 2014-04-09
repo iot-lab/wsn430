@@ -16,7 +16,7 @@
 /* MAC task include */
 #include "blinker.h"
 #include "sensor.h"
-#include "mac.h"
+#include "starnet_node.h"
 
 /* Hardware initialization */
 static void prvSetupHardware( void );

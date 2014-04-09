@@ -19,11 +19,10 @@
 /* Hardware initialization */
 static void prvSetupHardware( void );
 
-/* Task that sends packets */
-static void vADCTask(void* pvParameters);
-
 /* Global Variables */
 static xSemaphoreHandle xSPIMutex;
+
+void vApplicationIdleHook( void );
 
 /**
  * The main function.

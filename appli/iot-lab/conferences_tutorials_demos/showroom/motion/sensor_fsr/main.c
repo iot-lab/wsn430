@@ -15,8 +15,8 @@ int putchar(int c)
 
 uint16_t frame_received(uint8_t packet[], uint16_t length, uint16_t src_addr, int16_t rssi);
 
-void vADCInit(void);
-uint16_t* ADC12MEMx = 0x140;
+static void vADCInit(void);
+uint16_t* ADC12MEMx = (uint16_t *)0x140;
 
 volatile int16_t send;
 

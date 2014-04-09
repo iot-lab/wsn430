@@ -10,7 +10,7 @@
 
 /* Project Includes */
 #include "net.h"
-#include "mac.h"
+#include "starnet_node.h"
 #include "sensor.h"
 #include "blinker.h"
 

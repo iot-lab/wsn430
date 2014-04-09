@@ -57,7 +57,7 @@ uint16_t frameseq = 0;
 uint8_t length;
 volatile uint16_t send = 0, receive = 0;
 
-int16_t compute_rssi(uint8_t raw) {
+static int16_t compute_rssi(uint8_t raw) {
 	int16_t rssi_d;
 	printf("raw = %u\n", raw);
 	if (raw >= 128) {

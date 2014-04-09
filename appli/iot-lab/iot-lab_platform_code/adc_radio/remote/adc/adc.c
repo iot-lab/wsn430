@@ -136,6 +136,7 @@ static void vADCInit(void)
  * ADC12 Interrupt service routine
  * Execute once the 6 ADCs have been sampled
  */
+void adc12irq(void);
 interrupt(ADC12_VECTOR) adc12irq(void)
 {
     uint16_t measure;

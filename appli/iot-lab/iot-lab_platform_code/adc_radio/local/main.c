@@ -1,5 +1,6 @@
 #include <io.h>
 #include <signal.h>
+#include <string.h>
 #include <stdio.h>
 
 /* Scheduler includes. */
@@ -20,7 +21,7 @@
 
 typedef struct {
     uint16_t from;
-    uint8_t data[sizeof(adc_data_t)];
+    adc_data_t data;
 } adc_from_t;
 
 /* Hardware initialization */
@@ -110,11 +111,7 @@ void vPacketReceivedFrom(uint8_t srcAddr, uint16_t pktLength, uint8_t* pkt)
     adc_from_t adc_converted;
 
     adc_converted.from = srcAddr;
-    uint16_t i;
-    for (i=0;i<pktLength;i++)
-    {
-        adc_converted.data[i] = pkt[i];
-    }
+    memcpy(&adc_converted.data, pkt, pktLength);
 
     xQueueSendToBack(rxADCQueue, &adc_converted, 0);
 }
@@ -133,7 +130,7 @@ static void vPrintfTask(void* pvParameters)
     {
         if ( xQueueReceive(rxADCQueue, &rx_adc, 100) )
         {
-            adc_val = (adc_data_t*)rx_adc.data;
+            adc_val = &rx_adc.data;
             printf("ADC from node %x\r\n", rx_adc.from);
             printf("\tADC sequence #%d\r\n", adc_val->seq);
 

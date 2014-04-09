@@ -2,6 +2,7 @@
 #include <io.h>
 #include <signal.h>
 #include <string.h>
+#include <stdio.h>
 
 /* Drivers includes */
 #include "clock.h"

@@ -10,7 +10,7 @@
 
 /* Project Includes */
 #include "interface.h"
-#include "mac.h"
+#include "starnet_sink.h"
 
 /* Drivers Includes */
 #include "uart0.h"
@@ -22,7 +22,7 @@
 
 /* Function Prototypes */
 static void vInterfaceTask(void* pvParameters);
-static void char_received(uint8_t c);
+static uint16_t char_received(uint8_t c);
 static void vPrintData(void);
 
 xQueueHandle xCmdQueue, xRXQueue;
@@ -95,17 +95,17 @@ static void vPrintData(void)
     printf("\r\n");
 }
 
-static void char_received(uint8_t c)
+static uint16_t char_received(uint8_t c)
 {
     portBASE_TYPE xHighPriorityTaskWoken;
     static uint8_t dat[3] = {0, 0, 0};
-    static uint16_t index = 0;
-    if (index == 0)
+    static uint16_t idx = 0;
+    if (idx == 0)
     {
         if (c == BLINKER_CMD || c == SENSOR_CMD)
         {
             dat[0] = c;
-            index = 1;
+            idx = 1;
         }
         else if (c == LIST_CMD)
         {
@@ -126,12 +126,12 @@ static void char_received(uint8_t c)
     }
     else
     {
-        dat[index] = c;
-        index ++;
+        dat[idx] = c;
+        idx ++;
 
-        if (index == 3)
+        if (idx == 3)
         {
-            index = 0;
+            idx = 0;
 
             /* Send the command to the MAC TX Queue */
             xQueueSendToBackFromISR( xCmdQueue, dat, &xHighPriorityTaskWoken);
@@ -146,6 +146,7 @@ static void char_received(uint8_t c)
             }
         }
     }
+    return 0;
 }
 
 

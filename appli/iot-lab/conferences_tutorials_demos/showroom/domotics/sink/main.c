@@ -12,7 +12,7 @@
 
 /* MAC task include */
 #include "interface.h"
-#include "mac.h"
+#include "starnet_sink.h"
 
 /* Hardware initialization */
 static void prvSetupHardware( void );

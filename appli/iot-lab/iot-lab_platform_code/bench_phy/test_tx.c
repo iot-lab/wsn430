@@ -25,7 +25,6 @@ static void vSendingTask(void* pvParameters);
 // function for handling received packets
 void packet_received(uint8_t * data, uint16_t length, int8_t rssi,
 		uint16_t time);
-static uint16_t char_rx(uint8_t c);
 
 /* Global Variables */
 static xSemaphoreHandle xSPIMutex;
