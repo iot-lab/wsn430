@@ -90,7 +90,7 @@
 #define PRINTF(...) do {} while (0)
 #endif
 
-static uint8_t volatile pending;
+//static uint8_t volatile pending;
 
 #define BUSYWAIT_UNTIL(cond, max_time)                                  \
   do {                                                                  \

@@ -32,10 +32,12 @@ OBJ = $(SRC:.c=.o)
 a.out : $(OBJ) Makefile
 	$(CC) $(OBJ) $(CFLAGS)
 	$(OBJCOPY) -O ihex $(NAME).elf $(NAME).hex
-	$(JTAG) -e $(NAME).elf
 
 $(OBJ) : %.o : %.c Makefile
 	$(CC) -c $(CFLAGS) $< -o $@
+
+flash:
+	$(JTAG) -e $(NAME).elf
 
 clean :
 	rm -f ${NAME}.elf ${NAME}.hex ${OBJ}

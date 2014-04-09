@@ -301,7 +301,7 @@ void relay_dhcp_to_client(int slipfd) {
 	}
 	done: if (op == DHCP_OPTION_END) {
 		*t++ = op;
-		*p++;
+		//*p++;
 	}
 
 	optlen = t - pkt.m.options;

@@ -87,9 +87,9 @@
 #define CHANNEL 128
 
 struct example_neighbor {
-	struct example_neighbor *next;
-	rimeaddr_t addr;
-	struct ctimer ctimer;
+    struct example_neighbor *next;
+    rimeaddr_t addr;
+    struct ctimer ctimer;
 };
 
 extern process_event_t serial_line_event_message;
@@ -109,10 +109,10 @@ AUTOSTART_PROCESSES(&example_multihop_process);
  */
 static void remove_neighbor(void *n)
 {
-	struct example_neighbor *e = n;
+    struct example_neighbor *e = n;
 
-	list_remove(neighbor_table, e);
-	memb_free(&neighbor_mem, e);
+    list_remove(neighbor_table, e);
+    memb_free(&neighbor_mem, e);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -124,34 +124,34 @@ static void remove_neighbor(void *n)
  * neighbor table.
  */
 static void received_announcement(struct announcement *a,
-		const rimeaddr_t *from,
-		uint16_t id, uint16_t value)
+        const rimeaddr_t *from,
+        uint16_t id, uint16_t value)
 {
-	struct example_neighbor *e;
+    struct example_neighbor *e;
 
-	/*  printf("Got announcement from %d.%d, id %d, value %d\n",
-	    from->u8[0], from->u8[1], id, value); */
+    /*  printf("Got announcement from %d.%d, id %d, value %d\n",
+        from->u8[0], from->u8[1], id, value); */
 
-	/* We received an announcement from a neighbor so we need to update
-	   the neighbor list, or add a new entry to the table. */
-	for (e = list_head(neighbor_table); e != NULL; e = e->next) {
-		if (rimeaddr_cmp(from, &e->addr)) {
-			/* Our neighbor was found, so we update the timeout. */
-			ctimer_set(&e->ctimer, NEIGHBOR_TIMEOUT,
-					remove_neighbor, e);
-			return;
-		}
-	}
+    /* We received an announcement from a neighbor so we need to update
+       the neighbor list, or add a new entry to the table. */
+    for (e = list_head(neighbor_table); e != NULL; e = e->next) {
+        if (rimeaddr_cmp(from, &e->addr)) {
+            /* Our neighbor was found, so we update the timeout. */
+            ctimer_set(&e->ctimer, NEIGHBOR_TIMEOUT,
+                    remove_neighbor, e);
+            return;
+        }
+    }
 
-	/* The neighbor was not found in the list, so we add a new entry by
-	   allocating memory from the neighbor_mem pool, fill in the
-	   necessary fields, and add it to the list. */
-	e = memb_alloc(&neighbor_mem);
-	if (e != NULL) {
-		rimeaddr_copy(&e->addr, from);
-		list_add(neighbor_table, e);
-		ctimer_set(&e->ctimer, NEIGHBOR_TIMEOUT, remove_neighbor, e);
-	}
+    /* The neighbor was not found in the list, so we add a new entry by
+       allocating memory from the neighbor_mem pool, fill in the
+       necessary fields, and add it to the list. */
+    e = memb_alloc(&neighbor_mem);
+    if (e != NULL) {
+        rimeaddr_copy(&e->addr, from);
+        list_add(neighbor_table, e);
+        ctimer_set(&e->ctimer, NEIGHBOR_TIMEOUT, remove_neighbor, e);
+    }
 }
 
 static struct announcement example_announcement;
@@ -160,9 +160,9 @@ static struct announcement example_announcement;
  * This function is called at the final recepient of the message.
  */
 static void recv(struct multihop_conn *c, const rimeaddr_t *sender,
-		const rimeaddr_t * prevhop, uint8_t hops)
+        const rimeaddr_t * prevhop, uint8_t hops)
 {
-	printf("multihop message received '%s'\n", (char *)packetbuf_dataptr());
+    printf("multihop message received '%s'\n", (char *)packetbuf_dataptr());
 }
 
 /*
@@ -173,35 +173,36 @@ static void recv(struct multihop_conn *c, const rimeaddr_t *sender,
  * that the packet should be dropped.
  */
 static rimeaddr_t *forward(struct multihop_conn *c,
-		const rimeaddr_t * originator,
-		const rimeaddr_t * dest, const rimeaddr_t * prevhop,
-		uint8_t hops)
+        const rimeaddr_t * originator,
+        const rimeaddr_t * dest, const rimeaddr_t * prevhop,
+        uint8_t hops)
 {
-	int num, i;
-	struct example_neighbor *n = NULL;
+    int num = 0;
+    int i;
+    struct example_neighbor *n = NULL;
 
-	/* Find a random neighbor to send to. */
-	if (list_length(neighbor_table) > 0) {
-		num = random_rand() % list_length(neighbor_table);
-		i = 0;
-		for (n = list_head(neighbor_table); n != NULL && i != num;
-				n = n->next) {
-			++i;
-		}
-	}
+    /* Find a random neighbor to send to. */
+    if (list_length(neighbor_table) > 0) {
+        num = random_rand() % list_length(neighbor_table);
+        i = 0;
+        for (n = list_head(neighbor_table); n != NULL && i != num;
+                n = n->next) {
+            ++i;
+        }
+    }
 
-	if (n != NULL) {
-		printf ("%d.%d: Forwarding packet to %d.%d (%d in list),"
-				"hops %d\n",
-				rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-				n->addr.u8[0], n->addr.u8[1], num,
-				packetbuf_attr(PACKETBUF_ATTR_HOPS));
-		return &n->addr;
-	} else {
-		printf("%d.%d: did not find a neighbor to foward to\n",
-				rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
-		return NULL;
-	}
+    if (n != NULL) {
+        printf ("%d.%d: Forwarding packet to %d.%d (%d in list),"
+                "hops %d\n",
+                rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+                n->addr.u8[0], n->addr.u8[1], num,
+                packetbuf_attr(PACKETBUF_ATTR_HOPS));
+        return &n->addr;
+    } else {
+        printf("%d.%d: did not find a neighbor to foward to\n",
+                rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
+        return NULL;
+    }
 
 }
 
@@ -211,43 +212,43 @@ static struct multihop_conn multihop;
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(example_multihop_process, ev, data)
 {
-	PROCESS_EXITHANDLER(multihop_close(&multihop));
-	PROCESS_BEGIN();
+    PROCESS_EXITHANDLER(multihop_close(&multihop));
+    PROCESS_BEGIN();
 
-	memb_init(&neighbor_mem);
-	list_init(neighbor_table);
+    memb_init(&neighbor_mem);
+    list_init(neighbor_table);
 
-	/* Open a multihop connection on Rime channel CHANNEL. */
-	multihop_open(&multihop, CHANNEL, &multihop_call);
-	/* Register an announcement with the same announcement ID as the
-	   Rime channel we use to open the multihop connection above. */
-	announcement_register(&example_announcement, CHANNEL,
-			received_announcement);
-	announcement_set_value(&example_announcement, 0);
+    /* Open a multihop connection on Rime channel CHANNEL. */
+    multihop_open(&multihop, CHANNEL, &multihop_call);
+    /* Register an announcement with the same announcement ID as the
+       Rime channel we use to open the multihop connection above. */
+    announcement_register(&example_announcement, CHANNEL,
+            received_announcement);
+    announcement_set_value(&example_announcement, 0);
 
-	/* Receiver node does nothing else than listening */
-	if (rimeaddr_node_addr.u8[0] == receiver_node_rime_addr[0]
-		&& rimeaddr_node_addr.u8[1] == receiver_node_rime_addr[1]) {
-		printf("Receiver node listening\n");
-		PROCESS_WAIT_EVENT_UNTIL(0);
-	}
+    /* Receiver node does nothing else than listening */
+    if (rimeaddr_node_addr.u8[0] == receiver_node_rime_addr[0]
+            && rimeaddr_node_addr.u8[1] == receiver_node_rime_addr[1]) {
+        printf("Receiver node listening\n");
+        PROCESS_WAIT_EVENT_UNTIL(0);
+    }
 
-	printf("Write a character on serial link to send message\n");
-	while (1) {
-		rimeaddr_t to;
+    printf("Write a character on serial link to send message\n");
+    while (1) {
+        rimeaddr_t to;
 
-		/* Wait until we get a sensor event with the button sensor as data. */
-		PROCESS_WAIT_EVENT_UNTIL(ev == serial_line_event_message);
+        /* Wait until we get a sensor event with the button sensor as data. */
+        PROCESS_WAIT_EVENT_UNTIL(ev == serial_line_event_message);
 
-		printf("UART, send\n");
-		packetbuf_copyfrom("Hello", 6);
-		/* Set the Rime address of the final receiver */
-		to.u8[0] = receiver_node_rime_addr[0];
-		to.u8[1] = receiver_node_rime_addr[1];
+        printf("UART, send\n");
+        packetbuf_copyfrom("Hello", 6);
+        /* Set the Rime address of the final receiver */
+        to.u8[0] = receiver_node_rime_addr[0];
+        to.u8[1] = receiver_node_rime_addr[1];
 
-		multihop_send(&multihop, &to);
-	}
-	PROCESS_END();
+        multihop_send(&multihop, &to);
+    }
+    PROCESS_END();
 }
 
 /*---------------------------------------------------------------------------*/

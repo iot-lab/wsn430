@@ -5,7 +5,7 @@
 #    It should be improved to, at the end, print only errors or warnings
 #
 
-for i in $(find . -iname Makefile | grep -v TinyOS); do
+for i in $(find . -iname Makefile | grep -v TinyOS | grep -v drivers/Makefile); do
     make -s -C $(dirname $i) clean  --no-print-directory   RADIO=WITH_CC1101
     make -s -C $(dirname $i) --no-print-directory   RADIO=WITH_CC1101 || { echo $i; echo ; echo ; }
     make -s -C $(dirname $i) clean  --no-print-directory   RADIO=WITH_CC1101

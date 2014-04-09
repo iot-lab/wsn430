@@ -37,7 +37,7 @@ static uint8_t crc8_byte(uint8_t crc, uint8_t byte) {
 /* ************************************************** */
 
 uint8_t crc8_bytes(uint8_t* bytes, uint16_t len) {
-	int i;
+	uint16_t i;
 	uint8_t crc = 0;
 	for (i = 0; i < len; i++) {
 		crc = crc8_byte(crc, bytes[i]);
