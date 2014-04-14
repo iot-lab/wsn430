@@ -23,18 +23,18 @@ ALL_APPS = $(CONTIKI_APPS) $(APPS)
 clean-ALL_APPS = $(addprefix clean-, $(ALL_APPS))
 
 $(CONTIKI_APPS): % :
-	make -s -C $* --no-print-directory RADIO=WITH_CC1101
-	make -s -C $* --no-print-directory RADIO=WITH_CC2420
+	make -s -C $* RADIO=WITH_CC1101
+	make -s -C $* RADIO=WITH_CC2420
 
 
 # should clean before building because objects are note created per firmware
 # so previous compilations interfere with current one
 $(APPS): % :
-	make -s -C $* --no-print-directory clean
-	make -s -C $* --no-print-directory
+	make -s -C $* clean
+	make -s -C $*
 
 $(clean-ALL_APPS): clean-% :
-	make -s -C $* --no-print-directory clean
+	make -s -C $* clean
 
 
 compile_tests: $(ALL_APPS)
