@@ -1,0 +1,5 @@
+The event-post example implements two concurrent processes.
+The first is called "temp" and will periodically measure the temperature. When a few samples have been recorded, the average is computed and an event is posted to the next process.
+The second is called "print" and will wait for the first process to tell it some data is ready, such that it can print the measured value on the serial port.
+
+The print output can be observed on a PC with a serial terminal.

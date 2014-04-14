@@ -1,0 +1,5 @@
+This folder contains application examples for WSN430 using FreeRTOS.
+Refer to http://www.iot-lab.info for mode information.
+
+Then open a terminal in each example folder and run 'make'
+

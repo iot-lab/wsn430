@@ -1,0 +1,26 @@
+Readme
+======
+
+Last Update: March 13th, 2012
+Version: v2012-03-13
+
+
+
+Description
+-----------
+
+The pack of libraries gives a good starting point for writing networking applications.
+As a part of them or simply as an examples to develop completely new things.
+
+
+Changelog
+---------
+
+WSN430-lib v2012-03-13, CHANGELOG:
+	o Added Readme and version in file
+WSN430-lib v2011-11-10, CHANGELOG:
+	o Refactoring
+	o Added Documentation
+	o Added support for the new Makefile system from WSN430 drivers v1.8
+	o Compatibility with gcc-uniarch
+

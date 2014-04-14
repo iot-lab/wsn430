@@ -19,35 +19,6 @@ The code base contains:
 * Radio communication libraries
 
 
-Getting updates
----------------
-
-To get the last modifications from the git repository:
-
-        ~/iot-lab$ git pull
-
-
-Installation
-------------
-
-Run the `install.sh` script and copy its output to your `~/.bashrc` file
-
-        ~/iot-lab$ ./install.sh | less
-        ~/iot-lab$ ./install.sh >> ~/.bashrc
-
-And reload the configuration
-
-        ~/iot-lab$ source ~/.bashrc
-
-
-Contributing
-------------
-
-The repository is read only, but you can send patches on
-senslab-users mailing-list to fix bugs or suggest improvement.
-Just remember to tell on which commit they are based.
-
-
 License
 -------
 

@@ -1,7 +1,0 @@
-The hello-world example implements two concurrent processes.
-The first is called "hello_world" and will periodically print "Hello World" and an increasing counter on the serial port.
-The second is called "blink" and will blink the LEDs at a higher rate than the other process.
-
-The print output can be observed on a PC with a serial terminal.
-
-The environment variable WSN430_DRIVERS_PATH must point to the wsn430 drivers folder location.
