@@ -36,7 +36,7 @@ int main(void) {
 	xSPIMutex = xSemaphoreCreateMutex();
 
 	/* Create the task of the application */
-	mac_create_task(xSPIMutex, configMAX_PRIORITIES - 1);
+	mac_create_task(xSPIMutex);
 
 	vCreateSensorTask(1);
 

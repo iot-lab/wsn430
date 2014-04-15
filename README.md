@@ -5,6 +5,22 @@ This repository contains the IoT-LAB source code to run experiments on the IoT-L
 
 Documentation is available at https://github.com/iot-lab/iot-lab/wiki
 
+Download toolchain
+------------------ 
+
+mspgcc3
+http://sourceforge.net/projects/zolertia/files/Toolchain/msp430-z1.tar.gz
+
+Setup your dev env
+-------------------
+
+- make sure 'PATH' is set properly e.g. in '~/.bashrc'
+  so that cmake finds the cross-compiler : msp430-gcc -v
+
+Compile all applications
+------------------------
+
+make -f iotlab.makefile
 
 Description
 -----------

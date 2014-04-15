@@ -27,7 +27,7 @@ static void vSensorTask(void* pvParameters);
 static void vSensorInit(void);
 static void associated(void);
 static void lost(void);
-static void tx_ready(void);
+static void beacon(uint8_t id, uint16_t timestamp);
 static uint16_t measure_time(void);
 
 /* Local Variables */
@@ -53,7 +53,7 @@ static void vSensorTask(void* pvParameters) {
 	mac_send_command(MAC_ASSOCIATE);
 	mac_set_event_handler(MAC_ASSOCIATED, associated);
 	mac_set_event_handler(MAC_LOST, lost);
-	mac_set_event_handler(MAC_TX_READY, tx_ready);
+	mac_set_beacon_handler(beacon);
 
 	LED_GREEN_OFF();
 	for (;;) {
@@ -103,14 +103,8 @@ static void lost(void) {
 	printf("lost\n");
 }
 
-static void tx_ready(void) {
-	uint16_t event = TXREADY;
-	portBASE_TYPE woken = pdFALSE;
-	xQueueSendToBackFromISR(xDataQueue, &event, &woken);
-
-	if (woken == pdTRUE) {
-		taskYIELD();
-	}
+static void beacon(uint8_t id, uint16_t timestamp) {
+	LED_GREEN_TOGGLE();
 }
 
 static uint16_t measure_time(void) {

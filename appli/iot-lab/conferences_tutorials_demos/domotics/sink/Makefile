@@ -1,7 +1,7 @@
 
 # Setup paths to source code
 
-WSN430 = ../../../../../..
+WSN430 = ../../../../..
 FREERTOS = $(WSN430)/OS/FreeRTOS
 
 SOURCE_PATH = $(FREERTOS)/Source

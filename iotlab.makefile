@@ -13,12 +13,6 @@ APPS = $(shell find . -iname Makefile \
 			   -not -path './OS/FreeRTOS/doc/*' \
 			   -exec dirname {} \;)
 
-# remove non compiling examples
-APPS := $(filter-out ./appli/iot-lab/iot-lab_platform_code/bench_tdma/sink , $(APPS))
-APPS := $(filter-out ./appli/iot-lab/iot-lab_platform_code/bench_tdma/sensor , $(APPS))
-APPS := $(filter-out ./appli/iot-lab/conferences_tutorials_demos/showroom/motion/sensor_accel , $(APPS))
-
-
 ALL_APPS = $(CONTIKI_APPS) $(APPS)
 clean-ALL_APPS = $(addprefix clean-, $(ALL_APPS))
 

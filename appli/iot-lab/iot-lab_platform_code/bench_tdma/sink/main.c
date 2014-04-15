@@ -21,7 +21,8 @@
 static void prvSetupHardware(void);
 
 static void new_node(uint16_t);
-static void new_data(uint16_t);
+static void new_data(uint16_t node, uint8_t* data, uint16_t length);
+static void beacon(uint8_t id, uint16_t timestamp);
 
 /* Global Variables */
 static xSemaphoreHandle xSPIMutex;
@@ -37,10 +38,12 @@ int main(void) {
 	xSPIMutex = xSemaphoreCreateMutex();
 
 	/* Create the task of the application */
-	mac_create_task(xSPIMutex, configMAX_PRIORITIES - 1);
+	mac_create_task(xSPIMutex);
 
 	mac_set_node_associated_handler(new_node);
-	mac_set_data_received_handler(new_data);
+	mac_set_data_received_handler(new_data); 
+	mac_set_beacon_handler(beacon);
+
 
 	/* Start the scheduler. */
 	vTaskStartScheduler();
@@ -92,17 +95,23 @@ static uint32_t inline sensor_to_mv(uint16_t raw) {
 	return temp;
 }
 
-static void new_data(uint16_t node) {
-	sensor_data_t *data;
-	uint16_t length;
-	data = (sensor_data_t*) mac_read(node, &length);
+static void new_data(uint16_t node, uint8_t* data, uint16_t length) {
+
+        sensor_data_t *sdata;
 	uint16_t i,j;
 
+        LED_BLUE_TOGGLE();
+	sdata = (sensor_data_t*) data;
 
-	for (i = 0; i < data->length; i++) {
-	  printf("%.4x:%u", node, data->seq - data->length + 1 + i);
+	for (i = 0; i < sdata->length; i++) {
+	  printf("%.4x:%u", node, sdata->seq - sdata->length + 1 + i);
 		for (j=0;j<SIZEDATA;j++)
-		  printf(" %u", data->measures[i][j]);
+		  printf(" %u", sdata->measures[i][j]);
 		printf("\r\n");
 	}
+
+}
+
+static void beacon(uint8_t id, uint16_t timestamp) {
+  LED_GREEN_TOGGLE();
 }

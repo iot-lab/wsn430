@@ -13,7 +13,7 @@ OBJCOPY=msp430-objcopy
 DEBUG=-g
 OPT=-Os
 
-INCLUDES = -I. -I$(WSN430)/drivers -I$(SOURCE_PATH)/include -I$(FREERTOS)/lib/mac/tdma
+INCLUDES = -I. -I$(WSN430)/drivers -I$(SOURCE_PATH)/include -I$(FREERTOS)/lib/mac/tdma -I$(FREERTOS)/lib/phy
 
 WARNINGS=-Wall -Wshadow -Wpointer-arith -Wbad-function-cast -Wcast-align -Wsign-compare \
 		-Waggregate-return -Wmissing-prototypes -Wmissing-declarations -Wunused
@@ -37,7 +37,8 @@ $(WSN430)/drivers/spi1.c \
 $(WSN430)/drivers/cc1101.c \
 $(WSN430)/drivers/clock.c \
 $(WSN430)/drivers/ds2411.c \
-$(FREERTOS)/lib/mac/tdma/tdma_node.c
+$(FREERTOS)/lib/mac/tdma/tdma_node.c \
+$(FREERTOS)/lib/phy/phy_cc1101.c
 
 #
 # Define all object files.
