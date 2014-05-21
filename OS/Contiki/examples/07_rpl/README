@@ -16,21 +16,33 @@ This is how to run the demo:
 
 2) flash the border-router.wsn430 firmware to a node
 
-3) go to the tools folder of the Contiki directory, and run the tunslip6 script
-with root priviledges
+3) As your are not root on the IOT-Lab server, you should run the tunslip6
+client on your computer, using an ssh port redirection to connect to the node
 
- # ./tunslip6 -a experiment -p 30000+<NODE_ID> aaaa::1/64
+In a first terminal run:
 
-(look at the node address, as written in the terminal)
+    # This line will rediret the node serial port to your computer
+    # this commands hangs until closed with Ctrl+C
+    $ ssh -L 50001:node<NUM>:20000 <login>@<site>.senslab.info -N
+
+In another terminal, go to the tools folder of the Contiki directory,
+compile and run the tunslip6 script with root priviledges
+
+    # ./tunslip6 -a localhost -p 50001 aaaa::1/64
+
+Then look at the node address, as written in the terminal
 
 
- 4) in another terminal, go to the rpl-udp folder, and compile the application:
+
+4) in another terminal, go to the rpl-udp folder, and compile the application:
  $ cd rpl-udp
  $ make
    [...]
-5) flash a node with the rpl-udp-client.wsn430 firmware
+5) flash other nodes with the rpl-udp-client.wsn430 firmware
 
-6) in a web browser, indicate the IPv6 address of the border router node, e.g.:
+6) in a web browser on your computer, indicate the IPv6 address
+of the border router node, e.g.:
+
 http://[aaaa::4a00:12:91b9:9e01]/
 
 7) you should see the list of the connected node, and you should be able to ping
