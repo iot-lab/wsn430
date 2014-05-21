@@ -22,8 +22,9 @@ client on your computer, using an ssh port redirection to connect to the node
 In a first terminal run:
 
     # This line will rediret the node serial port to your computer
-    # this commands hangs until closed with Ctrl+C
-    $ ssh -L 50001:node<NUM>:20000 <login>@<site>.senslab.info -N
+    # this commands hangs until closed with Ctrl+C with <node_name> in
+    # wsn430-<id> and m3-<id>
+    $ ssh -L 50001:<node_name>:20000 <login>@<site>.senslab.info -N
 
 In another terminal, go to the tools folder of the Contiki directory,
 compile and run the tunslip6 script with root priviledges
