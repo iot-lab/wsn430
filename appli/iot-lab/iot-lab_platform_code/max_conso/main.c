@@ -119,7 +119,7 @@ void radio_start_max_tx(void) {
 	cc1101_cfg_drate_m(0x2F);
 
 	uint8_t table[1];
-	table[0] = 0xC2; // 10dBm
+	table[0] = CC1101_868MHz_TX_10dBm;
 	cc1101_cfg_patable(table, 1);
 	cc1101_cfg_pa_power(0);
 	

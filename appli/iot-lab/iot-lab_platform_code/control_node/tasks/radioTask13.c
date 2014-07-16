@@ -202,7 +202,7 @@ int radio_cc1101_settxpower(uint8_t patable) {
 	vGetCC1101();
 
 	uint8_t table[1];
-	table[0] = patable; // -10dBm
+	table[0] = patable;
 	cc1101_cfg_patable(table, 1);
 	cc1101_cfg_pa_power(0);
 
@@ -327,7 +327,7 @@ static void vRadioInit(void) {
 	cc1101_cfg_drate_m(0x2F);
 
 	uint8_t table[1];
-	table[0] = 0x27; // -10dBm
+	table[0] = CC1101_868MHz_TX_m10dBm;
 	cc1101_cfg_patable(table, 1);
 	cc1101_cfg_pa_power(0);
 
