@@ -60,7 +60,7 @@ int main(void)
     printf("ds2411_uid == %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x\n",
         ds2411_id.raw[0], ds2411_id.raw[1], ds2411_id.raw[2], ds2411_id.raw[3],
         ds2411_id.raw[4], ds2411_id.raw[5], ds2411_id.raw[6], ds2411_id.raw[7]);
-    printf("iotlab_uid == %02x:%02x\n",
+    printf("iotlab_uid == %02x%02x\n",
         ds2411_id.raw[5], ds2411_id.raw[6]);
 
     while (1) {
