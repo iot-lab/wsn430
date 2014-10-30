@@ -48,6 +48,14 @@ int putchar (int c)
 	return uart0_putchar(c);
 }
 
+static void mdelay(unsigned int d)
+{
+    unsigned int i,j;
+    for (i = 0; i < d; i++)
+        for (j = 0; j < 6250; j++)
+            nop();
+}
+
 
 int main(void)
 {
@@ -57,13 +65,13 @@ int main(void)
 
 	ds2411_init();
 
-    printf("ds2411_uid == %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x\n",
-        ds2411_id.raw[0], ds2411_id.raw[1], ds2411_id.raw[2], ds2411_id.raw[3],
-        ds2411_id.raw[4], ds2411_id.raw[5], ds2411_id.raw[6], ds2411_id.raw[7]);
-    printf("iotlab_uid == %02x%02x\n",
-        ds2411_id.raw[5], ds2411_id.raw[6]);
-
     while (1) {
-            nop();
+        printf("ds2411_uid == %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x\n",
+            ds2411_id.raw[0], ds2411_id.raw[1], ds2411_id.raw[2], ds2411_id.raw[3],
+            ds2411_id.raw[4], ds2411_id.raw[5], ds2411_id.raw[6], ds2411_id.raw[7]);
+        printf("iotlab_uid == %02x%02x\n",
+            ds2411_id.raw[5], ds2411_id.raw[6]);
+
+        mdelay(1000);
     }
 }
