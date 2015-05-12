@@ -160,6 +160,7 @@ static void RELEASE_LOCK(void) {
 int cc2420_radio_init(void) {
 
 	cc2420_init();
+	cc2420_set_txpower(CC2420_2_45GHz_TX_0dBm);
 	cc2420_set_frequency(2405 + 5 * 26);
 	cc2420_set_fifopthr(127);
 	cc2420_io_fifop_int_clear();
