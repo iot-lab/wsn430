@@ -1,7 +1,7 @@
 # MAC Collision examples
 =======================
 
-## MAC Collision examples on M3 nodes
+## MAC Collision examples on CC2420 and CC1101 nodes
 ----------------------
 
 
