@@ -6,7 +6,9 @@
 #include "net/rime.h"
 #include "energest.h"
 #include "dev/serial-line.h"
-//#include "packet.h"
+#include "lib/list.h"
+#include "lib/memb.h"
+
 //#include "dev/light-sensor.h"
 //#include "dev/pressure-sensor.h"
 //#include "pressure_light.h"
@@ -34,7 +36,9 @@ static void abc_recv(struct broadcast_conn *c);
 static struct broadcast_conn broadcast; 
 static struct unicast_conn unicast;
 int send = 0;
+int counter = 0;
 static rimeaddr_t k;
+
 /*---------------------------------------------------------------------------*/
 
 PROCESS(broadcast_process, "Broadcast process");
@@ -69,20 +73,21 @@ static void unicast_message_resend () {
 
         int val = 0;
 
-        packetbuf_copyfrom("pong",5);
-        printf("rimeaddr_node_addr = [%u, %u]\n", rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1]);
-        printf("sending unicast to %d.%d\n",k.u8[0],k.u8[1]);
+        packetbuf_copyfrom("pong",4);
+//        printf(" rimeaddr_node_addr = %d.%d \n", rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1]);
+        printf(" sending unicast to %d.%d\n",k.u8[0],k.u8[1]);
 
                    
         val = unicast_send(&unicast,&k);
 
         if (val!=0){
                printf(" unicast message sent \n");
-              
+		leds_on(LEDS_GREEN);              
         }
          else {
                 printf(" unicast message not sent \n");
-        }
+       		leds_on(LEDS_RED);
+	 }
 
 }
 
@@ -92,8 +97,8 @@ static void unicast_message_resend () {
  void abc_recv(struct broadcast_conn *c)
 {
 	struct energy_time *incoming= (struct energy_time *)packetbuf_dataptr();
-//	printf(" Energy consumption (Time): CPU: %lu LPM: %lu TRANSMIT: %lu LISTEN: %lu \n", incoming->cpu, incoming->lpm,incoming->transmit, incoming->listen);
-//	printf(" Energy consumption (mW): CPU: %lu LPM: %lu TRANSMIT: %lu LISTEN: %lu \n",incoming->consumption_CPU,incoming->consumption_LPM,incoming->consumption_TX,incoming->consumption_RX);
+	printf(" Energy consumption (Time): CPU: %lu LPM: %lu TRANSMIT: %lu LISTEN: %lu \n", incoming->cpu, incoming->lpm,incoming->transmit, incoming->listen);
+	printf(" Energy consumption (mW): CPU: %lu LPM: %lu TRANSMIT: %lu LISTEN: %lu \n",incoming->consumption_CPU,incoming->consumption_LPM,incoming->consumption_TX,incoming->consumption_RX);
 
 }
 
@@ -104,8 +109,12 @@ static void  broadcast_recv(struct broadcast_conn *c,const rimeaddr_t * from)
 {
  
          rimeaddr_copy(&k,from);
-	      
-printf(" broadcast message received from %d.%d: '%s'\n",k.u8[0], k.u8[1], (char *)packetbuf_dataptr());	
+     
+  printf("%d.%d;broadcast message received from %d.%d: '%s'\n", rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],k.u8[0], k.u8[1], (char *)packetbuf_dataptr());	
+
+	leds_off(LEDS_RED | LEDS_GREEN);
+	leds_on(LEDS_YELLOW);
+	
 /* These functions show the pressure and light values */
 
  //	process_light_pressure();
@@ -122,8 +131,9 @@ static const struct broadcast_callbacks broadcast_callbacks = {broadcast_recv,ab
 
 static void recv_uc(struct unicast_conn *c, const rimeaddr_t *from)
 {
-
-  	printf(" unicast message received from %d.%d: '%s'\n",from->u8[0],from->u8[1], (char *)packetbuf_dataptr());
+//	counter = counter + 1;
+printf(" unicast message received from %d.%d: '%s'\n",from->u8[0], from->u8[1], (char *)packetbuf_dataptr());
+        
 
 }
 static const struct unicast_callbacks unicast_callbacks = {recv_uc};
@@ -147,18 +157,21 @@ static void broadcast_message() {
            last.transmit = energest_type_time(ENERGEST_TYPE_TRANSMIT);
            last.listen = energest_type_time(ENERGEST_TYPE_LISTEN);
           
-	   /* Send a broadcast message */
+  	   /* Send a broadcast message */
            packetbuf_copyfrom("ping",5);
-
- 	  printf("rimeaddr_node_addr = [%u, %u]\n", rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1]);
+	
+	  counter = 0;
+ 	  printf(" rimeaddr_node_addr: %d.%d \n", rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1]);
   	  ret = broadcast_send(&broadcast);
 
            if (ret!=0){
-                  printf("broadcast message sent \n");
-                        }
+                 printf(" broadcast message sent \n");
+                  leds_on(LEDS_GREEN);      
+			}
            else {
-                  printf("broadcast message not sent!\n");
-                        }
+	          printf(" broadcast message not sent!\n");
+        	  leds_on(LEDS_RED);	
+	                }
 
            /* Energy consumption diff */
 		
@@ -196,10 +209,14 @@ PROCESS_THREAD(broadcast_process, ev, data)
 
 
 	broadcast_open(&broadcast,129, &broadcast_callbacks);
-        printf("rimeaddr_node_addr = [%u, %u]\n", rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1]);
 
+	// printf address nodes 
+	printf(" rimeaddr_node_addr: %d.%d\n", rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1]);
 	print_usage();         
-  
+
+	//Initialize leds
+  	leds_init();
+	
         while(1){
 
 	/*Check the character on the serial line */
@@ -236,13 +253,15 @@ PROCESS_THREAD(unicast_process,ev,data)
 	PROCESS_EXITHANDLER(unicast_close(&unicast);)
 	
 	PROCESS_BEGIN();
-        
+
 	unicast_open(&unicast, 146, &unicast_callbacks);
-        
-         while(1){	        
-	 
-	PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_CONTINUE);
-        
+
+	leds_init();       
+
+	while(1){
+         
+  	PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_CONTINUE);
+	
 	if ( send == 0){
        
         unicast_message_resend();
@@ -254,8 +273,8 @@ PROCESS_THREAD(unicast_process,ev,data)
 	unicast_message_resend();
 	}
 	send = 1;
-}
-
+	
+} 
 	PROCESS_END();
 
 }
