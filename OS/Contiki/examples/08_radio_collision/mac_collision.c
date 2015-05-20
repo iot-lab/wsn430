@@ -1,13 +1,10 @@
 #include "contiki.h"
 #include "random.h"
-#include "dev/leds.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include "net/rime.h"
 #include "energest.h"
 #include "dev/serial-line.h"
-#include "lib/list.h"
-#include "lib/memb.h"
 
 //#include "dev/light-sensor.h"
 //#include "dev/pressure-sensor.h"
@@ -36,7 +33,6 @@ static void abc_recv(struct broadcast_conn *c);
 static struct broadcast_conn broadcast; 
 static struct unicast_conn unicast;
 int send = 0;
-int counter = 0;
 static rimeaddr_t k;
 
 /*---------------------------------------------------------------------------*/
@@ -76,17 +72,14 @@ static void unicast_message_resend () {
         packetbuf_copyfrom("pong",4);
 //        printf(" rimeaddr_node_addr = %d.%d \n", rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1]);
         printf(" sending unicast to %d.%d\n",k.u8[0],k.u8[1]);
-
                    
         val = unicast_send(&unicast,&k);
 
         if (val!=0){
                printf(" unicast message sent \n");
-		leds_on(LEDS_GREEN);              
-        }
-         else {
+	}     
+        else {
                 printf(" unicast message not sent \n");
-       		leds_on(LEDS_RED);
 	 }
 
 }
@@ -112,8 +105,6 @@ static void  broadcast_recv(struct broadcast_conn *c,const rimeaddr_t * from)
      
   printf("%d.%d;broadcast message received from %d.%d: '%s'\n", rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],k.u8[0], k.u8[1], (char *)packetbuf_dataptr());	
 
-	leds_off(LEDS_RED | LEDS_GREEN);
-	leds_on(LEDS_YELLOW);
 	
 /* These functions show the pressure and light values */
 
@@ -131,7 +122,7 @@ static const struct broadcast_callbacks broadcast_callbacks = {broadcast_recv,ab
 
 static void recv_uc(struct unicast_conn *c, const rimeaddr_t *from)
 {
-//	counter = counter + 1;
+
 printf(" unicast message received from %d.%d: '%s'\n",from->u8[0], from->u8[1], (char *)packetbuf_dataptr());
         
 
@@ -160,18 +151,15 @@ static void broadcast_message() {
   	   /* Send a broadcast message */
            packetbuf_copyfrom("ping",5);
 	
-	  counter = 0;
  	  printf(" rimeaddr_node_addr: %d.%d \n", rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1]);
   	  ret = broadcast_send(&broadcast);
 
            if (ret!=0){
-                 printf(" broadcast message sent \n");
-                  leds_on(LEDS_GREEN);      
-			}
+                printf(" broadcast message sent \n");
+		}
            else {
 	          printf(" broadcast message not sent!\n");
-        	  leds_on(LEDS_RED);	
-	                }
+                }
 
            /* Energy consumption diff */
 		
@@ -207,16 +195,12 @@ PROCESS_THREAD(broadcast_process, ev, data)
  
         PROCESS_BEGIN();
 
-
 	broadcast_open(&broadcast,129, &broadcast_callbacks);
 
 	// printf address nodes 
 	printf(" rimeaddr_node_addr: %d.%d\n", rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1]);
 	print_usage();         
 
-	//Initialize leds
-  	leds_init();
-	
         while(1){
 
 	/*Check the character on the serial line */
@@ -238,8 +222,7 @@ PROCESS_THREAD(broadcast_process, ev, data)
                 print_usage();
            break;
 	
-}
-}
+}}
 	PROCESS_END();
 }
 
@@ -256,8 +239,6 @@ PROCESS_THREAD(unicast_process,ev,data)
 
 	unicast_open(&unicast, 146, &unicast_callbacks);
 
-	leds_init();       
-
 	while(1){
          
   	PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_CONTINUE);
@@ -265,17 +246,14 @@ PROCESS_THREAD(unicast_process,ev,data)
 	if ( send == 0){
        
         unicast_message_resend();
-	start();
-	  }
+	start(); }
 	
         if ((send == 1) && (char *)data == "send_unicast")
 {
 	unicast_message_resend();
 	}
 	send = 1;
-	
 } 
 	PROCESS_END();
-
 }
 
