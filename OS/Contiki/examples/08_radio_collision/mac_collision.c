@@ -91,7 +91,7 @@ static void unicast_message_resend () {
 {
 	struct energy_time *incoming= (struct energy_time *)packetbuf_dataptr();
 	printf(" Energy consumption (Time): CPU: %lu LPM: %lu TRANSMIT: %lu LISTEN: %lu \n", incoming->cpu, incoming->lpm,incoming->transmit, incoming->listen);
-	printf(" Energy consumption (mW): CPU: %lu LPM: %lu TRANSMIT: %lu LISTEN: %lu \n",incoming->consumption_CPU,incoming->consumption_LPM,incoming->consumption_TX,incoming->consumption_RX);
+//	printf(" Energy consumption (mW): CPU: %lu LPM: %lu TRANSMIT: %lu LISTEN: %lu \n",incoming->consumption_CPU,incoming->consumption_LPM,incoming->consumption_TX,incoming->consumption_RX);
 
 }
 
