@@ -9,6 +9,7 @@
 #include "uart0.h"
 #include "tsl2550.h"
 #include "ds1722.h"
+#include "ds2411.h"
 #include "timerA.h"
 
 #include "mac.h"
@@ -52,6 +53,15 @@ volatile struct {
     uint16_t addr;
     int16_t rssi;
 } radio = {0};
+
+/**
+ * Serial Number
+ */
+static void serial_number()
+{
+    uint16_t node_addr = (((uint16_t)ds2411_id.serial1)<<8) + (ds2411_id.serial0);
+    printf("Unique identifier: %x\n", node_addr);
+}
 
 /**
  * Sensors
@@ -136,6 +146,7 @@ static void print_usage()
     printf("\th:\tprint this help\n");
     printf("\tt:\ttemperature measure\n");
     printf("\tl:\tluminosity measure\n");
+    printf("\tu:\tprint uid\n");
     printf("\ts:\tsend a radio packet\n");
     if (print_help)
         printf("\n Type Enter to stop printing this help\n");
@@ -166,6 +177,9 @@ static void hardware_init()
     tsl2550_init();
     tsl2550_powerup();
     tsl2550_set_standard();
+
+    // Initialize the Serial Number
+    ds2411_init();
 
     // Init csma Radio mac layer
     mac_init(CHANNEL);
@@ -199,6 +213,9 @@ static void handle_cmd(uint8_t cmd)
             break;
         case 'l':
             light_sensor();
+            break;
+	case 'u':
+            serial_number();
             break;
         case 's':
             send_packet();
@@ -265,7 +282,7 @@ static uint16_t char_rx(uint8_t c) {
     // disable help message after receiving char
     print_help = 0;
 
-    if (c=='t' || c=='l' || c=='h' || c=='s' || c=='\n') {
+    if (c=='t' || c=='l' || c=='h' || c=='u' || c=='s' || c=='\n') {
         // copy received character to cmd variable.
         cmd = c;
         // return not zero to wake the CPU up.
